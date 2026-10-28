@@ -53,5 +53,17 @@ ThemeData buildAppTheme(Brightness brightness) {
       thickness: 1,
       space: 1,
     ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: isDark ? CalcColors.darkKey : Colors.white,
+      modalBackgroundColor: isDark ? CalcColors.darkKey : Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: isDark ? CalcColors.darkKey : Colors.white,
+      surfaceTintColor: Colors.transparent,
+    ),
   );
 }

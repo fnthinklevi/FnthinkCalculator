@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../features/calculator/calculator_controller.dart';
 import '../features/calculator/calculator_page.dart';
 import '../features/converter/converter_home_page.dart';
 import '../features/multifunction/multifunction_page.dart';
+import '../features/settings/settings_page.dart';
 import '../theme/tokens.dart';
 import 'app_scope.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  const AppShell({super.key, this.calculatorController});
+
+  final CalculatorController? calculatorController;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -16,6 +20,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _index = 0;
+  late final List<Widget> _pages;
 
   static const _tabs = ['计算', '换算', '多功能'];
   static const _tabKeys = [
@@ -23,11 +28,16 @@ class _AppShellState extends State<AppShell> {
     Key('tab-converter'),
     Key('tab-multifunction'),
   ];
-  static const _pages = [
-    CalculatorPage(),
-    ConverterHomePage(),
-    MultifunctionPage(),
-  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      CalculatorPage(controller: widget.calculatorController),
+      const ConverterHomePage(),
+      const MultifunctionPage(),
+    ];
+  }
 
   void _selectTab(int index) {
     if (index == _index) return;
@@ -40,34 +50,34 @@ class _AppShellState extends State<AppShell> {
 
   void _handleMenu(String value) {
     final settings = AppScope.of(context);
-    switch (value) {
-      case 'system':
-        settings.themeMode = ThemeMode.system;
-      case 'light':
-        settings.themeMode = ThemeMode.light;
-      case 'dark':
-        settings.themeMode = ThemeMode.dark;
-      case 'about':
-        showAboutDialog(
-          context: context,
-          applicationName: '幻念多功能计算器',
-          applicationVersion: '1.0.0',
-          applicationIcon: const Icon(
-            Icons.calculate_outlined,
-            size: 36,
-            color: CalcColors.orange,
-          ),
-          children: const [
-            SizedBox(height: 8),
-            Text('参考小米计算器交互，首版包含标准计算、科学计算、单位换算与时间计算。'),
-          ],
-        );
+    if (value == 'settings') {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => SettingsPage(settings: settings),
+        ),
+      );
+      return;
+    }
+    if (value == 'about') {
+      showAboutDialog(
+        context: context,
+        applicationName: '幻念多功能计算器',
+        applicationVersion: '1.0.0',
+        applicationIcon: const Icon(
+          Icons.calculate_outlined,
+          size: 36,
+          color: CalcColors.orange,
+        ),
+        children: const [
+          SizedBox(height: 8),
+          Text('参考小米计算器交互，首版包含标准计算、科学计算、单位换算与时间计算。'),
+        ],
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final settings = AppScope.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final background = isDark ? CalcColors.darkBg : CalcColors.lightBg;
     final inactive = CalcColors.secondaryText(context);
@@ -139,33 +149,10 @@ class _AppShellState extends State<AppShell> {
                         ),
                         tooltip: '菜单',
                         onSelected: _handleMenu,
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'system',
-                            child: _menuRow(
-                              '跟随系统',
-                              settings.themeMode == ThemeMode.system,
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'light',
-                            child: _menuRow(
-                              '浅色',
-                              settings.themeMode == ThemeMode.light,
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'dark',
-                            child: _menuRow(
-                              '深色',
-                              settings.themeMode == ThemeMode.dark,
-                            ),
-                          ),
-                          const PopupMenuDivider(),
-                          const PopupMenuItem(
-                            value: 'about',
-                            child: Text('关于'),
-                          ),
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(value: 'settings', child: Text('设置')),
+                          PopupMenuDivider(),
+                          PopupMenuItem(value: 'about', child: Text('关于')),
                         ],
                       ),
                     ),
@@ -179,20 +166,6 @@ class _AppShellState extends State<AppShell> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _menuRow(String label, bool selected) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 24,
-          child: selected
-              ? const Icon(Icons.check, size: 18, color: CalcColors.orange)
-              : null,
-        ),
-        Text(label),
-      ],
     );
   }
 }

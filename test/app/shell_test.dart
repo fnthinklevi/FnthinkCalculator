@@ -24,35 +24,51 @@ void main() {
     expect(find.byKey(const Key('calculator-page')), findsOneWidget);
   });
 
-  testWidgets('菜单可以切换深色模式', (tester) async {
+  testWidgets('菜单可以打开设置并切换深色模式', (tester) async {
     final settings = SettingsController();
     await tester.pumpWidget(FnthinkCalculatorApp(settings: settings));
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('深色'));
+    await tester.tap(find.text('设置'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('settings-theme-dark')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('settings-theme-dark')));
     await tester.pumpAndSettle();
 
     expect(settings.themeMode, ThemeMode.dark);
     final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
     expect(app.themeMode, ThemeMode.dark);
-    expect(find.byKey(const Key('calculator-page')), findsOneWidget);
   });
 
-  testWidgets('浅色与跟随系统菜单项可切换', (tester) async {
+  testWidgets('设置页可切换主题、触感与角度单位', (tester) async {
     final settings = SettingsController(themeMode: ThemeMode.dark);
     await tester.pumpWidget(FnthinkCalculatorApp(settings: settings));
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('浅色'));
+    await tester.tap(find.text('设置'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('settings-theme-light')));
     await tester.pumpAndSettle();
     expect(settings.themeMode, ThemeMode.light);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('跟随系统'));
+    await tester.tap(find.byKey(const Key('settings-theme-system')));
     await tester.pumpAndSettle();
     expect(settings.themeMode, ThemeMode.system);
+
+    await tester.ensureVisible(find.byKey(const Key('settings-haptics')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('settings-haptics')));
+    await tester.pumpAndSettle();
+    expect(settings.haptics, isFalse);
+
+    await tester.ensureVisible(find.byKey(const Key('settings-angle-radians')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('settings-angle-radians')));
+    await tester.pumpAndSettle();
+    expect(settings.angleUnit, AngleUnit.radians);
   });
 }

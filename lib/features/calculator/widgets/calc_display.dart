@@ -307,7 +307,10 @@ class CaretText extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  left: left + caretOffset.dx,
+                  left: (left + caretOffset.dx).clamp(
+                    0.0,
+                    constraints.maxWidth - 2,
+                  ),
                   top: caretOffset.dy + fontSize * 0.08,
                   child: Container(
                     width: 2,

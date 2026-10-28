@@ -67,8 +67,8 @@ adb -s emulator-5554 emu kill
 | T1 | 文档体系 | 已完成 | 新建 `doc/base.md`、`doc/roadmap.md`；写入技术栈、软件信息、目录架构、任务状态与执行规则；更新 README 指向文档 | format/analyze/test/build 全绿；模拟器重装冷启动，无 FATAL | `ac10ecf` |
 | T2 | 设计系统与三标签壳 | 已完成 | 建立 `theme/tokens.dart`、`app_theme.dart`；实现顶部“计算 / 换算 / 多功能”三标签、右上菜单、深色模式、响应式壳；替换默认页 | 3 个 shell widget 测试；模拟器走查三标签与菜单，无 FATAL | `b256c3a` |
 | T3 | 数值层与表达式引擎 | 已完成 | 实现有理数 + double 数值层、Lexer、递归下降解析、AST、求值器、格式化器；落实小米百分比口径、错误模型、自动补右括号 | 39 项测试（含引擎/格式化/模糊）；format/analyze/test/build 全绿；模拟器回归无 FATAL | `915dbb5` |
-| T4 | 标准计算页 | 已完成 | 显示区、键位、光标编辑、实时预览、C/AC、退格、复制/大写；连接引擎与内存历史；错误态恢复 | 66 项测试（含控制器/页面/大写）；模拟器实测 `1+2=3`、除零恢复、科学面板，无 FATAL | 本次提交 |
-| T5 | 历史与设置持久化 | 待开始 | `shared_preferences` 存储历史与设置；历史弹层复用/删除/清空；设置页主题、震动、角度单位；损坏数据自动重置 | 持久化/损坏数据单元测试；模拟器重启后历史仍在 | 待记录 |
+| T4 | 标准计算页 | 已完成 | 显示区、键位、光标编辑、实时预览、C/AC、退格、复制/大写；连接引擎与内存历史；错误态恢复 | 66 项测试（含控制器/页面/大写）；模拟器实测 `1+2=3`、除零恢复、科学面板，无 FATAL | `0e9cfb4` |
+| T5 | 历史与设置持久化 | 已完成 | `shared_preferences` 存储历史与设置；历史弹层复用/删除/清空；设置页主题、震动、角度单位；损坏数据自动重置 | 73 项测试（含仓库/控制器重载）；模拟器切深色、重启后主题和历史均保留 | 本次提交 |
 | T6 | 科学计算 | 待开始 | 科学函数、2nd、DEG/RAD；竖屏功能条 + 标准键盘；横屏完整面板；定义域错误处理 | 函数/角度/定义域测试；模拟器竖屏与横屏走查 | 待记录 |
 | T7 | 单位换算（7 类） | 待开始 | 长度、面积、体积、温度、速度、时间、重量；换算表、单位互换、精度与格式；温度仿射换算 | 每类已知值与往返测试；模拟器逐类走查 | 待记录 |
 | T8 | 多功能页与时间计算 | 待开始 | 多功能页首卡“时间计算”；日期差、日期推算、时长加减、年龄计算；DateOnly/UTC 天差、月末夹取、工作日仅排周末 | 闰年/月末/跨年/反向/负数边界测试；模拟器四页走查 | 待记录 |
@@ -177,7 +177,7 @@ adb -s emulator-5554 emu kill
 ### T4 标准计算页
 
 - 日期：2026-10-28
-- 提交：本次提交
+- 提交：`0e9cfb4`
 - 完成内容：
   - `lib/features/calculator/calculator_controller.dart`：输入/结果/错误三态，实时预览、自动补括号、运算符合并、前导零/小数点校验、光标插入、历史复用、错误恢复。
   - `lib/features/calculator/history_entry.dart`：历史条目模型与 JSON 序列化，供 T5 持久化复用。
@@ -197,6 +197,29 @@ adb -s emulator-5554 emu kill
   - 实测 `1+2=3`，显示表达式与结果；科学面板展开正常；`logcat` 无 `FATAL EXCEPTION`。
   - 首次截图确认空表达式的光标已修正到 `0` 右侧。
 - 备注：换算页与多功能页仍是占位，T7/T8 替换。
+
+### T5 历史与设置持久化
+
+- 日期：2026-10-28
+- 提交：本次提交
+- 完成内容：
+  - `lib/app/settings_repository.dart`：主题、触感、角度单位的 SharedPreferences 读写。
+  - `lib/features/calculator/history_repository.dart`：历史 JSON 读写、200 条上限、损坏数据返回空。
+  - `SettingsController` 接入仓库：启动时加载，修改时异步写回。
+  - `CalculatorController` 接入 `HistoryStore`：启动加载历史，新增/删除/清空时落盘。
+  - 新增 `lib/features/settings/settings_page.dart`：主题模式、按键震动、角度单位、版本与数据说明。
+  - 菜单改为“设置 / 关于”；`main` 启动时加载 prefs，并把应用级 `CalculatorController` 注入壳。
+  - 修复空表达式光标被右边缘裁掉；统一底部弹层与对话框底色。
+- 闸门结果：
+  - `dart format`：0 changed。
+  - `flutter analyze`：No issues found。
+  - `flutter test`：73/73 通过。
+  - `flutter build apk --debug`：成功（19.4s）。
+- 冒烟结果：
+  - 设置页切换深色，应用主题即时更新。
+  - 计算 `1+2=3` 后 `am force-stop` 再冷启动，主题仍为深色，历史仍显示 `1+2 = 3`。
+  - `run-as` 读取 `FlutterSharedPreferences.xml`，确认 `history.v1` 与 `settings.themeMode.v1=dark` 已落盘。
+  - `logcat` 无 `FATAL EXCEPTION`。
 
 ## 5. 当前风险与注意事项
 

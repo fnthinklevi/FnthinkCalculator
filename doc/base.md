@@ -21,7 +21,7 @@
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
 | 设计参考 | 小米计算器 HyperOS 版本的布局、配色与交互；不使用小米商标、图标、字体等素材 |
 
-当前状态：T0–T4 已完成；标准计算页、表达式引擎、历史、科学函数条与人民币大写可用；换算页与多功能页仍为占位，等待 T7/T8。
+当前状态：T0–T5 已完成；标准计算页、表达式引擎、历史持久化、设置页、科学函数条与人民币大写可用；换算页与多功能页仍为占位，等待 T7/T8。
 
 ## 2. 技术栈
 
@@ -36,8 +36,8 @@
 | JVM / 字节码 | JDK 21；`sourceCompatibility`/`targetCompatibility` = 21；`jvmTarget` = 21 |
 | Android SDK | Platform 37、build-tools 37.0.0 |
 | 状态管理 | `ChangeNotifier` + `ListenableBuilder`，不引入重型状态库 |
-| 本地存储 | `shared_preferences`（计划加入） |
-| 格式化 | `intl`（计划加入） |
+| 本地存储 | `shared_preferences` ^2.5.3（已接入） |
+| 格式化 | `intl`（由 flutter_localizations 提供，直接使用待 T7/T8） |
 | 网络 | `http`（仅第二批汇率使用） |
 | 测试 | `flutter_test`、`integration_test`（后续需要时加入） |
 
@@ -137,21 +137,22 @@ FnthinkCalculator/
 │   ├── base.md                  # 本文档
 │   └── roadmap.md               # 任务、状态、闸门/冒烟/提交记录
 ├── lib/
-│   ├── main.dart
-│   ├── app/                     # app、app_scope、settings_controller、shell
+│   ├── main.dart                # 加载 prefs，创建应用级控制器
+│   ├── app/                     # app、app_scope、settings_controller、settings_repository、shell
 │   ├── theme/                   # tokens、app_theme
 │   ├── core/
 │   │   ├── math/                # 有理数、词法、解析、AST、求值、格式化、引擎
 │   │   └── utils/               # chinese_upper
 │   └── features/
-│       ├── calculator/          # 控制器、页面、显示/键盘/科学面板/历史弹层
+│       ├── calculator/          # 控制器、页面、历史仓库、显示/键盘/科学面板/历史弹层
 │       ├── converter/           # 占位，T7 替换
-│       └── multifunction/       # 占位，T8 替换
+│       ├── multifunction/       # 占位，T8 替换
+│       └── settings/            # 设置页
 ├── test/
-│   ├── app/shell_test.dart
+│   ├── app/                     # 壳与设置仓库
 │   ├── core/math/               # 引擎/格式化/有理数
 │   ├── core/utils/              # 人民币大写
-│   └── features/calculator/     # 控制器与页面
+│   └── features/                # 计算控制器/页面/持久化/历史仓库
 ├── tool/make_icons.py           # 图标生成脚本
 ├── pubspec.yaml
 └── analysis_options.yaml
@@ -252,11 +253,17 @@ integration_test/                # 后续需要时加入
 - 交互：按键缩放 + 触感；长按退格清当前，长按 C 清历史（确认），长按结果复制；错误态可一键恢复。
 - 适配 360–430dp 手机、横屏、平板最大宽度、字体缩放 1.3、深色模式。
 
-### 6.6 存储
+### 6.6 存储（T5 已实现）
 
-- `shared_preferences` + JSON，key 带版本号（如 `history.v1`、`settings.v1`）。
-- 历史记录上限 200 条；反序列化失败自动重置，不阻塞启动。
-- 设置项：主题模式、按键震动、角度单位、清除历史。
+- 使用 `shared_preferences`，键：
+  - `history.v1`
+  - `settings.themeMode.v1`
+  - `settings.haptics.v1`
+  - `settings.angleUnit.v1`
+- `HistoryRepository`（`lib/features/calculator/history_repository.dart`）：JSON 序列化、200 条上限、损坏数据返回空列表。
+- `SettingsRepository`（`lib/app/settings_repository.dart`）：主题模式/触感/角度单位读写。
+- 应用启动时 `main` 加载 prefs，创建应用级 `CalculatorController` 并注入壳；历史不再只存在页面内存里。
+- 写入为异步 fire-and-forget，UI 不被磁盘阻塞。
 - 不在首版采集任何个人数据。
 
 ### 6.7 图标

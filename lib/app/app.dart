@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import '../features/calculator/calculator_controller.dart';
 import '../theme/app_theme.dart';
 import 'app_scope.dart';
 import 'settings_controller.dart';
 import 'shell.dart';
 
 class FnthinkCalculatorApp extends StatelessWidget {
-  const FnthinkCalculatorApp({super.key, required this.settings});
+  const FnthinkCalculatorApp({
+    super.key,
+    required this.settings,
+    this.calculatorController,
+  });
 
   final SettingsController settings;
+  final CalculatorController? calculatorController;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +33,7 @@ class FnthinkCalculatorApp extends StatelessWidget {
             locale: const Locale('zh', 'CN'),
             supportedLocales: const [Locale('zh', 'CN')],
             localizationsDelegates: GlobalMaterialLocalizations.delegates,
-            home: const AppShell(),
+            home: AppShell(calculatorController: calculatorController),
           );
         },
       ),

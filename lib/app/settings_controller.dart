@@ -1,18 +1,33 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/math/angle_unit.dart';
+import 'settings_repository.dart';
 
 export '../core/math/angle_unit.dart';
 
 class SettingsController extends ChangeNotifier {
   SettingsController({
-    ThemeMode themeMode = ThemeMode.system,
-    bool haptics = true,
-    AngleUnit angleUnit = AngleUnit.degrees,
-  }) : this._(themeMode, haptics, angleUnit);
+    ThemeMode? themeMode,
+    bool? haptics,
+    AngleUnit? angleUnit,
+    SettingsRepository? repository,
+  }) : this._(
+         themeMode ?? repository?.loadThemeMode() ?? ThemeMode.system,
+         haptics ?? repository?.loadHaptics() ?? true,
+         angleUnit ?? repository?.loadAngleUnit() ?? AngleUnit.degrees,
+         repository,
+       );
 
-  SettingsController._(this._themeMode, this._haptics, this._angleUnit);
+  SettingsController._(
+    this._themeMode,
+    this._haptics,
+    this._angleUnit,
+    this._repository,
+  );
 
+  final SettingsRepository? _repository;
   ThemeMode _themeMode;
   bool _haptics;
   AngleUnit _angleUnit;
@@ -24,18 +39,21 @@ class SettingsController extends ChangeNotifier {
   set themeMode(ThemeMode value) {
     if (_themeMode == value) return;
     _themeMode = value;
+    unawaited(_repository?.saveThemeMode(value));
     notifyListeners();
   }
 
   set haptics(bool value) {
     if (_haptics == value) return;
     _haptics = value;
+    unawaited(_repository?.saveHaptics(value));
     notifyListeners();
   }
 
   set angleUnit(AngleUnit value) {
     if (_angleUnit == value) return;
     _angleUnit = value;
+    unawaited(_repository?.saveAngleUnit(value));
     notifyListeners();
   }
 }

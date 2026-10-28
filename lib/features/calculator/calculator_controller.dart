@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../core/math/angle_unit.dart';
@@ -5,25 +7,40 @@ import '../../core/math/calculator_engine.dart';
 import '../../core/math/formatter.dart';
 import '../../core/math/math_error.dart';
 import 'history_entry.dart';
+import 'history_repository.dart';
 
 enum CalculatorMode { input, result, error }
 
 class CalculatorController extends ChangeNotifier {
-  CalculatorController({
+  factory CalculatorController({
     CalculatorEngine engine = const CalculatorEngine(),
     AngleUnit angleUnit = AngleUnit.degrees,
     List<HistoryEntry> initialHistory = const [],
+    HistoryStore? historyStore,
     int maxHistory = 200,
-  }) : this._(engine, angleUnit, List.of(initialHistory), maxHistory);
+  }) {
+    final loaded =
+        historyStore?.load() ?? List<HistoryEntry>.of(initialHistory);
+    final history = loaded.take(maxHistory).toList(growable: true);
+    return CalculatorController._(
+      engine,
+      angleUnit,
+      historyStore,
+      history,
+      maxHistory,
+    );
+  }
 
   CalculatorController._(
     this._engine,
     this._angleUnit,
+    this._historyStore,
     this._history,
     this.maxHistory,
   );
 
   final CalculatorEngine _engine;
+  final HistoryStore? _historyStore;
   final int maxHistory;
   final List<HistoryEntry> _history;
   AngleUnit _angleUnit;
@@ -383,6 +400,7 @@ class CalculatorController extends ChangeNotifier {
     if (_history.length > maxHistory) {
       _history.removeRange(maxHistory, _history.length);
     }
+    _persistHistory();
     notifyListeners();
   }
 
@@ -398,14 +416,23 @@ class CalculatorController extends ChangeNotifier {
   }
 
   void removeHistory(HistoryEntry entry) {
-    _history.remove(entry);
+    final removed = _history.remove(entry);
+    if (!removed) return;
+    _persistHistory();
     notifyListeners();
   }
 
   void clearHistory() {
     if (_history.isEmpty) return;
     _history.clear();
+    _persistHistory();
     notifyListeners();
+  }
+
+  void _persistHistory() {
+    final store = _historyStore;
+    if (store == null) return;
+    unawaited(store.save(List<HistoryEntry>.unmodifiable(_history)));
   }
 
   void _startFreshInput() {
