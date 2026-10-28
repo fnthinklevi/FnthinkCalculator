@@ -21,7 +21,7 @@
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
 | 设计参考 | 小米计算器 HyperOS 版本的布局、配色与交互；不使用小米商标、图标、字体等素材 |
 
-当前状态：工程基线（T0）与文档体系（T1）完成，业务代码尚未开始；`lib/main.dart` 仍是 Flutter 默认计数器页。
+当前状态：T0–T4 已完成；标准计算页、表达式引擎、历史、科学函数条与人民币大写可用；换算页与多功能页仍为占位，等待 T7/T8。
 
 ## 2. 技术栈
 
@@ -127,7 +127,7 @@ adb -s emulator-5554 emu kill
 
 ## 5. 目录架构
 
-### 5.1 现有结构（T1 时点）
+### 5.1 现有结构（T4 时点）
 
 ```text
 FnthinkCalculator/
@@ -136,8 +136,22 @@ FnthinkCalculator/
 ├── doc/
 │   ├── base.md                  # 本文档
 │   └── roadmap.md               # 任务、状态、闸门/冒烟/提交记录
-├── lib/main.dart                # 当前仍是 Flutter 默认页，后续替换
-├── test/widget_test.dart        # 当前为默认计数器测试，后续替换
+├── lib/
+│   ├── main.dart
+│   ├── app/                     # app、app_scope、settings_controller、shell
+│   ├── theme/                   # tokens、app_theme
+│   ├── core/
+│   │   ├── math/                # 有理数、词法、解析、AST、求值、格式化、引擎
+│   │   └── utils/               # chinese_upper
+│   └── features/
+│       ├── calculator/          # 控制器、页面、显示/键盘/科学面板/历史弹层
+│       ├── converter/           # 占位，T7 替换
+│       └── multifunction/       # 占位，T8 替换
+├── test/
+│   ├── app/shell_test.dart
+│   ├── core/math/               # 引擎/格式化/有理数
+│   ├── core/utils/              # 人民币大写
+│   └── features/calculator/     # 控制器与页面
 ├── tool/make_icons.py           # 图标生成脚本
 ├── pubspec.yaml
 └── analysis_options.yaml
@@ -303,7 +317,7 @@ adb -s emulator-5554 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 3. 不要将 `org.jetbrains.kotlin.android` 改为 apply true；会重新触发 KGP 弃用警告。
 4. Java/Kotlin 字节码目标 21 已验证；不要再改回 17，除非明确要求。
 5. Debug APK 的 `INTERNET` 权限来自 Flutter debug manifest；首版 release 不声明该权限，第二批汇率再加。
-6. 当前 `lib/main.dart` 是默认计数器页，不是最终 UI；业务实现从 T2 开始。
+6. 换算页与多功能页仍是占位内容，T7/T8 才替换为真实页面；不要把占位当成最终实现。
 
 ## 9. 范围与非目标
 

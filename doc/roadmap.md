@@ -66,8 +66,8 @@ adb -s emulator-5554 emu kill
 | T0 | 工程初始化与构建基线 | 已完成 | Flutter Android 工程；包名、应用名、SDK 参数；Gradle 9.8.2 / AGP 9.4.1 / 内置 Kotlin / KGP 2.4.21 classpath；Java 21；腾讯 + 阿里云镜像；计算器自适应图标 | format/analyze/test/build 全绿；模拟器安装冷启动，无 FATAL | `149dae7` |
 | T1 | 文档体系 | 已完成 | 新建 `doc/base.md`、`doc/roadmap.md`；写入技术栈、软件信息、目录架构、任务状态与执行规则；更新 README 指向文档 | format/analyze/test/build 全绿；模拟器重装冷启动，无 FATAL | `ac10ecf` |
 | T2 | 设计系统与三标签壳 | 已完成 | 建立 `theme/tokens.dart`、`app_theme.dart`；实现顶部“计算 / 换算 / 多功能”三标签、右上菜单、深色模式、响应式壳；替换默认页 | 3 个 shell widget 测试；模拟器走查三标签与菜单，无 FATAL | `b256c3a` |
-| T3 | 数值层与表达式引擎 | 已完成 | 实现有理数 + double 数值层、Lexer、递归下降解析、AST、求值器、格式化器；落实小米百分比口径、错误模型、自动补右括号 | 39 项测试（含引擎/格式化/模糊）；format/analyze/test/build 全绿；模拟器回归无 FATAL | 本次提交 |
-| T4 | 标准计算页 | 待开始 | 显示区、键位、光标编辑、实时预览、C/AC、退格、复制/大写；连接引擎与内存历史；错误态恢复 | 标准计算关键路径 widget 测试；模拟器输入 `1+2=3`、百分比、除零、长数字 | 待记录 |
+| T3 | 数值层与表达式引擎 | 已完成 | 实现有理数 + double 数值层、Lexer、递归下降解析、AST、求值器、格式化器；落实小米百分比口径、错误模型、自动补右括号 | 39 项测试（含引擎/格式化/模糊）；format/analyze/test/build 全绿；模拟器回归无 FATAL | `915dbb5` |
+| T4 | 标准计算页 | 已完成 | 显示区、键位、光标编辑、实时预览、C/AC、退格、复制/大写；连接引擎与内存历史；错误态恢复 | 66 项测试（含控制器/页面/大写）；模拟器实测 `1+2=3`、除零恢复、科学面板，无 FATAL | 本次提交 |
 | T5 | 历史与设置持久化 | 待开始 | `shared_preferences` 存储历史与设置；历史弹层复用/删除/清空；设置页主题、震动、角度单位；损坏数据自动重置 | 持久化/损坏数据单元测试；模拟器重启后历史仍在 | 待记录 |
 | T6 | 科学计算 | 待开始 | 科学函数、2nd、DEG/RAD；竖屏功能条 + 标准键盘；横屏完整面板；定义域错误处理 | 函数/角度/定义域测试；模拟器竖屏与横屏走查 | 待记录 |
 | T7 | 单位换算（7 类） | 待开始 | 长度、面积、体积、温度、速度、时间、重量；换算表、单位互换、精度与格式；温度仿射换算 | 每类已知值与往返测试；模拟器逐类走查 | 待记录 |
@@ -151,7 +151,7 @@ adb -s emulator-5554 emu kill
 ### T3 数值层与表达式引擎
 
 - 日期：2026-10-28
-- 提交：本次提交
+- 提交：`915dbb5`
 - 完成内容：
   - `lib/core/math/rational.dart`：BigInt 有理数，四则、幂、比较、十进制/指数解析、精确约分。
   - `lib/core/math/calc_value.dart`：有理数 + double 混合数值层，四则、幂、阶乘、百分比、绝对值。
@@ -174,6 +174,30 @@ adb -s emulator-5554 emu kill
   - 不支持隐式乘法；表达式 `2(3)` 直接报格式错误。
   - 1000! 可算，按科学计数法显示。
 
+### T4 标准计算页
+
+- 日期：2026-10-28
+- 提交：本次提交
+- 完成内容：
+  - `lib/features/calculator/calculator_controller.dart`：输入/结果/错误三态，实时预览、自动补括号、运算符合并、前导零/小数点校验、光标插入、历史复用、错误恢复。
+  - `lib/features/calculator/history_entry.dart`：历史条目模型与 JSON 序列化，供 T5 持久化复用。
+  - `lib/features/calculator/widgets/calc_display.dart`：历史行、光标自绘显示、结果自适应缩放、`≈` 标记、复制/大写/历史入口。
+  - `lib/features/calculator/widgets/calc_keypad.dart`：4×5 键盘、白色圆角键、橙色运算符、橙色实心等号、按压动画、触感、长按清空。
+  - `lib/features/calculator/widgets/scientific_panel.dart`：基础科学函数条（sin/cos/tan/ln/log/√/x²/xʸ/!/π/e/括号）。
+  - `lib/features/calculator/widgets/history_sheet.dart`：历史弹层、复用、删除、长按复制。
+  - `lib/core/utils/chinese_upper.dart`：人民币大写，支持角分、零、负数、科学计数法输入与范围错误。
+  - 修复：数字后输入数字被误判为“接操作数”，曾插入 `×`；已在提交前修复并加测试覆盖。
+- 闸门结果：
+  - `dart format`：0 changed。
+  - `flutter analyze`：No issues found。
+  - `flutter test`：66/66 通过。
+  - `flutter build apk --debug`：成功（35.1s）。
+- 冒烟结果：
+  - 同一 `ci_api34_pixel6` AVD（当前串口 `emulator-5556`）安装成功，冷启动正常。
+  - 实测 `1+2=3`，显示表达式与结果；科学面板展开正常；`logcat` 无 `FATAL EXCEPTION`。
+  - 首次截图确认空表达式的光标已修正到 `0` 右侧。
+- 备注：换算页与多功能页仍是占位，T7/T8 替换。
+
 ## 5. 当前风险与注意事项
 
 1. 百分比语义容易按普通数学实现，必须按 `A ± B% = A ± A×B%` 的口径写测试。
@@ -181,7 +205,7 @@ adb -s emulator-5554 emu kill
 3. 日期月末夹取、闰年、反向区间是时间计算的主要 bug 源。
 4. 贷款/个税在第二批，未完成前不要在 UI 中放空入口。
 5. 模拟器与真机必须区分；所有 adb 命令带 `-s emulator-5554`，不操作真机。
-6. 当前默认页仍是 Flutter 计数器，T4 才替换为计算器主界面。
+6. 换算页与多功能页仍是占位内容，T7/T8 才会替换；在此之前不要把这些占位当成最终 UI。
 
 ## 6. 更新规则
 
