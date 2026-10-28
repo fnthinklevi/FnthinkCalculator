@@ -65,7 +65,7 @@ adb -s emulator-5554 emu kill
 |---|---|---|---|---|---|
 | T0 | 工程初始化与构建基线 | 已完成 | Flutter Android 工程；包名、应用名、SDK 参数；Gradle 9.8.2 / AGP 9.4.1 / 内置 Kotlin / KGP 2.4.21 classpath；Java 21；腾讯 + 阿里云镜像；计算器自适应图标 | format/analyze/test/build 全绿；模拟器安装冷启动，无 FATAL | `149dae7` |
 | T1 | 文档体系 | 已完成 | 新建 `doc/base.md`、`doc/roadmap.md`；写入技术栈、软件信息、目录架构、任务状态与执行规则；更新 README 指向文档 | format/analyze/test/build 全绿；模拟器重装冷启动，无 FATAL | `ac10ecf` |
-| T2 | 设计系统与三标签壳 | 待开始 | 建立 `theme/tokens.dart`、`app_theme.dart`；实现顶部“计算 / 换算 / 多功能”三标签、右上菜单、深色模式、响应式壳；替换默认页 | 新增标签切换/主题 widget 测试；模拟器走查三标签 | 待记录 |
+| T2 | 设计系统与三标签壳 | 已完成 | 建立 `theme/tokens.dart`、`app_theme.dart`；实现顶部“计算 / 换算 / 多功能”三标签、右上菜单、深色模式、响应式壳；替换默认页 | 3 个 shell widget 测试；模拟器走查三标签与菜单，无 FATAL | 本次提交 |
 | T3 | 数值层与表达式引擎 | 待开始 | 实现有理数 + double 数值层、Lexer、递归下降解析、AST、求值器、格式化器；落实小米百分比口径、错误模型、自动补右括号 | 100+ 引擎单元测试；format/analyze/test/build；模拟器启动回归 | 待记录 |
 | T4 | 标准计算页 | 待开始 | 显示区、键位、光标编辑、实时预览、C/AC、退格、复制/大写；连接引擎与内存历史；错误态恢复 | 标准计算关键路径 widget 测试；模拟器输入 `1+2=3`、百分比、除零、长数字 | 待记录 |
 | T5 | 历史与设置持久化 | 待开始 | `shared_preferences` 存储历史与设置；历史弹层复用/删除/清空；设置页主题、震动、角度单位；损坏数据自动重置 | 持久化/损坏数据单元测试；模拟器重启后历史仍在 | 待记录 |
@@ -124,6 +124,29 @@ adb -s emulator-5554 emu kill
   - APK 重装成功，冷启动 `TotalTime: 6833`。
   - `topResumedActivity` 为 `com.fnthink.FnthinkCalculator/.MainActivity`。
   - `logcat` 无 `FATAL EXCEPTION`、无 `E/flutter`。
+
+### T2 设计系统与三标签壳
+
+- 日期：2026-10-28
+- 提交：本次提交
+- 完成内容：
+  - 新增 `lib/theme/tokens.dart`：亮/暗色板、间距、圆角、字号、等宽数字。
+  - 新增 `lib/theme/app_theme.dart`：Material 3 亮/暗主题、橙色主色、菜单/SnackBar/选择主题。
+  - 新增 `lib/app/settings_controller.dart`、`app_scope.dart`：主题模式、触感、角度单位的内存状态。
+  - 新增 `lib/app/shell.dart`：顶部“计算 / 换算 / 多功能”三标签、右上菜单（跟随系统/浅色/深色/关于）、IndexedStack 保活、状态栏适配。
+  - `lib/app/app.dart` 接入中文本地化、亮/暗主题与三标签壳；`lib/main.dart` 替换默认计数器入口。
+  - 新增计算/换算/多功能三个页面占位，供后续任务替换。
+  - 删除 Flutter 默认计数器测试，新增 `test/app/shell_test.dart`。
+- 闸门结果：
+  - `dart format`：0 changed。
+  - `flutter analyze`：No issues found。
+  - `flutter test`：3/3 通过。
+  - `flutter build apk --debug`：成功（53.7s）。
+- 冒烟结果：
+  - 模拟器安装成功，冷启动 `TotalTime: 2767`。
+  - 三标签可切换，右上菜单可打开，深色模式正常。
+  - `logcat` 无 `FATAL EXCEPTION`、无 `E/flutter`。
+- 备注：当前三个页面仍是占位内容，T4/T7/T8 会替换为真实页面。
 
 ## 5. 当前风险与注意事项
 
