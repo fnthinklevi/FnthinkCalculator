@@ -65,8 +65,8 @@ adb -s emulator-5554 emu kill
 |---|---|---|---|---|---|
 | T0 | 工程初始化与构建基线 | 已完成 | Flutter Android 工程；包名、应用名、SDK 参数；Gradle 9.8.2 / AGP 9.4.1 / 内置 Kotlin / KGP 2.4.21 classpath；Java 21；腾讯 + 阿里云镜像；计算器自适应图标 | format/analyze/test/build 全绿；模拟器安装冷启动，无 FATAL | `149dae7` |
 | T1 | 文档体系 | 已完成 | 新建 `doc/base.md`、`doc/roadmap.md`；写入技术栈、软件信息、目录架构、任务状态与执行规则；更新 README 指向文档 | format/analyze/test/build 全绿；模拟器重装冷启动，无 FATAL | `ac10ecf` |
-| T2 | 设计系统与三标签壳 | 已完成 | 建立 `theme/tokens.dart`、`app_theme.dart`；实现顶部“计算 / 换算 / 多功能”三标签、右上菜单、深色模式、响应式壳；替换默认页 | 3 个 shell widget 测试；模拟器走查三标签与菜单，无 FATAL | 本次提交 |
-| T3 | 数值层与表达式引擎 | 待开始 | 实现有理数 + double 数值层、Lexer、递归下降解析、AST、求值器、格式化器；落实小米百分比口径、错误模型、自动补右括号 | 100+ 引擎单元测试；format/analyze/test/build；模拟器启动回归 | 待记录 |
+| T2 | 设计系统与三标签壳 | 已完成 | 建立 `theme/tokens.dart`、`app_theme.dart`；实现顶部“计算 / 换算 / 多功能”三标签、右上菜单、深色模式、响应式壳；替换默认页 | 3 个 shell widget 测试；模拟器走查三标签与菜单，无 FATAL | `b256c3a` |
+| T3 | 数值层与表达式引擎 | 已完成 | 实现有理数 + double 数值层、Lexer、递归下降解析、AST、求值器、格式化器；落实小米百分比口径、错误模型、自动补右括号 | 39 项测试（含引擎/格式化/模糊）；format/analyze/test/build 全绿；模拟器回归无 FATAL | 本次提交 |
 | T4 | 标准计算页 | 待开始 | 显示区、键位、光标编辑、实时预览、C/AC、退格、复制/大写；连接引擎与内存历史；错误态恢复 | 标准计算关键路径 widget 测试；模拟器输入 `1+2=3`、百分比、除零、长数字 | 待记录 |
 | T5 | 历史与设置持久化 | 待开始 | `shared_preferences` 存储历史与设置；历史弹层复用/删除/清空；设置页主题、震动、角度单位；损坏数据自动重置 | 持久化/损坏数据单元测试；模拟器重启后历史仍在 | 待记录 |
 | T6 | 科学计算 | 待开始 | 科学函数、2nd、DEG/RAD；竖屏功能条 + 标准键盘；横屏完整面板；定义域错误处理 | 函数/角度/定义域测试；模拟器竖屏与横屏走查 | 待记录 |
@@ -128,7 +128,7 @@ adb -s emulator-5554 emu kill
 ### T2 设计系统与三标签壳
 
 - 日期：2026-10-28
-- 提交：本次提交
+- 提交：`b256c3a`
 - 完成内容：
   - 新增 `lib/theme/tokens.dart`：亮/暗色板、间距、圆角、字号、等宽数字。
   - 新增 `lib/theme/app_theme.dart`：Material 3 亮/暗主题、橙色主色、菜单/SnackBar/选择主题。
@@ -147,6 +147,32 @@ adb -s emulator-5554 emu kill
   - 三标签可切换，右上菜单可打开，深色模式正常。
   - `logcat` 无 `FATAL EXCEPTION`、无 `E/flutter`。
 - 备注：当前三个页面仍是占位内容，T4/T7/T8 会替换为真实页面。
+
+### T3 数值层与表达式引擎
+
+- 日期：2026-10-28
+- 提交：本次提交
+- 完成内容：
+  - `lib/core/math/rational.dart`：BigInt 有理数，四则、幂、比较、十进制/指数解析、精确约分。
+  - `lib/core/math/calc_value.dart`：有理数 + double 混合数值层，四则、幂、阶乘、百分比、绝对值。
+  - `lib/core/math/lexer.dart`、`parser.dart`、`ast.dart`：词法、递归下降解析、AST；支持函数、常量、括号、后缀 `!`/`%`、右结合幂、一元负号。
+  - `lib/core/math/evaluator.dart`：小米百分比口径、DEG/RAD、三角/反三角/对数/根、定义域与溢出错误。
+  - `lib/core/math/formatter.dart`：精确小数、12 位有效数字、`≈` 标记、千分位、科学计数法。
+  - `lib/core/math/calculator_engine.dart`：统一入口，自动补右括号，异常转中文错误。
+  - `AngleUnit` 移到 `core/math`，设置控制器改为引用核心枚举。
+- 闸门结果：
+  - `dart format`：0 changed。
+  - `flutter analyze`：No issues found。
+  - `flutter test`：39/39 通过（含 36 项引擎/格式化/模糊测试）。
+  - `flutter build apk --debug`：成功（25.2s）。
+- 冒烟结果：
+  - 模拟器 `emulator-5554` 重装成功，冷启动 `TotalTime: 9026`。
+  - `logcat` 无 `FATAL EXCEPTION`、无 `E/flutter`。
+- 口径确认：
+  - `10%+10%=0.11`、`100+10%=110`、`100−10%=90`、`100×10%=10`、`100÷10%=1,000`。
+  - `0.1+0.2=0.3` 精确；`1÷3` 显示 `≈0.333333333333`；`1÷8=0.125`。
+  - 不支持隐式乘法；表达式 `2(3)` 直接报格式错误。
+  - 1000! 可算，按科学计数法显示。
 
 ## 5. 当前风险与注意事项
 

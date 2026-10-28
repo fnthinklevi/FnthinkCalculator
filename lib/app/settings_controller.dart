@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-enum AngleUnit { degrees, radians }
+import '../core/math/angle_unit.dart';
+
+export '../core/math/angle_unit.dart';
 
 class SettingsController extends ChangeNotifier {
   SettingsController({
