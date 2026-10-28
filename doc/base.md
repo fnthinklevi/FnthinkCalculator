@@ -21,7 +21,7 @@
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
 | 设计参考 | 小米计算器 HyperOS 版本的布局、配色与交互；不使用小米商标、图标、字体等素材 |
 
-当前状态：T0–T6 已完成；标准/科学计算、历史持久化、设置页与人民币大写可用；换算页与多功能页仍为占位，等待 T7/T8。
+当前状态：T0–T7 已完成；标准/科学计算、历史持久化、设置页、人民币大写与 7 类单位换算可用；多功能页仍为占位，等待 T8。
 
 ## 2. 技术栈
 
@@ -127,7 +127,7 @@ adb -s emulator-5554 emu kill
 
 ## 5. 目录架构
 
-### 5.1 现有结构（T4 时点）
+### 5.1 现有结构（T7 时点）
 
 ```text
 FnthinkCalculator/
@@ -145,14 +145,14 @@ FnthinkCalculator/
 │   │   └── utils/               # chinese_upper
 │   └── features/
 │       ├── calculator/          # 控制器、页面、历史仓库、显示/键盘/科学面板/历史弹层
-│       ├── converter/           # 占位，T7 替换
+│       ├── converter/           # 7 类单位数据、控制器、首页与详情页
 │       ├── multifunction/       # 占位，T8 替换
 │       └── settings/            # 设置页
 ├── test/
 │   ├── app/                     # 壳与设置仓库
 │   ├── core/math/               # 引擎/格式化/有理数
 │   ├── core/utils/              # 人民币大写
-│   └── features/                # 计算控制器/页面/持久化/历史仓库
+│   └── features/                # 计算/换算/持久化/历史仓库
 ├── tool/make_icons.py           # 图标生成脚本
 ├── pubspec.yaml
 └── analysis_options.yaml
@@ -266,7 +266,16 @@ integration_test/                # 后续需要时加入
 - 写入为异步 fire-and-forget，UI 不被磁盘阻塞。
 - 不在首版采集任何个人数据。
 
-### 6.7 图标
+### 6.7 单位换算（T7 已实现）
+
+- 7 类：长度、面积、体积、温度、速度、时间、重量。
+- 线性单位使用 BigRational 因子；温度以摄氏度为基，华氏/开尔文/兰氏度为仿射变换。
+- 结果复用 `NumberFormatter`：有限小数精确显示，非终止结果标 `≈`，千分位与科学计数法一致。
+- 时间明确按 `1 月 = 30 天、1 年 = 365 天`；面积标注亩按 `2000/3 m²`。
+- 单位选择器为底部弹层；详情页支持实时输入、交换、复制。
+- 未做输入持久化；离开页面后输入不保留。
+
+### 6.8 图标
 
 - 设计：橙色底、白色计算器机身、深色屏幕、灰色按键、橙色等号键；48px 下仍可辨认。
 - 源图：`assets/icon/app_icon_source.png`。
@@ -324,7 +333,7 @@ adb -s emulator-5554 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 3. 不要将 `org.jetbrains.kotlin.android` 改为 apply true；会重新触发 KGP 弃用警告。
 4. Java/Kotlin 字节码目标 21 已验证；不要再改回 17，除非明确要求。
 5. Debug APK 的 `INTERNET` 权限来自 Flutter debug manifest；首版 release 不声明该权限，第二批汇率再加。
-6. 换算页与多功能页仍是占位内容，T7/T8 才替换为真实页面；不要把占位当成最终实现。
+6. 多功能页仍是占位内容，T8 才替换为真实页面；不要把占位当成最终实现。
 
 ## 9. 范围与非目标
 
