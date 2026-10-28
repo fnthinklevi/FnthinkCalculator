@@ -64,7 +64,7 @@ adb -s emulator-5554 emu kill
 | ID | 任务 | 状态 | 如何完成 | 闸门 / 冒烟 | 提交 |
 |---|---|---|---|---|---|
 | T0 | 工程初始化与构建基线 | 已完成 | Flutter Android 工程；包名、应用名、SDK 参数；Gradle 9.8.2 / AGP 9.4.1 / 内置 Kotlin / KGP 2.4.21 classpath；Java 21；腾讯 + 阿里云镜像；计算器自适应图标 | format/analyze/test/build 全绿；模拟器安装冷启动，无 FATAL | `149dae7` |
-| T1 | 文档体系 | 已完成 | 新建 `doc/base.md`、`doc/roadmap.md`；写入技术栈、软件信息、目录架构、任务状态与执行规则；更新 README 指向文档 | format/analyze/test/build 全绿；模拟器重装冷启动，无 FATAL | 本次提交 |
+| T1 | 文档体系 | 已完成 | 新建 `doc/base.md`、`doc/roadmap.md`；写入技术栈、软件信息、目录架构、任务状态与执行规则；更新 README 指向文档 | format/analyze/test/build 全绿；模拟器重装冷启动，无 FATAL | `ac10ecf` |
 | T2 | 设计系统与三标签壳 | 待开始 | 建立 `theme/tokens.dart`、`app_theme.dart`；实现顶部“计算 / 换算 / 多功能”三标签、右上菜单、深色模式、响应式壳；替换默认页 | 新增标签切换/主题 widget 测试；模拟器走查三标签 | 待记录 |
 | T3 | 数值层与表达式引擎 | 待开始 | 实现有理数 + double 数值层、Lexer、递归下降解析、AST、求值器、格式化器；落实小米百分比口径、错误模型、自动补右括号 | 100+ 引擎单元测试；format/analyze/test/build；模拟器启动回归 | 待记录 |
 | T4 | 标准计算页 | 待开始 | 显示区、键位、光标编辑、实时预览、C/AC、退格、复制/大写；连接引擎与内存历史；错误态恢复 | 标准计算关键路径 widget 测试；模拟器输入 `1+2=3`、百分比、除零、长数字 | 待记录 |
@@ -110,7 +110,7 @@ adb -s emulator-5554 emu kill
 ### T1 文档体系
 
 - 日期：2026-10-28
-- 提交：本次提交
+- 提交：`ac10ecf`（本次文档提交）
 - 完成内容：
   - 新建 `doc/base.md`：软件信息、技术栈、构建命令、仓库镜像、目录架构、核心实现约束、质量规则、已知警告、范围。
   - 新建 `doc/roadmap.md`：范围、闸门/冒烟/提交规则、T0–T14 任务表、完成记录。
