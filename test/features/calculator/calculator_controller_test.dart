@@ -233,4 +233,41 @@ void main() {
     controller.toggleSecond();
     expect(controller.second, isFalse);
   });
+
+  test('常见错误均可恢复', () {
+    final setups = <void Function(CalculatorController)>[
+      (controller) {
+        controller.inputDigit('1');
+        controller.inputOperator('÷');
+        controller.inputDigit('0');
+      },
+      (controller) {
+        controller.inputFunction('sqrt');
+        controller.inputOperator('−');
+        controller.inputDigit('1');
+      },
+      (controller) {
+        controller.inputFunction('tan');
+        controller.inputDigit('9');
+        controller.inputDigit('0');
+      },
+      (controller) {
+        controller.inputDigit('1');
+        controller.inputDecimal();
+        controller.inputDigit('5');
+        controller.inputPostfix('!');
+      },
+    ];
+
+    for (final setup in setups) {
+      final controller = CalculatorController();
+      setup(controller);
+      controller.evaluate();
+      expect(controller.isErrorMode, isTrue);
+      expect(controller.errorMessage, isNotEmpty);
+      controller.inputDigit('2');
+      expect(controller.isInputMode, isTrue);
+      expect(controller.expression, '2');
+    }
+  });
 }

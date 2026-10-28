@@ -245,6 +245,8 @@ class CaretText extends StatelessWidget {
       fontFeatures: CalcText.tabular,
     );
 
+    final textScaler = MediaQuery.textScalerOf(context);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         var fontSize = CalcText.displayLarge;
@@ -257,6 +259,7 @@ class CaretText extends StatelessWidget {
             ),
             textDirection: TextDirection.ltr,
             maxLines: 1,
+            textScaler: textScaler,
           )..layout();
           if (painter.width <= constraints.maxWidth ||
               fontSize <= CalcText.displayMin) {

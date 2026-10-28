@@ -21,7 +21,7 @@
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
 | 设计参考 | 小米计算器 HyperOS 版本的布局、配色与交互；不使用小米商标、图标、字体等素材 |
 
-当前状态：T0–T8.2 已完成；标准/科学计算、历史持久化、设置页、人民币大写、7 类单位换算、时间计算与全应用内置数字键盘可用；T9 质量收口进行中。
+当前状态：T0–T9 已完成；首版标准/科学计算、历史持久化、设置页、人民币大写、7 类单位换算、时间计算、全应用内置数字键盘与 release 包均已就绪；P1 功能尚未开始。
 
 ## 2. 技术栈
 
@@ -104,26 +104,37 @@ flutter build apk --debug
 APK 路径：
 
 ```text
-build/app/outputs/flutter-apk/app-debug.apk
+build/app/outputs/flutter-apk/app-debug.apk       # 调试
+build/app/outputs/flutter-apk/app-release.apk     # 通用 release（54.0MB）
+build/app/outputs/flutter-apk/app-arm64-v8a-release.apk  # arm64（19.4MB）
 ```
+
+release 构建：
+
+```bash
+flutter build apk --release
+flutter build apk --release --split-per-abi
+```
+
+当前 release 使用模板默认 debug 签名；正式签名需提供 keystore。
 
 模拟器：
 
 ```bash
 flutter emulators --launch ci_api34_pixel6
-adb -s emulator-5554 wait-for-device
-adb -s emulator-5554 shell getprop sys.boot_completed
-adb -s emulator-5554 install -r build/app/outputs/flutter-apk/app-debug.apk
-adb -s emulator-5554 shell am start -W -n com.fnthink.FnthinkCalculator/.MainActivity
-adb -s emulator-5554 exec-out screencap -p > smoke.png
-adb -s emulator-5554 emu kill
+adb -s emulator-5556 wait-for-device
+adb -s emulator-5556 shell getprop sys.boot_completed
+adb -s emulator-5556 install -r build/app/outputs/flutter-apk/app-debug.apk
+adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainActivity
+adb -s emulator-5556 exec-out screencap -p > smoke.png
+adb -s emulator-5556 emu kill
 ```
 
 设备约定：
 
 - 本机模拟器为 `ci_api34_pixel6`，API 34，1080×2400，density 420。
-- 所有 adb 命令必须带 `-s emulator-5554`，禁止裸 adb 指向真机。
-- 冒烟结束用 `adb -s emulator-5554 emu kill` 关闭模拟器。
+- 所有 adb 命令必须带 `-s emulator-<n>`（本次会话为 `emulator-5556`），禁止裸 adb 指向真机。
+- 冒烟结束用 `adb -s emulator-5556 emu kill` 关闭模拟器。
 
 ## 5. 目录架构
 
@@ -153,7 +164,9 @@ FnthinkCalculator/
 │   ├── app/                     # 壳与设置仓库
 │   ├── core/math/               # 引擎/格式化/有理数
 │   ├── core/utils/              # 人民币大写、日期、时长
-│   └── features/                # 计算/换算/多功能/持久化/历史仓库
+│   ├── features/                # 计算/换算/多功能/持久化/历史仓库
+│   ├── widgets/                 # 数字键盘/规则
+│   └── golden/                  # 亮/暗布局 golden
 ├── tool/make_icons.py           # 图标生成脚本
 ├── pubspec.yaml
 └── analysis_options.yaml
@@ -323,8 +336,8 @@ flutter build apk --debug
 涉及 Android/Gradle 配置时额外核对：
 
 ```bash
-adb -s emulator-5554 install -r build/app/outputs/flutter-apk/app-debug.apk
-adb -s emulator-5554 shell am start -W -n com.fnthink.FnthinkCalculator/.MainActivity
+adb -s emulator-5556 install -r build/app/outputs/flutter-apk/app-debug.apk
+adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainActivity
 ```
 
 ### 7.2 冒烟测试
@@ -333,7 +346,7 @@ adb -s emulator-5554 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 - 走查本任务新增的主路径；截图留证（临时目录即可，不入库）。
 - 检查 `logcat` 无 `FATAL EXCEPTION`、无未捕获异常。
 - 涉及持久化、日期、贷款、个税的任务，额外手工输入至少 3 组边界值。
-- 冒烟结束关闭模拟器：`adb -s emulator-5554 emu kill`。
+- 冒烟结束关闭模拟器：`adb -s emulator-5556 emu kill`。
 
 ### 7.3 提交
 
@@ -350,7 +363,7 @@ adb -s emulator-5554 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 3. 不要将 `org.jetbrains.kotlin.android` 改为 apply true；会重新触发 KGP 弃用警告。
 4. Java/Kotlin 字节码目标 21 已验证；不要再改回 17，除非明确要求。
 5. Debug APK 的 `INTERNET` 权限来自 Flutter debug manifest；首版 release 不声明该权限，第二批汇率再加。
-6. 首版功能已齐，T9 负责 fuzz/golden/无障碍/APK 收口；P1 的房贷、个税、汇率、亲戚称呼、比例尚未开始。
+6. 首版已完成；P1 的房贷、个税、汇率、亲戚称呼、比例尚未开始。release 使用模板默认 debug 签名，正式发布前需提供 keystore 并重新构建。
 
 ## 9. 范围与非目标
 
