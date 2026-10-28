@@ -165,4 +165,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(controller.history, isEmpty);
   });
+
+  testWidgets('左下角撤回键逐次删除一位', (tester) async {
+    configureSurface(tester);
+    final controller = CalculatorController();
+    await tester.pumpWidget(harness(controller));
+
+    for (final key in ['key-3', 'key-2', 'key-plus', 'key-2', 'key-5']) {
+      await tapKey(tester, key);
+    }
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-input-text'))).data,
+      '32+25',
+    );
+
+    await tapKey(tester, 'key-backspace');
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-input-text'))).data,
+      '32+2',
+    );
+    await tapKey(tester, 'key-backspace');
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-input-text'))).data,
+      '32+',
+    );
+  });
 }

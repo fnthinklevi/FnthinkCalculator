@@ -151,6 +151,28 @@ void main() {
     expect(valueOf(tester, 'time-diff-result'), '09:00:00');
   });
 
+  testWidgets('时长键盘左下角撤回逐次删除', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness());
+    await tapKey(tester, 'time-tab-2');
+    for (final key in [
+      'duration-key-3',
+      'duration-key-2',
+      'duration-key-add',
+      'duration-key-2',
+      'duration-key-5',
+    ]) {
+      await tapKey(tester, key);
+    }
+    expect(valueOf(tester, 'duration-calc-display'), '00:00:25');
+
+    await tapKey(tester, 'duration-key-undo');
+    expect(valueOf(tester, 'duration-calc-display'), '00:00:02');
+    await tapKey(tester, 'duration-key-undo');
+    expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
+    expect(valueOf(tester, 'duration-calc-expression'), '00:00:32 +');
+  });
+
   testWidgets('日期推算数量使用内置键盘', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness());

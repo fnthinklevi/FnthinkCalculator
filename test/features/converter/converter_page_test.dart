@@ -60,6 +60,14 @@ void main() {
     expect(inputText(tester), '100');
     expect(resultText(tester), '10,000');
 
+    await tapKey(tester, 'numeric-key-undo');
+    expect(inputText(tester), '10');
+    await tapKey(tester, 'numeric-key-undo');
+    expect(inputText(tester), '1');
+    await tapKey(tester, 'numeric-key-undo');
+    expect(inputText(tester), '0');
+
+    await enterNumber(tester, '100');
     await tapKey(tester, 'converter-swap');
     expect(resultText(tester), '1');
     expect(find.byType(TextField), findsNothing);

@@ -416,14 +416,31 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
             ),
           ]),
           const SizedBox(height: CalcSpacing.keyGap),
-          row([
-            key(
-              id: 'duration-key-0',
-              label: '0',
-              semantic: '0',
-              onTap: () => _appendDigit('0'),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: key(
+                    id: 'duration-key-undo',
+                    semantic: '撤回',
+                    icon: Icons.backspace_outlined,
+                    operator: true,
+                    onTap: _backspacePressed,
+                  ),
+                ),
+                const SizedBox(width: CalcSpacing.keyGap),
+                Expanded(
+                  flex: 3,
+                  child: key(
+                    id: 'duration-key-0',
+                    label: '0',
+                    semantic: '0',
+                    onTap: () => _appendDigit('0'),
+                  ),
+                ),
+              ],
             ),
-          ]),
+          ),
         ],
       ),
     );

@@ -76,11 +76,11 @@ class CalcKeypad extends StatelessWidget {
                   onLongPress: onClearLongPress,
                 ),
                 key(
-                  id: 'key-backspace',
-                  semanticLabel: '退格',
-                  icon: Icons.backspace_outlined,
+                  id: 'key-scientific',
+                  semanticLabel: '科学计算',
+                  icon: Icons.functions,
                   isOperator: true,
-                  onPressed: controller.backspace,
+                  onPressed: controller.toggleScientific,
                 ),
                 key(
                   id: 'key-percent',
@@ -184,11 +184,11 @@ class CalcKeypad extends StatelessWidget {
               const SizedBox(height: CalcSpacing.keyGap),
               _row([
                 key(
-                  id: 'key-scientific',
-                  semanticLabel: '科学计算',
-                  icon: Icons.functions,
+                  id: 'key-backspace',
+                  semanticLabel: '撤回',
+                  icon: Icons.backspace_outlined,
                   isOperator: true,
-                  onPressed: controller.toggleScientific,
+                  onPressed: controller.backspace,
                 ),
                 key(
                   id: 'key-0',

@@ -137,7 +137,9 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const Key('numeric-key-00')));
     await tester.pump();
-    expect(keys, ['7', '00']);
+    await tester.tap(find.byKey(const Key('numeric-key-undo')));
+    await tester.pump();
+    expect(keys, ['7', '00', 'backspace']);
     expect(find.byType(TextField), findsNothing);
   });
 }
