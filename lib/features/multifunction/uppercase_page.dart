@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/utils/chinese_upper.dart';
 import '../../theme/tokens.dart';
+import '../../widgets/numeric_keypad.dart';
 
 class UppercasePage extends StatefulWidget {
   const UppercasePage({super.key});
@@ -12,22 +13,24 @@ class UppercasePage extends StatefulWidget {
 }
 
 class _UppercasePageState extends State<UppercasePage> {
-  final TextEditingController _inputController = TextEditingController(
-    text: '1234.56',
-  );
+  String _input = '1234.56';
   String? _result;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _convert('1234.56');
+    _convert(_input);
   }
 
-  @override
-  void dispose() {
-    _inputController.dispose();
-    super.dispose();
+  void _onNumericKey(String key) {
+    _input = applyNumericKey(
+      _input,
+      key,
+      allowDecimal: true,
+      allowNegative: true,
+    );
+    _convert(_input);
   }
 
   void _convert(String value) {
@@ -76,102 +79,109 @@ class _UppercasePageState extends State<UppercasePage> {
       ),
       body: SafeArea(
         top: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: CalcColors.keyBackground(context),
-                borderRadius: BorderRadius.circular(CalcRadius.card),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                 children: [
-                  Text(
-                    '金额 / 数字',
-                    style: TextStyle(fontSize: 13, color: secondary),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    key: const Key('uppercase-input'),
-                    controller: _inputController,
-                    onChanged: _convert,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: CalcColors.keyBackground(context),
+                      borderRadius: BorderRadius.circular(CalcRadius.card),
                     ),
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontSize: 30,
-                      fontFeatures: CalcText.tabular,
-                    ),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      hintText: '0',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: CalcColors.keyBackground(context),
-                borderRadius: BorderRadius.circular(CalcRadius.card),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        '人民币大写',
-                        style: TextStyle(fontSize: 13, color: secondary),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        key: const Key('uppercase-copy'),
-                        tooltip: '复制',
-                        onPressed: _result == null ? null : _copy,
-                        icon: Icon(
-                          Icons.copy_outlined,
-                          size: 18,
-                          color: secondary,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '金额 / 数字',
+                          style: TextStyle(fontSize: 13, color: secondary),
                         ),
-                      ),
-                    ],
-                  ),
-                  if (_error != null)
-                    Text(
-                      _error!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: CalcColors.error,
-                      ),
-                    )
-                  else
-                    SelectableText(
-                      _result ?? '—',
-                      key: const Key('uppercase-result'),
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        height: 1.5,
-                        fontWeight: FontWeight.w500,
-                      ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              _input.isEmpty ? '0' : _input,
+                              key: const Key('uppercase-input'),
+                              maxLines: 1,
+                              style: const TextStyle(
+                                fontSize: 30,
+                                fontFeatures: CalcText.tabular,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: CalcColors.keyBackground(context),
+                      borderRadius: BorderRadius.circular(CalcRadius.card),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              '人民币大写',
+                              style: TextStyle(fontSize: 13, color: secondary),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              key: const Key('uppercase-copy'),
+                              tooltip: '复制',
+                              onPressed: _result == null ? null : _copy,
+                              icon: Icon(
+                                Icons.copy_outlined,
+                                size: 18,
+                                color: secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_error != null)
+                          Text(
+                            _error!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: CalcColors.error,
+                            ),
+                          )
+                        else
+                          SelectableText(
+                            _result ?? '—',
+                            key: const Key('uppercase-result'),
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              height: 1.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    '使用内置键盘输入；支持负数与小数。金额四舍五入到分，整数部分最多 15 位。',
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.5,
+                      color: secondary,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 14),
-            Text(
-              '支持负数、角分与科学计数法输入；金额四舍五入到分，整数部分最多 15 位。',
-              style: TextStyle(fontSize: 12, height: 1.5, color: secondary),
-            ),
+            NumericKeypad(onKey: _onNumericKey),
           ],
         ),
       ),

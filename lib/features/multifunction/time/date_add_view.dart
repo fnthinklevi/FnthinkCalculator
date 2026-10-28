@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/utils/date_calc.dart';
 import '../../../theme/tokens.dart';
+import '../../../widgets/numeric_keypad.dart';
 import 'time_widgets.dart';
 
 class DateAddView extends StatefulWidget {
@@ -17,15 +18,7 @@ class _DateAddViewState extends State<DateAddView> {
   DateTime _base = dateOnly(DateTime.now());
   bool _after = true;
   int _unitIndex = 3;
-  final TextEditingController _amountController = TextEditingController(
-    text: '1',
-  );
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    super.dispose();
-  }
+  String _amount = '1';
 
   Future<void> _pickBase() async {
     final picked = await pickDate(context, _base, '选择基准日期');
@@ -33,11 +26,23 @@ class _DateAddViewState extends State<DateAddView> {
     setState(() => _base = picked);
   }
 
+  Future<void> _editAmount() async {
+    final result = await showNumericKeypad(
+      context,
+      initial: _amount,
+      title: '输入数量',
+      allowDecimal: false,
+      allowNegative: false,
+    );
+    if (result == null || !mounted) return;
+    setState(() => _amount = result);
+  }
+
   void _setPreset(int amount, int unitIndex) {
     setState(() {
       _after = true;
       _unitIndex = unitIndex;
-      _amountController.text = '$amount';
+      _amount = '$amount';
     });
   }
 
@@ -54,7 +59,7 @@ class _DateAddViewState extends State<DateAddView> {
   @override
   Widget build(BuildContext context) {
     final secondary = CalcColors.secondaryText(context);
-    final amount = int.tryParse(_amountController.text.trim());
+    final amount = int.tryParse(_amount.trim());
     final valid = amount != null && amount >= 0 && amount <= 9999;
     final result = valid ? _resultDate(amount) : null;
 
@@ -88,26 +93,40 @@ class _DateAddViewState extends State<DateAddView> {
                 children: [
                   Text('数量', style: TextStyle(fontSize: 13, color: secondary)),
                   const Spacer(),
-                  SizedBox(
-                    width: 110,
-                    child: TextField(
-                      key: const Key('date-add-amount'),
-                      controller: _amountController,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.right,
-                      onChanged: (_) => setState(() {}),
-                      style: const TextStyle(fontSize: 20),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
+                  InkWell(
+                    key: const Key('date-add-amount-field'),
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: _editAmount,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _amount.isEmpty ? '0' : _amount,
+                            key: const Key('date-add-amount'),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontFeatures: CalcText.tabular,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _unitLabels[_unitIndex],
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.keyboard_outlined,
+                            size: 18,
+                            color: secondary,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    _unitLabels[_unitIndex],
-                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),

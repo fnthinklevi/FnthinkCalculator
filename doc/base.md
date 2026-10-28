@@ -21,7 +21,7 @@
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
 | 设计参考 | 小米计算器 HyperOS 版本的布局、配色与交互；不使用小米商标、图标、字体等素材 |
 
-当前状态：T0–T8 已完成；标准/科学计算、历史持久化、设置页、人民币大写、7 类单位换算与时间计算可用；首版仅剩 T9 质量收口。
+当前状态：T0–T8.2 已完成；标准/科学计算、历史持久化、设置页、人民币大写、7 类单位换算、时间计算与全应用内置数字键盘可用；T9 质量收口进行中。
 
 ## 2. 技术栈
 
@@ -140,6 +140,7 @@ FnthinkCalculator/
 │   ├── main.dart                # 加载 prefs，创建应用级控制器
 │   ├── app/                     # app、app_scope、settings_controller、settings_repository、shell
 │   ├── theme/                   # tokens、app_theme
+│   ├── widgets/                 # numeric_keypad 共享数字键盘
 │   ├── core/
 │   │   ├── math/                # 有理数、词法、解析、AST、求值、格式化、引擎
 │   │   └── utils/               # chinese_upper
@@ -271,7 +272,18 @@ integration_test/                # 后续需要时加入
 - 写入为异步 fire-and-forget，UI 不被磁盘阻塞。
 - 不在首版采集任何个人数据。
 
-### 6.7 单位换算（T7 已实现）
+### 6.7 输入与键盘（T8.1/T8.2 已实现）
+
+- 所有数值输入使用内置数字键盘，`lib/` 内不再有 `TextField`；不弹系统键盘。
+- 主计算器/科学计算：4×5 计算器键盘。
+- 时分秒加减：单行 H:MM:SS + 内置键盘，数字按 60 进制归一化。
+- 换算详情、大写数字：只读数值显示 + 常驻 `NumericKeypad`。
+- 日期推算数量：可点数量 + `showNumericKeypad` 内置键盘弹层。
+- `NumericKeypad` 支持 `allowDecimal`、`allowNegative`、`showDone`；不允许的小数/正负键以禁用态显示。
+- 日期/时间选择仍使用系统选择器（日历/时钟），不使用系统键盘输入。
+- 共享键盘位于 `lib/widgets/numeric_keypad.dart`，复用主计算器的 `CalcKey` 样式。
+
+### 6.8 单位换算（T7 已实现）
 
 - 7 类：长度、面积、体积、温度、速度、时间、重量。
 - 线性单位使用 BigRational 因子；温度以摄氏度为基，华氏/开尔文/兰氏度为仿射变换。
@@ -280,7 +292,7 @@ integration_test/                # 后续需要时加入
 - 单位选择器为底部弹层；详情页支持实时输入、交换、复制。
 - 未做输入持久化；离开页面后输入不保留。
 
-### 6.8 图标
+### 6.9 图标
 
 - 设计：橙色底、白色计算器机身、深色屏幕、灰色按键、橙色等号键；48px 下仍可辨认。
 - 源图：`assets/icon/app_icon_source.png`。

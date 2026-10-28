@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../theme/tokens.dart';
+import '../../widgets/numeric_keypad.dart';
 import 'converter_controller.dart';
 import 'unit_data.dart';
 
@@ -16,20 +17,28 @@ class ConverterPage extends StatefulWidget {
 
 class _ConverterPageState extends State<ConverterPage> {
   late final ConverterController _controller;
-  late final TextEditingController _inputController;
 
   @override
   void initState() {
     super.initState();
     _controller = ConverterController(widget.category);
-    _inputController = TextEditingController(text: _controller.input);
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _inputController.dispose();
     super.dispose();
+  }
+
+  void _onNumericKey(String key) {
+    _controller.setInput(
+      applyNumericKey(
+        _controller.input,
+        key,
+        allowDecimal: true,
+        allowNegative: true,
+      ),
+    );
   }
 
   Future<void> _copy() async {
@@ -42,7 +51,6 @@ class _ConverterPageState extends State<ConverterPage> {
   }
 
   Future<void> _pickUnit({required bool isFrom}) async {
-    FocusScope.of(context).unfocus();
     final selected = await showModalBottomSheet<UnitDef>(
       context: context,
       isScrollControlled: true,
@@ -81,7 +89,9 @@ class _ConverterPageState extends State<ConverterPage> {
                     return ListTile(
                       key: Key('unit-option-${unit.id}'),
                       title: Text(unit.name),
-                      subtitle: Text(unit.symbol),
+                      subtitle: unit.symbol == unit.name
+                          ? null
+                          : Text(unit.symbol),
                       trailing: current == unit
                           ? const Icon(
                               Icons.check,
@@ -124,34 +134,41 @@ class _ConverterPageState extends State<ConverterPage> {
           ),
           body: SafeArea(
             top: false,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            child: Column(
               children: [
-                _buildCard(context, isFrom: true),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Center(
-                    child: IconButton.filled(
-                      key: const Key('converter-swap'),
-                      tooltip: '交换单位',
-                      onPressed: _controller.swap,
-                      style: IconButton.styleFrom(
-                        backgroundColor: CalcColors.orange,
-                        foregroundColor: Colors.white,
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    children: [
+                      _buildCard(context, isFrom: true),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Center(
+                          child: IconButton.filled(
+                            key: const Key('converter-swap'),
+                            tooltip: '交换单位',
+                            onPressed: _controller.swap,
+                            style: IconButton.styleFrom(
+                              backgroundColor: CalcColors.orange,
+                              foregroundColor: Colors.white,
+                            ),
+                            icon: const Icon(Icons.swap_vert),
+                          ),
+                        ),
                       ),
-                      icon: const Icon(Icons.swap_vert),
-                    ),
+                      _buildCard(context, isFrom: false),
+                      if (widget.category.note != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                            widget.category.note!,
+                            style: TextStyle(fontSize: 13, color: secondary),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                _buildCard(context, isFrom: false),
-                if (widget.category.note != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      widget.category.note!,
-                      style: TextStyle(fontSize: 13, color: secondary),
-                    ),
-                  ),
+                NumericKeypad(onKey: _onNumericKey),
               ],
             ),
           ),
@@ -191,24 +208,17 @@ class _ConverterPageState extends State<ConverterPage> {
           ),
           const SizedBox(height: 12),
           if (isFrom)
-            TextField(
-              key: const Key('converter-input'),
-              controller: _inputController,
-              onChanged: _controller.setInput,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                fontSize: 34,
-                fontFeatures: CalcText.tabular,
-              ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-                hintText: '0',
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                _controller.input.isEmpty ? '0' : _controller.input,
+                key: const Key('converter-input'),
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 34,
+                  fontFeatures: CalcText.tabular,
+                ),
               ),
             )
           else
@@ -267,29 +277,36 @@ class _UnitPickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final secondary = CalcColors.secondaryText(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: CalcColors.divider(context)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
-                '${unit.name} (${unit.symbol})',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 14),
+    final label = unit.symbol == unit.name
+        ? unit.name
+        : '${unit.name} (${unit.symbol})';
+    return Semantics(
+      button: true,
+      label: '选择单位 ${unit.name}',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: CalcColors.divider(context)),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 14),
+                ),
               ),
-            ),
-            const SizedBox(width: 4),
-            Icon(Icons.expand_more, size: 18, color: secondary),
-          ],
+              const SizedBox(width: 4),
+              Icon(Icons.expand_more, size: 18, color: secondary),
+            ],
+          ),
         ),
       ),
     );

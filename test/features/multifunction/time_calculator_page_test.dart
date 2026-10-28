@@ -151,6 +151,31 @@ void main() {
     expect(valueOf(tester, 'time-diff-result'), '09:00:00');
   });
 
+  testWidgets('日期推算数量使用内置键盘', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness());
+    await tapKey(tester, 'time-tab-1');
+    await tapKey(tester, 'date-add-amount-field');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TextField), findsNothing);
+    expect(find.byKey(const Key('numeric-sheet-display')), findsOneWidget);
+    await tapKey(tester, 'numeric-key-clear');
+    await tapKey(tester, 'numeric-key-7');
+    await tapKey(tester, 'numeric-key-done');
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<Text>(find.byKey(const Key('date-add-amount'))).data,
+      '7',
+    );
+    final today = dateOnly(DateTime.now());
+    expect(
+      valueOf(tester, 'date-add-result-date'),
+      formatDate(addDays(today, 7)),
+    );
+  });
+
   testWidgets('年龄默认 20 周岁', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness());
