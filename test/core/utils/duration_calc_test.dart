@@ -13,6 +13,24 @@ void main() {
     expect(formatDurationVerbose(-3600), '负1 小时');
   });
 
+  test('时分秒数字分组与累计小时格式', () {
+    expect(secondsFromTimeDigits(''), 0);
+    expect(secondsFromTimeDigits('1'), 1);
+    expect(secondsFromTimeDigits('12'), 12);
+    expect(secondsFromTimeDigits('123'), 83);
+    expect(secondsFromTimeDigits('1234'), 754);
+    expect(secondsFromTimeDigits('12345'), 5025);
+    expect(secondsFromTimeDigits('123456'), 45296);
+    expect(secondsFromTimeDigits('250000'), 90000);
+    expect(secondsFromTimeDigits('675'), 435);
+
+    expect(formatDurationAccumulated(0), '00:00:00');
+    expect(formatDurationAccumulated(90000), '25:00:00');
+    expect(formatDurationAccumulated(-5025), '-01:23:45');
+    expect(formatDurationAccumulated(435), '00:07:15');
+    expect(formatDurationAccumulated(123 * 3600 + 45), '123:00:45');
+  });
+
   test('时分秒范围校验', () {
     expect(isValidClockPart(59, allowAny: false), isTrue);
     expect(isValidClockPart(60, allowAny: false), isFalse);

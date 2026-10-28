@@ -14,4 +14,8 @@ class AppScope extends InheritedNotifier<SettingsController> {
     assert(scope != null, 'AppScope not found in widget tree');
     return scope!.notifier!;
   }
+
+  static SettingsController? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppScope>()?.notifier;
+  }
 }

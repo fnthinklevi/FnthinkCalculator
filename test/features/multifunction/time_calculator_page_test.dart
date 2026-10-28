@@ -64,29 +64,88 @@ void main() {
     );
   });
 
-  testWidgets('时长加减与两时刻差', (tester) async {
+  testWidgets('时分秒键盘、60进制与进位开关', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness());
     await tapKey(tester, 'time-tab-2');
-    expect(valueOf(tester, 'duration-result'), '00:00:00');
+    expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
+    expect(valueOf(tester, 'duration-calc-total-seconds'), '共 0 秒');
 
-    await tapKey(tester, 'duration-left-hours');
-    await tester.enterText(find.byKey(const Key('duration-left-hours')), '1');
-    await tester.pump();
-    await tester.enterText(
-      find.byKey(const Key('duration-left-minutes')),
-      '30',
-    );
-    await tester.pump();
-    await tester.enterText(
-      find.byKey(const Key('duration-right-minutes')),
-      '45',
-    );
-    await tester.pump();
-    expect(valueOf(tester, 'duration-result'), '02:15:00');
+    for (final key in [
+      'duration-key-1',
+      'duration-key-3',
+      'duration-key-0',
+      'duration-key-0',
+      'duration-key-0',
+    ]) {
+      await tapKey(tester, key);
+    }
+    expect(valueOf(tester, 'duration-calc-display'), '01:30:00');
 
-    await tapKey(tester, 'duration-op-1');
-    expect(valueOf(tester, 'duration-result'), '00:45:00');
+    await tapKey(tester, 'duration-key-add');
+    for (final key in [
+      'duration-key-4',
+      'duration-key-5',
+      'duration-key-0',
+      'duration-key-0',
+    ]) {
+      await tapKey(tester, key);
+    }
+    expect(valueOf(tester, 'duration-calc-display'), '00:45:00');
+    await tapKey(tester, 'duration-key-equals');
+    expect(valueOf(tester, 'duration-calc-display'), '02:15:00');
+    expect(valueOf(tester, 'duration-calc-total-seconds'), '共 8,100 秒');
+
+    await tapKey(tester, 'duration-key-clear');
+    for (final key in [
+      'duration-key-1',
+      'duration-key-3',
+      'duration-key-0',
+      'duration-key-0',
+      'duration-key-0',
+    ]) {
+      await tapKey(tester, key);
+    }
+    await tapKey(tester, 'duration-key-subtract');
+    for (final key in [
+      'duration-key-4',
+      'duration-key-5',
+      'duration-key-0',
+      'duration-key-0',
+    ]) {
+      await tapKey(tester, key);
+    }
+    await tapKey(tester, 'duration-key-equals');
+    expect(valueOf(tester, 'duration-calc-display'), '00:45:00');
+
+    await tapKey(tester, 'duration-key-clear');
+    for (final key in [
+      'duration-key-2',
+      'duration-key-4',
+      'duration-key-0',
+      'duration-key-0',
+      'duration-key-0',
+      'duration-key-0',
+    ]) {
+      await tapKey(tester, key);
+    }
+    await tapKey(tester, 'duration-key-add');
+    for (final key in [
+      'duration-key-1',
+      'duration-key-0',
+      'duration-key-0',
+      'duration-key-0',
+      'duration-key-0',
+    ]) {
+      await tapKey(tester, key);
+    }
+    await tapKey(tester, 'duration-key-equals');
+    expect(valueOf(tester, 'duration-calc-display'), '1天 01:00:00');
+
+    await tapKey(tester, 'duration-carry-1');
+    expect(valueOf(tester, 'duration-calc-display'), '25:00:00');
+    await tapKey(tester, 'duration-carry-0');
+    expect(valueOf(tester, 'duration-calc-display'), '1天 01:00:00');
 
     await tapKey(tester, 'duration-sub-1');
     expect(valueOf(tester, 'time-diff-result'), '09:00:00');

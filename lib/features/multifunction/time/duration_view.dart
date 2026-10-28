@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../../app/app_scope.dart';
 import '../../../core/utils/duration_calc.dart';
 import '../../../theme/tokens.dart';
+import '../../calculator/widgets/calc_keypad.dart';
 import 'time_widgets.dart';
 
 class DurationView extends StatefulWidget {
@@ -47,211 +50,380 @@ class _DurationArithmeticView extends StatefulWidget {
 }
 
 class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
-  final _leftDays = TextEditingController(text: '0');
-  final _leftHours = TextEditingController(text: '0');
-  final _leftMinutes = TextEditingController(text: '0');
-  final _leftSeconds = TextEditingController(text: '0');
-  final _rightDays = TextEditingController(text: '0');
-  final _rightHours = TextEditingController(text: '0');
-  final _rightMinutes = TextEditingController(text: '0');
-  final _rightSeconds = TextEditingController(text: '0');
+  String _digits = '';
+  int? _operandA;
+  int? _operandB;
+  String? _operator;
+  int? _result;
+  bool _showResult = false;
+  bool _negative = false;
+  bool _carryToDays = true;
 
-  bool _subtract = false;
-
-  @override
-  void dispose() {
-    for (final controller in [
-      _leftDays,
-      _leftHours,
-      _leftMinutes,
-      _leftSeconds,
-      _rightDays,
-      _rightHours,
-      _rightMinutes,
-      _rightSeconds,
-    ]) {
-      controller.dispose();
-    }
-    super.dispose();
+  int get _entrySeconds {
+    final value = secondsFromTimeDigits(_digits);
+    return _negative ? -value : value;
   }
 
-  int? _parse(TextEditingController controller) {
-    final text = controller.text.trim();
-    if (text.isEmpty) return 0;
-    return int.tryParse(text);
+  int get _displaySeconds => _showResult ? _result! : _entrySeconds;
+
+  String get _displayText {
+    if (_showResult && _carryToDays) {
+      return formatDuration(_result!);
+    }
+    return formatDurationAccumulated(_displaySeconds);
   }
 
-  int? _total(
-    TextEditingController days,
-    TextEditingController hours,
-    TextEditingController minutes,
-    TextEditingController seconds,
-  ) {
-    final d = _parse(days);
-    final h = _parse(hours);
-    final m = _parse(minutes);
-    final s = _parse(seconds);
-    if (d == null || h == null || m == null || s == null) return null;
-    if (d < 0 || h < 0 || m < 0 || m > 59 || s < 0 || s > 59) {
-      return null;
+  String get _expressionText {
+    if (_showResult) {
+      return '${formatDurationAccumulated(_operandA!)} '
+          '$_operator ${formatDurationAccumulated(_operandB!)} =';
     }
-    return ((d * 24 + h) * 60 + m) * 60 + s;
+    if (_operator != null) {
+      return '${formatDurationAccumulated(_operandA!)} $_operator';
+    }
+    return '时 : 分 : 秒';
+  }
+
+  int get _totalSeconds => _showResult ? _result! : _entrySeconds;
+
+  void _resetCalculation() {
+    _digits = '';
+    _operandA = null;
+    _operandB = null;
+    _operator = null;
+    _result = null;
+    _showResult = false;
+    _negative = false;
+  }
+
+  void _appendDigit(String digit) {
+    if (_showResult) {
+      _resetCalculation();
+    }
+    if (_digits.length >= 9) return;
+    setState(() => _digits += digit);
+  }
+
+  void _appendDoubleZero() {
+    _appendDigit('0');
+    _appendDigit('0');
+  }
+
+  void _operatorPressed(String operator) {
+    if (_showResult) {
+      setState(() {
+        _operandA = _result;
+        _operator = operator;
+        _operandB = null;
+        _digits = '';
+        _negative = false;
+        _showResult = false;
+        _result = null;
+      });
+      return;
+    }
+    if (_operator != null && _digits.isEmpty) {
+      setState(() => _operator = operator);
+      return;
+    }
+    setState(() {
+      _operandA = _entrySeconds;
+      _operator = operator;
+      _operandB = null;
+      _digits = '';
+      _negative = false;
+    });
+  }
+
+  void _equalsPressed() {
+    if (_showResult || _operator == null || _operandA == null) {
+      return;
+    }
+    setState(() {
+      final right = _entrySeconds;
+      _operandB = right;
+      _result = _operator == '+' ? _operandA! + right : _operandA! - right;
+      _showResult = true;
+      _digits = '';
+      _negative = false;
+    });
+  }
+
+  void _signPressed() {
+    setState(() {
+      if (_showResult) {
+        _resetCalculation();
+      }
+      _negative = !_negative;
+    });
+  }
+
+  void _backspacePressed() {
+    setState(() {
+      if (_showResult) {
+        _resetCalculation();
+        return;
+      }
+      if (_digits.isNotEmpty) {
+        _digits = _digits.substring(0, _digits.length - 1);
+      }
+    });
+  }
+
+  void _clearPressed() {
+    setState(_resetCalculation);
+  }
+
+  void _setCarryToDays(bool value) {
+    if (_carryToDays == value) return;
+    setState(() => _carryToDays = value);
   }
 
   @override
   Widget build(BuildContext context) {
-    final left = _total(_leftDays, _leftHours, _leftMinutes, _leftSeconds);
-    final right = _total(_rightDays, _rightHours, _rightMinutes, _rightSeconds);
-    final total = left == null || right == null
-        ? null
-        : (_subtract ? left - right : left + right);
-    final error = total == null ? '天/时需为非负整数，分/秒需在 0–59 之间' : null;
+    final settings = AppScope.maybeOf(context);
+    void press(VoidCallback action) {
+      if (settings?.haptics ?? true) {
+        HapticFeedback.lightImpact();
+      }
+      action();
+    }
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    return Column(
       children: [
-        _inputCard(
-          title: '时长 A',
-          daysKey: 'duration-left-days',
-          hoursKey: 'duration-left-hours',
-          minutesKey: 'duration-left-minutes',
-          secondsKey: 'duration-left-seconds',
-          days: _leftDays,
-          hours: _leftHours,
-          minutes: _leftMinutes,
-          seconds: _leftSeconds,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: SegmentedTabs(
+            labels: const ['进到日', '累计小时'],
+            index: _carryToDays ? 0 : 1,
+            onChanged: (index) => _setCarryToDays(index == 0),
+            keyPrefix: 'duration-carry',
+          ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Center(
-            child: SizedBox(
-              width: 140,
-              child: SegmentedTabs(
-                labels: const ['+', '−'],
-                index: _subtract ? 1 : 0,
-                onChanged: (index) => setState(() => _subtract = index == 1),
-                keyPrefix: 'duration-op',
-              ),
-            ),
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: _displayCard(context),
         ),
-        _inputCard(
-          title: '时长 B',
-          daysKey: 'duration-right-days',
-          hoursKey: 'duration-right-hours',
-          minutesKey: 'duration-right-minutes',
-          secondsKey: 'duration-right-seconds',
-          days: _rightDays,
-          hours: _rightHours,
-          minutes: _rightMinutes,
-          seconds: _rightSeconds,
-        ),
-        if (error != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Text(
-              error,
-              style: const TextStyle(fontSize: 13, color: CalcColors.error),
-            ),
-          ),
-        if (total != null) ...[
-          const SizedBox(height: 10),
-          TimeResultCard(
-            title: '计算结果',
-            rows: [
-              TimeResultRow(
-                label: '结果',
-                value: formatDuration(total),
-                emphasized: true,
-                valueKey: const Key('duration-result'),
-              ),
-              TimeResultRow(label: '文字', value: formatDurationVerbose(total)),
-              TimeResultRow(
-                label: '总秒数',
-                value: '${formatCount(total)} 秒',
-                valueKey: const Key('duration-total-seconds'),
-              ),
-            ],
-          ),
-        ],
-        const TimeNote(text: '时长按 天:时:分:秒 归一化；分和秒限制在 0–59，结果允许为负。'),
+        Expanded(child: _keypad(press)),
       ],
     );
   }
 
-  Widget _inputCard({
-    required String title,
-    required String daysKey,
-    required String hoursKey,
-    required String minutesKey,
-    required String secondsKey,
-    required TextEditingController days,
-    required TextEditingController hours,
-    required TextEditingController minutes,
-    required TextEditingController seconds,
-  }) {
+  Widget _displayCard(BuildContext context) {
     final secondary = CalcColors.secondaryText(context);
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: CalcColors.keyBackground(context),
         borderRadius: BorderRadius.circular(CalcRadius.card),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(title, style: TextStyle(fontSize: 13, color: secondary)),
-          const SizedBox(height: 8),
           Row(
             children: [
-              _field('天', daysKey, days),
-              const SizedBox(width: 6),
-              _field('时', hoursKey, hours),
-              const SizedBox(width: 6),
-              _field('分', minutesKey, minutes),
-              const SizedBox(width: 6),
-              _field('秒', secondsKey, seconds),
+              Text(
+                _showResult ? '结果' : '输入',
+                style: TextStyle(fontSize: 13, color: secondary),
+              ),
+              const Spacer(),
+              Text(
+                '共 ${formatCount(_totalSeconds)} 秒',
+                key: const Key('duration-calc-total-seconds'),
+                style: TextStyle(fontSize: 12, color: secondary),
+              ),
             ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _expressionText,
+            key: const Key('duration-calc-expression'),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: TextStyle(fontSize: 13, color: secondary),
+          ),
+          const SizedBox(height: 2),
+          SizedBox(
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                _displayText,
+                key: const Key('duration-calc-display'),
+                style: TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: CalcText.tabular,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _field(
-    String label,
-    String keyName,
-    TextEditingController controller,
-  ) {
-    return Expanded(
+  Widget _keypad(void Function(VoidCallback) press) {
+    Widget key({
+      required String id,
+      String label = '',
+      required String semantic,
+      IconData? icon,
+      bool operator = false,
+      bool equals = false,
+      required VoidCallback onTap,
+    }) {
+      return CalcKey(
+        keyId: id,
+        semanticLabel: semantic,
+        label: label,
+        icon: icon,
+        isOperator: operator,
+        isEquals: equals,
+        onPressed: () => press(onTap),
+      );
+    }
+
+    Widget row(List<Widget> keys) {
+      final children = <Widget>[];
+      for (var index = 0; index < keys.length; index++) {
+        children.add(Expanded(child: keys[index]));
+        if (index != keys.length - 1) {
+          children.add(const SizedBox(width: CalcSpacing.keyGap));
+        }
+      }
+      return Expanded(child: Row(children: children));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       child: Column(
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: CalcColors.secondaryText(context),
+          row([
+            key(
+              id: 'duration-key-clear',
+              label: 'C',
+              semantic: '清空',
+              operator: true,
+              onTap: _clearPressed,
             ),
-          ),
-          const SizedBox(height: 4),
-          TextField(
-            key: Key(keyName),
-            controller: controller,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            onChanged: (_) => setState(() {}),
-            style: const TextStyle(fontSize: 18),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: true,
-              fillColor: CalcColors.displayBackground(context),
-              contentPadding: const EdgeInsets.symmetric(vertical: 10),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
-              ),
+            key(
+              id: 'duration-key-backspace',
+              semantic: '退格',
+              icon: Icons.backspace_outlined,
+              operator: true,
+              onTap: _backspacePressed,
             ),
-          ),
+            key(
+              id: 'duration-key-00',
+              label: '00',
+              semantic: '双零',
+              onTap: _appendDoubleZero,
+            ),
+            key(
+              id: 'duration-key-sign',
+              label: '±',
+              semantic: '正负号',
+              operator: true,
+              onTap: _signPressed,
+            ),
+          ]),
+          const SizedBox(height: CalcSpacing.keyGap),
+          row([
+            key(
+              id: 'duration-key-7',
+              label: '7',
+              semantic: '7',
+              onTap: () => _appendDigit('7'),
+            ),
+            key(
+              id: 'duration-key-8',
+              label: '8',
+              semantic: '8',
+              onTap: () => _appendDigit('8'),
+            ),
+            key(
+              id: 'duration-key-9',
+              label: '9',
+              semantic: '9',
+              onTap: () => _appendDigit('9'),
+            ),
+            key(
+              id: 'duration-key-add',
+              label: '+',
+              semantic: '加',
+              operator: true,
+              onTap: () => _operatorPressed('+'),
+            ),
+          ]),
+          const SizedBox(height: CalcSpacing.keyGap),
+          row([
+            key(
+              id: 'duration-key-4',
+              label: '4',
+              semantic: '4',
+              onTap: () => _appendDigit('4'),
+            ),
+            key(
+              id: 'duration-key-5',
+              label: '5',
+              semantic: '5',
+              onTap: () => _appendDigit('5'),
+            ),
+            key(
+              id: 'duration-key-6',
+              label: '6',
+              semantic: '6',
+              onTap: () => _appendDigit('6'),
+            ),
+            key(
+              id: 'duration-key-subtract',
+              label: '−',
+              semantic: '减',
+              operator: true,
+              onTap: () => _operatorPressed('−'),
+            ),
+          ]),
+          const SizedBox(height: CalcSpacing.keyGap),
+          row([
+            key(
+              id: 'duration-key-1',
+              label: '1',
+              semantic: '1',
+              onTap: () => _appendDigit('1'),
+            ),
+            key(
+              id: 'duration-key-2',
+              label: '2',
+              semantic: '2',
+              onTap: () => _appendDigit('2'),
+            ),
+            key(
+              id: 'duration-key-3',
+              label: '3',
+              semantic: '3',
+              onTap: () => _appendDigit('3'),
+            ),
+            key(
+              id: 'duration-key-equals',
+              label: '=',
+              semantic: '等于',
+              equals: true,
+              onTap: _equalsPressed,
+            ),
+          ]),
+          const SizedBox(height: CalcSpacing.keyGap),
+          row([
+            key(
+              id: 'duration-key-0',
+              label: '0',
+              semantic: '0',
+              onTap: () => _appendDigit('0'),
+            ),
+          ]),
         ],
       ),
     );
