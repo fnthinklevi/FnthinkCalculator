@@ -318,12 +318,34 @@ class CalculatorController extends ChangeNotifier {
   }
 
   void inputPower(int exponent) {
-    if (exponent == 2) {
-      if (_caret == 0 || !_isOperandEnd(_expression[_caret - 1])) return;
-      _insertAtCaret('^2');
+    if (exponent != 2 && exponent != 3) {
+      inputOperator('^');
       return;
     }
-    inputOperator('^');
+    if (_caret == 0 || !_isOperandEnd(_expression[_caret - 1])) return;
+    _insertAtCaret('^$exponent');
+  }
+
+  void inputTenPower() {
+    if (_mode != CalculatorMode.input) {
+      _startFreshInput();
+    }
+    if (_caret > 0 && _isOperandEnd(_expression[_caret - 1])) {
+      _insertAtCaret('×10^');
+    } else {
+      _insertAtCaret('10^');
+    }
+  }
+
+  void inputExpPower() {
+    if (_mode != CalculatorMode.input) {
+      _startFreshInput();
+    }
+    if (_caret > 0 && _isOperandEnd(_expression[_caret - 1])) {
+      _insertAtCaret('×e^');
+    } else {
+      _insertAtCaret('e^');
+    }
   }
 
   void backspace() {

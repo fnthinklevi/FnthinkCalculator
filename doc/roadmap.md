@@ -68,8 +68,8 @@ adb -s emulator-5554 emu kill
 | T2 | 设计系统与三标签壳 | 已完成 | 建立 `theme/tokens.dart`、`app_theme.dart`；实现顶部“计算 / 换算 / 多功能”三标签、右上菜单、深色模式、响应式壳；替换默认页 | 3 个 shell widget 测试；模拟器走查三标签与菜单，无 FATAL | `b256c3a` |
 | T3 | 数值层与表达式引擎 | 已完成 | 实现有理数 + double 数值层、Lexer、递归下降解析、AST、求值器、格式化器；落实小米百分比口径、错误模型、自动补右括号 | 39 项测试（含引擎/格式化/模糊）；format/analyze/test/build 全绿；模拟器回归无 FATAL | `915dbb5` |
 | T4 | 标准计算页 | 已完成 | 显示区、键位、光标编辑、实时预览、C/AC、退格、复制/大写；连接引擎与内存历史；错误态恢复 | 66 项测试（含控制器/页面/大写）；模拟器实测 `1+2=3`、除零恢复、科学面板，无 FATAL | `0e9cfb4` |
-| T5 | 历史与设置持久化 | 已完成 | `shared_preferences` 存储历史与设置；历史弹层复用/删除/清空；设置页主题、震动、角度单位；损坏数据自动重置 | 73 项测试（含仓库/控制器重载）；模拟器切深色、重启后主题和历史均保留 | 本次提交 |
-| T6 | 科学计算 | 待开始 | 科学函数、2nd、DEG/RAD；竖屏功能条 + 标准键盘；横屏完整面板；定义域错误处理 | 函数/角度/定义域测试；模拟器竖屏与横屏走查 | 待记录 |
+| T5 | 历史与设置持久化 | 已完成 | `shared_preferences` 存储历史与设置；历史弹层复用/删除/清空；设置页主题、震动、角度单位；损坏数据自动重置 | 73 项测试（含仓库/控制器重载）；模拟器切深色、重启后主题和历史均保留 | `0444a53` |
+| T6 | 科学计算 | 已完成 | 科学函数、2nd、DEG/RAD；竖屏功能条 + 标准键盘；横屏左侧显示/右侧键盘；定义域错误处理 | 79 项测试；模拟器竖屏科学条与横屏左右布局走查，无溢出/崩溃 | 本次提交 |
 | T7 | 单位换算（7 类） | 待开始 | 长度、面积、体积、温度、速度、时间、重量；换算表、单位互换、精度与格式；温度仿射换算 | 每类已知值与往返测试；模拟器逐类走查 | 待记录 |
 | T8 | 多功能页与时间计算 | 待开始 | 多功能页首卡“时间计算”；日期差、日期推算、时长加减、年龄计算；DateOnly/UTC 天差、月末夹取、工作日仅排周末 | 闰年/月末/跨年/反向/负数边界测试；模拟器四页走查 | 待记录 |
 | T9 | 首版质量收口与 APK | 待开始 | fuzz 随机按键序列、golden 亮/暗、无障碍语义、错误恢复清单、release APK、完整模拟器走查 | 全量闸门 + fuzz + 走查清单；release 构建成功 | 待记录 |
@@ -201,7 +201,7 @@ adb -s emulator-5554 emu kill
 ### T5 历史与设置持久化
 
 - 日期：2026-10-28
-- 提交：本次提交
+- 提交：`0444a53`
 - 完成内容：
   - `lib/app/settings_repository.dart`：主题、触感、角度单位的 SharedPreferences 读写。
   - `lib/features/calculator/history_repository.dart`：历史 JSON 读写、200 条上限、损坏数据返回空。
@@ -220,6 +220,26 @@ adb -s emulator-5554 emu kill
   - 计算 `1+2=3` 后 `am force-stop` 再冷启动，主题仍为深色，历史仍显示 `1+2 = 3`。
   - `run-as` 读取 `FlutterSharedPreferences.xml`，确认 `history.v1` 与 `settings.themeMode.v1=dark` 已落盘。
   - `logcat` 无 `FATAL EXCEPTION`。
+
+### T6 科学计算
+
+- 日期：2026-10-28
+- 提交：本次提交
+- 完成内容：
+  - 科学面板补齐：2nd、DEG/RAD、sin/cos/tan 与反三角、ln/eˣ、log/10ˣ、√/∛、x²/x³、xʸ、|x|、!、π、e、括号。
+  - 2nd 选中态高亮；DEG/RAD 同时写入设置与计算控制器，设置页保持同步。
+  - 控制器新增 `inputPower(3)`、`inputTenPower()`、`inputExpPower()`。
+  - 横屏改为左侧显示 + 右侧键盘 + 底部科学条；竖屏维持显示/科学条/键盘三段式。
+  - 科学条由懒加载 ListView 改为 SingleChildScrollView + Row，避免离屏键找不到。
+- 闸门结果：
+  - `dart format`：0 changed。
+  - `flutter analyze`：No issues found。
+  - `flutter test`：79/79 通过。
+  - `flutter build apk --debug`：成功（42.5s）。
+- 冒烟结果：
+  - 竖屏科学条显示 2nd/DEG/sin/cos/tan/ln，可横向滚动。
+  - 横屏 `2400×1080` 显示左右布局，无 RenderFlex 溢出。
+  - 日志无 `FATAL EXCEPTION`；冒烟后已恢复竖屏。
 
 ## 5. 当前风险与注意事项
 

@@ -203,4 +203,34 @@ void main() {
     );
     expect(controller.previewText, '-0.988031624093');
   });
+
+  test('平方、立方与十的幂', () {
+    final controller = CalculatorController();
+    controller.inputDigit('2');
+    controller.inputPower(3);
+    expect(controller.expression, '2^3');
+    expect(controller.previewText, '8');
+
+    controller.clear();
+    controller.inputDigit('2');
+    controller.inputTenPower();
+    controller.inputDigit('3');
+    expect(controller.expression, '2×10^3');
+    expect(controller.previewText, '2,000');
+
+    controller.clear();
+    controller.inputExpPower();
+    controller.inputDigit('0');
+    expect(controller.expression, 'e^0');
+    expect(controller.previewText, '1');
+  });
+
+  test('2nd 状态可切换', () {
+    final controller = CalculatorController();
+    expect(controller.second, isFalse);
+    controller.toggleSecond();
+    expect(controller.second, isTrue);
+    controller.toggleSecond();
+    expect(controller.second, isFalse);
+  });
 }

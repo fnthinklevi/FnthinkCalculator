@@ -178,8 +178,10 @@ class _CalculatorPageState extends State<CalculatorPage> {
       top: false,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final width = constraints.maxWidth > 600
-              ? 600.0
+          final landscape = constraints.maxWidth > constraints.maxHeight;
+          final maxWidth = landscape ? 960.0 : 600.0;
+          final width = constraints.maxWidth > maxWidth
+              ? maxWidth
               : constraints.maxWidth;
           return Center(
             child: SizedBox(
@@ -188,29 +190,48 @@ class _CalculatorPageState extends State<CalculatorPage> {
               child: AnimatedBuilder(
                 animation: _controller,
                 builder: (context, _) {
+                  final display = CalcDisplay(
+                    controller: _controller,
+                    onHistory: _showHistory,
+                    onCopy: _copy,
+                    onUppercase: _showUppercase,
+                    onClearHistory: _confirmClearHistory,
+                    onLongPressMain: _showActions,
+                  );
+                  final keypad = CalcKeypad(
+                    controller: _controller,
+                    clearLabel: _controller.clearLabel,
+                    onClearLongPress: _confirmClearHistory,
+                  );
+                  final panel = _controller.scientificVisible
+                      ? ScientificPanel(controller: _controller)
+                      : null;
+
+                  if (landscape) {
+                    return Row(
+                      key: const Key('landscape-layout'),
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: Column(
+                            children: [
+                              Expanded(child: display),
+                              ?panel,
+                            ],
+                          ),
+                        ),
+                        const VerticalDivider(width: 1),
+                        Expanded(flex: 5, child: keypad),
+                      ],
+                    );
+                  }
+
                   return Column(
+                    key: const Key('portrait-layout'),
                     children: [
-                      Expanded(
-                        flex: 4,
-                        child: CalcDisplay(
-                          controller: _controller,
-                          onHistory: _showHistory,
-                          onCopy: _copy,
-                          onUppercase: _showUppercase,
-                          onClearHistory: _confirmClearHistory,
-                          onLongPressMain: _showActions,
-                        ),
-                      ),
-                      if (_controller.scientificVisible)
-                        ScientificPanel(controller: _controller),
-                      Expanded(
-                        flex: 6,
-                        child: CalcKeypad(
-                          controller: _controller,
-                          clearLabel: _controller.clearLabel,
-                          onClearLongPress: _confirmClearHistory,
-                        ),
-                      ),
+                      Expanded(flex: 4, child: display),
+                      ?panel,
+                      Expanded(flex: 6, child: keypad),
                     ],
                   );
                 },
