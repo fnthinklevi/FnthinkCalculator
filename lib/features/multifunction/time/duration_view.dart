@@ -7,6 +7,8 @@ import '../../../theme/tokens.dart';
 import '../../calculator/widgets/calc_keypad.dart';
 import 'time_widgets.dart';
 
+enum _TimeSegment { hours, minutes, seconds }
+
 class DurationView extends StatefulWidget {
   const DurationView({super.key});
 
@@ -50,7 +52,6 @@ class _DurationArithmeticView extends StatefulWidget {
 }
 
 class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
-  String _digits = '';
   int? _operandA;
   int? _operandB;
   String? _operator;
@@ -59,8 +60,14 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
   bool _negative = false;
   bool _carryToDays = true;
 
+  _TimeSegment _active = _TimeSegment.hours;
+  String _buffer = '';
+  int _hours = 0;
+  int _minutes = 0;
+  int _seconds = 0;
+
   int get _entrySeconds {
-    final value = secondsFromTimeDigits(_digits);
+    final value = _hours * 3600 + _minutes * 60 + _seconds;
     return _negative ? -value : value;
   }
 
@@ -86,27 +93,102 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
 
   int get _totalSeconds => _showResult ? _result! : _entrySeconds;
 
+  int get _activeValue => switch (_active) {
+    _TimeSegment.hours => _hours,
+    _TimeSegment.minutes => _minutes,
+    _TimeSegment.seconds => _seconds,
+  };
+
+  String get _activeValueText => _activeValue.toString();
+
+  void _setActiveValue(int value) {
+    switch (_active) {
+      case _TimeSegment.hours:
+        _hours = value;
+        break;
+      case _TimeSegment.minutes:
+        _minutes = value;
+        break;
+      case _TimeSegment.seconds:
+        _seconds = value;
+        break;
+    }
+  }
+
+  void _normalizeSegments() {
+    final total = _hours * 3600 + _minutes * 60 + _seconds;
+    _hours = total ~/ 3600;
+    _minutes = (total % 3600) ~/ 60;
+    _seconds = total % 60;
+  }
+
+  void _resetEntry() {
+    _hours = 0;
+    _minutes = 0;
+    _seconds = 0;
+    _active = _TimeSegment.hours;
+    _buffer = '';
+    _negative = false;
+  }
+
   void _resetCalculation() {
-    _digits = '';
+    _resetEntry();
     _operandA = null;
     _operandB = null;
     _operator = null;
     _result = null;
     _showResult = false;
-    _negative = false;
   }
 
   void _appendDigit(String digit) {
-    if (_showResult) {
-      _resetCalculation();
-    }
-    if (_digits.length >= 9) return;
-    setState(() => _digits += digit);
+    setState(() {
+      if (_showResult) {
+        _resetCalculation();
+      }
+      if (_buffer.isEmpty) {
+        _buffer = '0';
+      }
+      if (_buffer == '0') {
+        if (digit == '0') return;
+        _buffer = digit;
+      } else {
+        final maxLength = _active == _TimeSegment.hours ? 5 : 2;
+        if (_buffer.length >= maxLength) return;
+        _buffer += digit;
+      }
+      _setActiveValue(int.tryParse(_buffer) ?? 0);
+      _normalizeSegments();
+      _buffer = _activeValueText;
+    });
   }
 
   void _appendDoubleZero() {
     _appendDigit('0');
     _appendDigit('0');
+  }
+
+  void _selectSegment(_TimeSegment segment) {
+    setState(() {
+      if (_showResult) {
+        _resetCalculation();
+      }
+      _active = segment;
+      _buffer = '';
+    });
+  }
+
+  void _colonPressed() {
+    setState(() {
+      if (_showResult) {
+        _resetCalculation();
+      }
+      _active = switch (_active) {
+        _TimeSegment.hours => _TimeSegment.minutes,
+        _TimeSegment.minutes => _TimeSegment.seconds,
+        _TimeSegment.seconds => _TimeSegment.hours,
+      };
+      _buffer = '';
+    });
   }
 
   void _operatorPressed(String operator) {
@@ -115,14 +197,13 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
         _operandA = _result;
         _operator = operator;
         _operandB = null;
-        _digits = '';
-        _negative = false;
         _showResult = false;
         _result = null;
+        _resetEntry();
       });
       return;
     }
-    if (_operator != null && _digits.isEmpty) {
+    if (_operator != null && _entrySeconds == 0 && _buffer.isEmpty) {
       setState(() => _operator = operator);
       return;
     }
@@ -130,8 +211,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
       _operandA = _entrySeconds;
       _operator = operator;
       _operandB = null;
-      _digits = '';
-      _negative = false;
+      _resetEntry();
     });
   }
 
@@ -144,8 +224,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
       _operandB = right;
       _result = _operator == '+' ? _operandA! + right : _operandA! - right;
       _showResult = true;
-      _digits = '';
-      _negative = false;
+      _resetEntry();
     });
   }
 
@@ -164,9 +243,17 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
         _resetCalculation();
         return;
       }
-      if (_digits.isNotEmpty) {
-        _digits = _digits.substring(0, _digits.length - 1);
+      if (_buffer.isEmpty) {
+        _setActiveValue(0);
+        _normalizeSegments();
+        _buffer = _activeValueText;
+        return;
       }
+      final next = _buffer.substring(0, _buffer.length - 1);
+      _buffer = next.isEmpty ? '0' : next;
+      _setActiveValue(int.tryParse(_buffer) ?? 0);
+      _normalizeSegments();
+      _buffer = _activeValueText;
     });
   }
 
@@ -261,7 +348,68 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
               ),
             ),
           ),
+          if (!_showResult) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                _segmentChip(_TimeSegment.hours, '时', _hours.toString()),
+                const SizedBox(width: 6),
+                _segmentChip(_TimeSegment.minutes, '分', twoDigits(_minutes)),
+                const SizedBox(width: 6),
+                _segmentChip(_TimeSegment.seconds, '秒', twoDigits(_seconds)),
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _segmentChip(_TimeSegment segment, String label, String value) {
+    final active = _active == segment;
+    final secondary = CalcColors.secondaryText(context);
+    return Expanded(
+      child: Material(
+        color: active ? CalcColors.orange : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          key: Key('duration-segment-${segment.name}'),
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => _selectSegment(segment),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: active ? CalcColors.orange : CalcColors.divider(context),
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: active ? Colors.white70 : secondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  key: Key('duration-segment-${segment.name}-value'),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: CalcText.tabular,
+                    color: active
+                        ? Colors.white
+                        : Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -430,7 +578,17 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                 ),
                 const SizedBox(width: CalcSpacing.keyGap),
                 Expanded(
-                  flex: 3,
+                  child: key(
+                    id: 'duration-key-colon',
+                    label: ':',
+                    semantic: '冒号',
+                    operator: true,
+                    onTap: _colonPressed,
+                  ),
+                ),
+                const SizedBox(width: CalcSpacing.keyGap),
+                Expanded(
+                  flex: 2,
                   child: key(
                     id: 'duration-key-0',
                     label: '0',

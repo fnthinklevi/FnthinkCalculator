@@ -64,81 +64,46 @@ void main() {
     );
   });
 
-  testWidgets('时分秒键盘、60进制与进位开关', (tester) async {
+  testWidgets('时分秒键盘、冒号、60进制与进位开关', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness());
     await tapKey(tester, 'time-tab-2');
     expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
     expect(valueOf(tester, 'duration-calc-total-seconds'), '共 0 秒');
 
-    for (final key in [
-      'duration-key-1',
-      'duration-key-3',
-      'duration-key-0',
-      'duration-key-0',
-      'duration-key-0',
-    ]) {
-      await tapKey(tester, key);
-    }
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-0');
     expect(valueOf(tester, 'duration-calc-display'), '01:30:00');
 
     await tapKey(tester, 'duration-key-add');
-    for (final key in [
-      'duration-key-4',
-      'duration-key-5',
-      'duration-key-0',
-      'duration-key-0',
-    ]) {
-      await tapKey(tester, key);
-    }
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-4');
+    await tapKey(tester, 'duration-key-5');
     expect(valueOf(tester, 'duration-calc-display'), '00:45:00');
     await tapKey(tester, 'duration-key-equals');
     expect(valueOf(tester, 'duration-calc-display'), '02:15:00');
     expect(valueOf(tester, 'duration-calc-total-seconds'), '共 8,100 秒');
 
     await tapKey(tester, 'duration-key-clear');
-    for (final key in [
-      'duration-key-1',
-      'duration-key-3',
-      'duration-key-0',
-      'duration-key-0',
-      'duration-key-0',
-    ]) {
-      await tapKey(tester, key);
-    }
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-0');
     await tapKey(tester, 'duration-key-subtract');
-    for (final key in [
-      'duration-key-4',
-      'duration-key-5',
-      'duration-key-0',
-      'duration-key-0',
-    ]) {
-      await tapKey(tester, key);
-    }
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-4');
+    await tapKey(tester, 'duration-key-5');
     await tapKey(tester, 'duration-key-equals');
     expect(valueOf(tester, 'duration-calc-display'), '00:45:00');
 
     await tapKey(tester, 'duration-key-clear');
-    for (final key in [
-      'duration-key-2',
-      'duration-key-4',
-      'duration-key-0',
-      'duration-key-0',
-      'duration-key-0',
-      'duration-key-0',
-    ]) {
-      await tapKey(tester, key);
-    }
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-4');
+    expect(valueOf(tester, 'duration-calc-display'), '24:00:00');
     await tapKey(tester, 'duration-key-add');
-    for (final key in [
-      'duration-key-1',
-      'duration-key-0',
-      'duration-key-0',
-      'duration-key-0',
-      'duration-key-0',
-    ]) {
-      await tapKey(tester, key);
-    }
+    await tapKey(tester, 'duration-key-1');
     await tapKey(tester, 'duration-key-equals');
     expect(valueOf(tester, 'duration-calc-display'), '1天 01:00:00');
 
@@ -155,22 +120,57 @@ void main() {
     configureSurface(tester);
     await tester.pumpWidget(harness());
     await tapKey(tester, 'time-tab-2');
-    for (final key in [
-      'duration-key-3',
-      'duration-key-2',
-      'duration-key-add',
-      'duration-key-2',
-      'duration-key-5',
-    ]) {
-      await tapKey(tester, key);
-    }
-    expect(valueOf(tester, 'duration-calc-display'), '00:00:25');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-add');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-5');
+    expect(valueOf(tester, 'duration-calc-display'), '00:25:00');
 
     await tapKey(tester, 'duration-key-undo');
-    expect(valueOf(tester, 'duration-calc-display'), '00:00:02');
+    expect(valueOf(tester, 'duration-calc-display'), '00:02:00');
     await tapKey(tester, 'duration-key-undo');
     expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
-    expect(valueOf(tester, 'duration-calc-expression'), '00:00:32 +');
+    expect(valueOf(tester, 'duration-calc-expression'), '32:00:00 +');
+  });
+
+  testWidgets('分段点击修改与冒号输入自动进位', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness());
+    await tapKey(tester, 'time-tab-2');
+
+    await tapKey(tester, 'duration-key-9');
+    await tapKey(tester, 'duration-key-6');
+    expect(valueOf(tester, 'duration-calc-display'), '96:00:00');
+
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-5');
+    await tapKey(tester, 'duration-key-2');
+    expect(valueOf(tester, 'duration-calc-display'), '96:52:00');
+
+    await tapKey(tester, 'duration-segment-seconds');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-0');
+    expect(valueOf(tester, 'duration-calc-display'), '96:52:30');
+    expect(valueOf(tester, 'duration-segment-seconds-value'), '30');
+
+    await tapKey(tester, 'duration-segment-hours');
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-0');
+    expect(valueOf(tester, 'duration-calc-display'), '100:52:30');
+
+    await tapKey(tester, 'duration-key-clear');
+    await tapKey(tester, 'duration-key-9');
+    await tapKey(tester, 'duration-key-6');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-6');
+    await tapKey(tester, 'duration-key-4');
+    expect(valueOf(tester, 'duration-calc-display'), '97:04:00');
+    expect(valueOf(tester, 'duration-segment-hours-value'), '97');
+    expect(valueOf(tester, 'duration-segment-minutes-value'), '04');
+    expect(valueOf(tester, 'duration-segment-seconds-value'), '00');
   });
 
   testWidgets('日期推算数量使用内置键盘', (tester) async {
