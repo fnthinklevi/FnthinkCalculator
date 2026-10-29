@@ -17,11 +17,11 @@
 | 编译 SDK | API 37 |
 | 屏幕 | 竖屏为主；科学模式支持横屏；适配平板最大宽度 |
 | 主题 | 亮色 + 深色，跟随系统并可手动切换 |
-| 网络 | 首版离线可用；汇率（第二批）才需要 INTERNET |
+| 网络 | 汇率换算需 INTERNET（release 已声明）；其余功能离线可用 |
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
 | 设计参考 | 小米计算器 HyperOS 版本的布局、配色与交互；不使用小米商标、图标、字体等素材 |
 
-当前状态：T0–T9.2 已完成；首版标准/科学计算、历史持久化、设置页、人民币大写、7 类单位换算、时间计算（时分秒分段编辑与冒号输入）、全应用内置数字键盘（左下角撤回）与 release 包均已就绪；P1 功能尚未开始。
+当前状态：T0–T10 已完成；首版标准/科学计算、历史持久化、设置页、人民币大写、7 类单位换算、时间计算（时分秒分段编辑与冒号输入）、汇率换算（实时 + 缓存）、全应用内置数字键盘（左下角撤回）与 release 包均已就绪；P1 其余功能尚未开始。
 
 ## 2. 技术栈
 
@@ -38,7 +38,7 @@
 | 状态管理 | `ChangeNotifier` + `ListenableBuilder`，不引入重型状态库 |
 | 本地存储 | `shared_preferences` ^2.5.3（已接入） |
 | 格式化 | `intl`（由 flutter_localizations 提供，直接使用待 T7/T8） |
-| 网络 | `http`（仅第二批汇率使用） |
+| 网络 | `http` 1.5.0（汇率接口，release 声明 INTERNET） |
 | 测试 | `flutter_test`、`integration_test`（后续需要时加入） |
 
 ### 2.1 Kotlin 编译决策
@@ -157,7 +157,7 @@ FnthinkCalculator/
 │   │   └── utils/               # chinese_upper
 │   └── features/
 │       ├── calculator/          # 控制器、页面、历史仓库、显示/键盘/科学面板/历史弹层
-│       ├── converter/           # 7 类单位数据、控制器、首页与详情页
+│       ├── converter/           # 7 类单位、汇率币种/仓库/控制器/页面、首页与详情页
 │       ├── multifunction/       # 多功能首页、大写数字、time/ 四个时间子页
 │       └── settings/            # 设置页
 ├── test/
@@ -308,7 +308,17 @@ integration_test/                # 后续需要时加入
 - 单位选择器为底部弹层；详情页支持实时输入、交换、复制。
 - 未做输入持久化；离开页面后输入不保留。
 
-### 6.9 图标
+### 6.9 汇率换算（T10 已实现）
+
+- 入口：换算首页首卡“汇率”；实现文件在 `lib/features/converter/currency_page.dart`、`currency_controller.dart`、`exchange_rate_repository.dart`、`currency_data.dart`。
+- 数据源：先请求 `open.er-api.com/v6/latest/CNY`，失败回退 `api.frankfurter.dev/v1/latest?from=CNY`；单次超时 8 秒。
+- 缓存：`shared_preferences` 键 `fx.rates.v1`，保存 CNY 基准汇率、接口更新时间与获取时间；12 小时内直接读缓存，过期后刷新。
+- 降级：刷新失败时保留缓存并提示“网络不可用，使用缓存”；无缓存时显示错误与重试入口，不影响其他页面。
+- 币种：31 种常用币种；选择器按“常用/其他币种”分组，未做文字搜索，避免弹出系统键盘。
+- 换算：金额与汇率均走 BigRational；结果复用 `NumberFormatter`；支持交换、复制、手动刷新，并显示更新时间与数据来源。
+- 权限：release 声明 `INTERNET`，仅用于请求公开汇率；无统计、不上传用户数据。
+
+### 6.10 图标
 
 - 设计：橙色底、白色计算器机身、深色屏幕、灰色按键、橙色等号键；48px 下仍可辨认。
 - 源图：`assets/icon/app_icon_source.png`。
@@ -365,8 +375,8 @@ adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 2. `android.builtInKotlin=true`，KGP 不 apply；`settings.gradle.kts` 的 2.4.21 仅用于抬高 classpath 版本。
 3. 不要将 `org.jetbrains.kotlin.android` 改为 apply true；会重新触发 KGP 弃用警告。
 4. Java/Kotlin 字节码目标 21 已验证；不要再改回 17，除非明确要求。
-5. Debug APK 的 `INTERNET` 权限来自 Flutter debug manifest；首版 release 不声明该权限，第二批汇率再加。
-6. 首版已完成；P1 的房贷、个税、汇率、亲戚称呼、比例尚未开始。release 使用模板默认 debug 签名，正式发布前需提供 keystore 并重新构建。
+5. release 已声明 `INTERNET`（T10 汇率）；仅用于请求公开汇率接口，不做统计或上传用户数据。
+6. T10 汇率已完成；P1 的房贷、个税、亲戚称呼、比例尚未开始。release 使用模板默认 debug 签名，正式发布前需提供 keystore 并重新构建。
 
 ## 9. 范围与非目标
 
@@ -378,7 +388,7 @@ adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 
 ### 第二批（P1）
 
-- 汇率换算、房贷计算、个税计算、亲戚称呼、比例计算。
+- 汇率换算（T10 已完成，入口在换算页）、房贷计算、个税计算、亲戚称呼、比例计算。
 - 第二批不砍，只排在首版之后；未确认前不擅自加功能。
 
 ### 非目标

@@ -50,7 +50,7 @@ class MultifunctionPage extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            '房贷、个税、汇率、亲戚称呼与比例计算将在第二批加入。',
+            '房贷、个税、亲戚称呼与比例计算将在后续加入。',
             style: TextStyle(fontSize: 12, height: 1.5, color: secondary),
           ),
         ],
