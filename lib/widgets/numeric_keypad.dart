@@ -341,7 +341,9 @@ class _NumericKeypadSheetState extends State<_NumericKeypadSheet> {
             ),
             const SizedBox(height: 8),
             Text(
-              widget.allowDecimal ? '支持小数与正负号' : '仅支持非负整数',
+              widget.allowDecimal
+                  ? (widget.allowNegative ? '支持小数与正负号' : '支持小数，不能为负')
+                  : (widget.allowNegative ? '仅支持整数' : '仅支持非负整数'),
               style: TextStyle(fontSize: 12, color: secondary),
             ),
             NumericKeypad(

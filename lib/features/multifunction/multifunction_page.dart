@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/tokens.dart';
+import 'mortgage/mortgage_page.dart';
 import 'time/time_calculator_page.dart';
 import 'uppercase_page.dart';
 
@@ -38,6 +39,18 @@ class MultifunctionPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _ToolCard(
+            keyId: 'tool-mortgage',
+            icon: Icons.home_work_outlined,
+            title: '房贷计算',
+            subtitle: '商业 · 公积金 · 组合贷',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const MortgagePage()),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _ToolCard(
             keyId: 'tool-uppercase',
             icon: Icons.text_fields,
             title: '大写数字',
@@ -50,7 +63,7 @@ class MultifunctionPage extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            '房贷、个税、亲戚称呼与比例计算将在后续加入。',
+            '个税、亲戚称呼与比例计算将在后续加入。',
             style: TextStyle(fontSize: 12, height: 1.5, color: secondary),
           ),
         ],
