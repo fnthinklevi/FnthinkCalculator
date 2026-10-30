@@ -1,6 +1,6 @@
 # 幻念多功能计算器 · 技术基线
 
-> 最后更新：2026-10-28
+> 最后更新：2026-10-30
 > 维护规则：稳定技术事实写入本文档；任务状态、闸门/冒烟/提交记录写入 [roadmap.md](roadmap.md)。
 
 ## 1. 软件信息
@@ -19,9 +19,9 @@
 | 主题 | 亮色 + 深色，跟随系统并可手动切换 |
 | 网络 | 汇率换算需 INTERNET（release 已声明）；其余功能离线可用 |
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
-| 设计参考 | 小米计算器 HyperOS 版本的布局、配色与交互；不使用小米商标、图标、字体等素材 |
+| 设计参考 | 小米计算器 17.3.9 的布局、配色与交互；唯一标准见 [xiaomi-reference.md](xiaomi-reference.md)；不使用小米商标、图标、字体等素材 |
 
-当前状态：T0–T11 已完成；首版标准/科学计算、历史持久化、设置页、人民币大写、7 类单位换算、时间计算（时分秒分段编辑与冒号输入）、汇率换算（实时 + 缓存）、房贷计算（商业/公积金/组合贷）、全应用内置数字键盘（左下角撤回）与 release 包均已就绪；P1 其余功能尚未开始。
+当前状态：T0–T11 与 R1–R4 复刻批次已完成（2026-10-30，`4e8ca3a`）；两标签壳、圆键键盘、历史/设置、15 个换算入口、三行汇率与 109 币种、单位全表、进制/BMI/称呼/个税、房贷清单、时间计算与全内置键盘均已落地；198 项测试与 6 项 UI 标准守卫全绿。仅 T14 比例计算未开始。
 
 ## 2. 技术栈
 
@@ -133,8 +133,8 @@ adb -s emulator-5556 emu kill
 设备约定：
 
 - 本机模拟器为 `ci_api34_pixel6`，API 34，1080×2400，density 420。
-- 所有 adb 命令必须带 `-s emulator-<n>`（本次会话为 `emulator-5556`），禁止裸 adb 指向真机。
-- 冒烟结束用 `adb -s emulator-5556 emu kill` 关闭模拟器。
+- 所有 adb 命令必须带 `-s emulator-<n>`（本次会话为 `emulator-5554`），禁止裸 adb 指向真机。
+- 冒烟结束用 `adb -s emulator-5554 emu kill` 关闭模拟器。
 
 ## 5. 目录架构
 
@@ -146,6 +146,7 @@ FnthinkCalculator/
 ├── assets/icon/                 # 图标源图、512 图、自适应前景图
 ├── doc/
 │   ├── base.md                  # 本文档
+│   ├── xiaomi-reference.md      # 小米 17.3.9 UI/交互/验收标准
 │   └── roadmap.md               # 任务、状态、闸门/冒烟/提交记录
 ├── lib/
 │   ├── main.dart                # 加载 prefs，创建应用级控制器
@@ -386,7 +387,7 @@ adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 3. 不要将 `org.jetbrains.kotlin.android` 改为 apply true；会重新触发 KGP 弃用警告。
 4. Java/Kotlin 字节码目标 21 已验证；不要再改回 17，除非明确要求。
 5. release 已声明 `INTERNET`（T10 汇率）；仅用于请求公开汇率接口，不做统计或上传用户数据。
-6. T11 房贷已完成；P1 的个税、亲戚称呼、比例尚未开始。release 使用模板默认 debug 签名，正式发布前需提供 keystore 并重新构建。
+6. T11 房贷、T12 个税、T13 称呼已完成（个税/称呼并入 R3 复刻）；仅 T14 比例计算未开始。release 使用模板默认 debug 签名，正式发布前需提供 keystore 并重新构建。
 
 ## 9. 范围与非目标
 
@@ -398,8 +399,9 @@ adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 
 ### 第二批（P1）
 
-- 汇率换算（T10，入口在换算页）、房贷计算（T11）已完成；个税计算、亲戚称呼、比例计算待开始。
-- 第二批不砍，只排在首版之后。
+- 汇率换算（T10）、房贷计算（T11）已完成。
+- 小米 17.3.9 复刻批次 R1–R4 已完成：两标签、换算首页 15 入口、单位/汇率、大写、进制、BMI、称呼、个税、房贷清单；标准见 [xiaomi-reference.md](xiaomi-reference.md)。
+- 仅 T14 比例计算待开始。
 
 ### 非目标
 
