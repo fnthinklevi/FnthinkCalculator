@@ -26,6 +26,13 @@ String textOf(WidgetTester tester, String key) {
   return tester.widget<Text>(find.byKey(Key(key))).data!;
 }
 
+String fieldText(WidgetTester tester, String key) {
+  final field = tester.widget<TextField>(
+    find.descendant(of: find.byKey(Key(key)), matching: find.byType(TextField)),
+  );
+  return field.controller!.text;
+}
+
 Future<void> tapKey(WidgetTester tester, String key) async {
   final finder = find.byKey(Key(key));
   await tester.ensureVisible(finder);
@@ -58,8 +65,9 @@ void main() {
     await tester.pumpWidget(harness());
 
     expect(find.byKey(const Key('mortgage-page')), findsOneWidget);
-    expect(find.byType(TextField), findsNothing);
-    expect(textOf(tester, 'mortgage-amount-value'), '100');
+    expect(find.byType(TextField), findsNWidgets(3));
+    expect(find.byKey(const Key('numeric-key-7')), findsNothing);
+    expect(fieldText(tester, 'mortgage-amount'), '100');
     expect(textOf(tester, 'mortgage-rate-summary'), '3.5% + 0‰ = 3.5%');
     expect(find.byKey(const Key('mortgage-method-row')), findsOneWidget);
     expect(find.byKey(const Key('mortgage-date-row')), findsOneWidget);
@@ -92,23 +100,28 @@ void main() {
     await tapKey(tester, 'mortgage-type-2');
     expect(find.byKey(const Key('mortgage-provident-amount')), findsOneWidget);
     expect(find.byKey(const Key('mortgage-provident-rate')), findsOneWidget);
-    expect(find.byKey(const Key('mortgage-provident-years-row')), findsOneWidget);
+    expect(
+      find.byKey(const Key('mortgage-provident-years-row')),
+      findsOneWidget,
+    );
 
     await openResult(tester);
     expect(textOf(tester, 'mortgage-result-loan'), '160.00');
   });
 
-  testWidgets('金额使用内置键盘修改并重算', (tester) async {
+  testWidgets('金额使用系统数字键盘修改并重算', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness());
 
-    await tapKey(tester, 'mortgage-amount');
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('numeric-sheet-display')), findsOneWidget);
-    expect(find.byType(TextField), findsNothing);
-
-    await enterValue(tester, '50');
-    expect(textOf(tester, 'mortgage-amount-value'), '50');
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const Key('mortgage-amount')),
+        matching: find.byType(TextField),
+      ),
+      '50',
+    );
+    await tester.pump();
+    expect(fieldText(tester, 'mortgage-amount'), '50');
     await openResult(tester);
     expect(textOf(tester, 'mortgage-result-loan'), '50.00');
   });

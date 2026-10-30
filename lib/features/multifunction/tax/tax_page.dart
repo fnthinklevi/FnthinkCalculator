@@ -4,7 +4,7 @@ import '../../../core/utils/mortgage_calc.dart' show formatMoneyCents;
 import '../../../core/utils/tax_calc.dart';
 import '../../../theme/tokens.dart';
 import '../../../widgets/anchored_picker.dart';
-import '../../../widgets/numeric_keypad.dart';
+import '../../../widgets/number_form_field.dart';
 import '../../../widgets/page_header.dart';
 import '../time/time_widgets.dart' show SegmentedTabs;
 
@@ -35,13 +35,21 @@ const _deductions = <_TaxDeduction>[
 
 class _TaxPageState extends State<TaxPage> {
   bool _monthly = true;
-  String _income = '10000';
-  String _insurance = '';
-  String _bonus = '50000';
+  final _income = TextEditingController(text: '10000');
+  final _insurance = TextEditingController();
+  final _bonus = TextEditingController(text: '50000');
   int _installments = 10;
   final Set<String> _selected = {};
   String? _error;
   final _installmentsKey = GlobalKey();
+
+  @override
+  void dispose() {
+    _income.dispose();
+    _insurance.dispose();
+    _bonus.dispose();
+    super.dispose();
+  }
 
   int get _specialYuan {
     var total = 0;
@@ -49,22 +57,6 @@ class _TaxPageState extends State<TaxPage> {
       if (_selected.contains(item.id)) total += item.yuan;
     }
     return total;
-  }
-
-  Future<void> _edit({
-    required String title,
-    required String initial,
-    required ValueChanged<String> onValue,
-  }) async {
-    final value = await showNumericKeypad(
-      context,
-      initial: initial,
-      title: title,
-      allowDecimal: true,
-      allowNegative: false,
-    );
-    if (value == null || !mounted) return;
-    onValue(value);
   }
 
   Future<void> _pickInstallments() async {
@@ -176,15 +168,15 @@ class _TaxPageState extends State<TaxPage> {
   }
 
   void _calculate() {
-    final income = parseYuanToCents(_monthly ? _income : _bonus);
+    final income = parseYuanToCents(_monthly ? _income.text : _bonus.text);
     if (income == null || income == BigInt.zero) {
       setState(() => _error = '请输入大于 0 的金额');
       return;
     }
     if (_monthly) {
-      final insurance = _insurance.isEmpty
+      final insurance = _insurance.text.isEmpty
           ? BigInt.zero
-          : parseYuanToCents(_insurance);
+          : parseYuanToCents(_insurance.text);
       if (insurance == null) {
         setState(() => _error = '五险一金金额不正确');
         return;
@@ -237,23 +229,20 @@ class _TaxPageState extends State<TaxPage> {
                     keyPrefix: 'tax-tab',
                   ),
                   const SizedBox(height: 18),
-                  _UnderlineField(
-                    keyId: _monthly ? 'tax-income' : 'tax-bonus',
-                    label: _monthly ? '税前收入（元）' : '税前年终奖（元）',
-                    value: _monthly ? _income : _bonus,
-                    placeholder: _monthly ? '请输入您的税前收入' : '请输入您的年终奖',
-                    onTap: () => _edit(
-                      title: _monthly ? '税前收入（元）' : '税前年终奖（元）',
-                      initial: _monthly ? _income : _bonus,
-                      onValue: (value) => setState(() {
-                        if (_monthly) {
-                          _income = value;
-                        } else {
-                          _bonus = value;
-                        }
-                      }),
+                  if (_monthly)
+                    NumberFormField(
+                      key: const Key('tax-income'),
+                      label: '税前收入（元）',
+                      controller: _income,
+                      placeholder: '请输入您的税前收入',
+                    )
+                  else
+                    NumberFormField(
+                      key: const Key('tax-bonus'),
+                      label: '税前年终奖（元）',
+                      controller: _bonus,
+                      placeholder: '请输入您的年终奖',
                     ),
-                  ),
                   if (_monthly) ...[
                     _SettingRow(
                       key: const Key('tax-installments'),
@@ -278,16 +267,11 @@ class _TaxPageState extends State<TaxPage> {
                           : '${_selected.length} 项 · 合计 $_specialYuan 元',
                       onTap: _pickDeductions,
                     ),
-                    _SettingRow(
+                    NumberFormField(
                       key: const Key('tax-insurance'),
-                      picker: false,
-                      label: '五险一金',
-                      value: _insurance.isEmpty ? '未填写' : '$_insurance 元',
-                      onTap: () => _edit(
-                        title: '五险一金合计（元）',
-                        initial: _insurance,
-                        onValue: (value) => setState(() => _insurance = value),
-                      ),
+                      label: '五险一金（元）',
+                      controller: _insurance,
+                      placeholder: '选填，合计金额',
                     ),
                   ],
                   if (_error != null)
@@ -330,52 +314,6 @@ class _TaxPageState extends State<TaxPage> {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _UnderlineField extends StatelessWidget {
-  const _UnderlineField({
-    required this.keyId,
-    required this.label,
-    required this.value,
-    required this.placeholder,
-    required this.onTap,
-  });
-
-  final String keyId;
-  final String label;
-  final String value;
-  final String placeholder;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final secondary = CalcColors.secondaryText(context);
-    return InkWell(
-      key: Key(keyId),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 20)),
-            const SizedBox(height: 6),
-            Text(
-              value.isEmpty ? placeholder : value,
-              key: Key('$keyId-value'),
-              style: TextStyle(
-                fontSize: 22,
-                color: value.isEmpty ? secondary : null,
-                fontFeatures: CalcText.tabular,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Divider(height: 1, color: CalcColors.divider(context)),
           ],
         ),
       ),

@@ -31,7 +31,8 @@ void main() {
     configureSurface(tester);
     await tester.pumpWidget(harness());
 
-    expect(find.byType(TextField), findsNothing);
+    expect(find.byType(TextField), findsNWidgets(2));
+    expect(find.byKey(const Key('numeric-key-7')), findsNothing);
     await tapKey(tester, 'tax-calculate');
     await tester.pumpAndSettle();
 

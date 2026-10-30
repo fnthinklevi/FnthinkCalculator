@@ -8,6 +8,7 @@ import 'converter_page.dart';
 import 'radix_page.dart';
 import '../multifunction/bmi/bmi_page.dart';
 import '../multifunction/kinship/kinship_page.dart';
+import '../multifunction/ratio/ratio_page.dart';
 import '../multifunction/tax/tax_page.dart';
 import 'currency_page.dart';
 import 'exchange_rate_repository.dart';
@@ -101,6 +102,12 @@ class ConverterHomePage extends StatelessWidget {
         icon: Icons.event_note_outlined,
         label: '时间计算',
         onTap: () => _push(context, const TimeCalculatorPage()),
+      ),
+      _GridEntry(
+        keyId: 'tool-ratio',
+        icon: Icons.percent,
+        label: '比例计算',
+        onTap: () => _push(context, const RatioPage()),
       ),
     ];
 

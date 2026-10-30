@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/tokens.dart';
 import '../../../widgets/anchored_picker.dart';
-import '../../../widgets/numeric_keypad.dart';
+import '../../../widgets/number_form_field.dart';
 import '../../../widgets/page_header.dart';
 import '../time/time_widgets.dart' show SegmentedTabs;
 import 'mortgage_controller.dart';
@@ -21,28 +21,35 @@ class _MortgagePageState extends State<MortgagePage> {
   final _yearsKey = GlobalKey();
   final _providentYearsKey = GlobalKey();
   final _rateStandardKey = GlobalKey();
+  final _amount = TextEditingController(text: '100');
+  final _providentAmount = TextEditingController(text: '60');
+  final _lpr = TextEditingController(text: '3.5');
+  final _basePoint = TextEditingController(text: '0');
+  final _providentRate = TextEditingController(text: '2.6');
+
+  @override
+  void initState() {
+    super.initState();
+    _amount.addListener(() => _controller.setAmount(_amount.text));
+    _providentAmount.addListener(
+      () => _controller.setProvidentAmount(_providentAmount.text),
+    );
+    _lpr.addListener(() => _controller.setLpr(_lpr.text));
+    _basePoint.addListener(() => _controller.setBasePoint(_basePoint.text));
+    _providentRate.addListener(
+      () => _controller.setProvidentRate(_providentRate.text),
+    );
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _amount.dispose();
+    _providentAmount.dispose();
+    _lpr.dispose();
+    _basePoint.dispose();
+    _providentRate.dispose();
     super.dispose();
-  }
-
-  Future<void> _editValue({
-    required String title,
-    required String initial,
-    required bool allowDecimal,
-    required ValueChanged<String> onValue,
-  }) async {
-    final value = await showNumericKeypad(
-      context,
-      initial: initial,
-      title: title,
-      allowDecimal: allowDecimal,
-      allowNegative: false,
-    );
-    if (value == null || !mounted) return;
-    onValue(value);
   }
 
   Future<void> _pickMethod() async {
@@ -177,46 +184,29 @@ class _MortgagePageState extends State<MortgagePage> {
                         keyPrefix: 'mortgage-type',
                       ),
                       const SizedBox(height: 18),
-                      _AmountField(
-                        keyId: combined || commercial
-                            ? 'mortgage-amount'
-                            : 'mortgage-provident-amount',
-                        label: combined
-                            ? '商业贷款金额（万）'
-                            : commercial
-                            ? '贷款总额（万）'
-                            : '公积金贷款金额（万）',
-                        value: combined || commercial
-                            ? _controller.amountWan
-                            : _controller.providentAmountWan,
-                        placeholder: '请输入您的贷款总额',
-                        onTap: () => _editValue(
-                          title: combined
-                              ? '商业贷款金额（万）'
-                              : commercial
-                              ? '贷款总额（万）'
-                              : '公积金贷款金额（万）',
-                          initial: combined || commercial
-                              ? _controller.amountWan
-                              : _controller.providentAmountWan,
-                          allowDecimal: true,
-                          onValue: combined || commercial
-                              ? _controller.setAmount
-                              : _controller.setProvidentAmount,
-                        ),
-                      ),
-                      if (combined)
-                        _AmountField(
-                          keyId: 'mortgage-provident-amount',
+                      if (combined || commercial)
+                        NumberFormField(
+                          key: const Key('mortgage-amount'),
+                          label: combined ? '商业贷款金额（万）' : '贷款总额（万）',
+                          controller: _amount,
+                          placeholder: '请输入您的贷款总额',
+                          suffix: '万',
+                        )
+                      else
+                        NumberFormField(
+                          key: const Key('mortgage-provident-amount'),
                           label: '公积金贷款金额（万）',
-                          value: _controller.providentAmountWan,
+                          controller: _providentAmount,
                           placeholder: '请输入公积金贷款金额',
-                          onTap: () => _editValue(
-                            title: '公积金贷款金额（万）',
-                            initial: _controller.providentAmountWan,
-                            allowDecimal: true,
-                            onValue: _controller.setProvidentAmount,
-                          ),
+                          suffix: '万',
+                        ),
+                      if (combined)
+                        NumberFormField(
+                          key: const Key('mortgage-provident-amount'),
+                          label: '公积金贷款金额（万）',
+                          controller: _providentAmount,
+                          placeholder: '请输入公积金贷款金额',
+                          suffix: '万',
                         ),
                       const SizedBox(height: 14),
                       _SettingRow(
@@ -262,29 +252,17 @@ class _MortgagePageState extends State<MortgagePage> {
                         ),
                         if (_controller.rateStandard ==
                             MortgageRateStandard.lpr) ...[
-                          _ValueBoxRow(
+                          NumberFormField(
                             key: const Key('mortgage-lpr'),
-                            label: 'LPR',
-                            value: _controller.lprPercent,
-                            suffix: '%',
-                            onTap: () => _editValue(
-                              title: 'LPR（%）',
-                              initial: _controller.lprPercent,
-                              allowDecimal: true,
-                              onValue: _controller.setLpr,
-                            ),
+                            label: 'LPR（%）',
+                            controller: _lpr,
+                            placeholder: '请输入 LPR',
                           ),
-                          _ValueBoxRow(
+                          NumberFormField(
                             key: const Key('mortgage-base-point'),
-                            label: '基点',
-                            value: _controller.basePoint,
-                            suffix: '‰',
-                            onTap: () => _editValue(
-                              title: '基点（‰）',
-                              initial: _controller.basePoint,
-                              allowDecimal: true,
-                              onValue: _controller.setBasePoint,
-                            ),
+                            label: '基点（‰）',
+                            controller: _basePoint,
+                            placeholder: '请输入基点',
                           ),
                         ],
                         _SummaryRow(
@@ -294,17 +272,11 @@ class _MortgagePageState extends State<MortgagePage> {
                       ],
                       if (combined ||
                           _controller.type == MortgageType.provident)
-                        _ValueBoxRow(
+                        NumberFormField(
                           key: const Key('mortgage-provident-rate'),
-                          label: '公积金贷款利率',
-                          value: _controller.providentRatePercent,
-                          suffix: '%',
-                          onTap: () => _editValue(
-                            title: '公积金贷款利率（%）',
-                            initial: _controller.providentRatePercent,
-                            allowDecimal: true,
-                            onValue: _controller.setProvidentRate,
-                          ),
+                          label: '公积金贷款利率（%）',
+                          controller: _providentRate,
+                          placeholder: '请输入公积金利率',
                         ),
                       if (_controller.error != null)
                         Padding(
@@ -361,52 +333,6 @@ class _MortgagePageState extends State<MortgagePage> {
   }
 }
 
-class _AmountField extends StatelessWidget {
-  const _AmountField({
-    required this.keyId,
-    required this.label,
-    required this.value,
-    required this.placeholder,
-    required this.onTap,
-  });
-
-  final String keyId;
-  final String label;
-  final String value;
-  final String placeholder;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final secondary = CalcColors.secondaryText(context);
-    return InkWell(
-      key: Key(keyId),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 20)),
-            const SizedBox(height: 6),
-            Text(
-              value.isEmpty ? placeholder : value,
-              key: Key('$keyId-value'),
-              style: TextStyle(
-                fontSize: 22,
-                color: value.isEmpty ? secondary : null,
-                fontFeatures: CalcText.tabular,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Divider(height: 1, color: CalcColors.divider(context)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _SettingRow extends StatelessWidget {
   const _SettingRow({
     super.key,
@@ -459,64 +385,6 @@ class _SettingRow extends StatelessWidget {
     );
     if (anchorKey == null) return row;
     return KeyedSubtree(key: anchorKey, child: row);
-  }
-}
-
-class _ValueBoxRow extends StatelessWidget {
-  const _ValueBoxRow({
-    super.key,
-    required this.label,
-    required this.value,
-    required this.suffix,
-    required this.onTap,
-  });
-
-  final String label;
-  final String value;
-  final String suffix;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            Text(label, style: const TextStyle(fontSize: 20)),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: CalcColors.keyBackground(context),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontFeatures: CalcText.tabular,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    suffix,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: CalcColors.secondaryText(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

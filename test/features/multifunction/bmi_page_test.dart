@@ -17,22 +17,12 @@ void configureSurface(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-Future<void> tapKey(WidgetTester tester, String key) async {
-  await tester.tap(find.byKey(Key(key)));
+Future<void> fill(WidgetTester tester, String key, String value) async {
+  await tester.enterText(
+    find.descendant(of: find.byKey(Key(key)), matching: find.byType(TextField)),
+    value,
+  );
   await tester.pump();
-}
-
-Future<void> enterValue(WidgetTester tester, String value) async {
-  await tapKey(tester, 'numeric-key-clear');
-  for (final char in value.split('')) {
-    if (char == '.') {
-      await tapKey(tester, 'numeric-key-dot');
-    } else {
-      await tapKey(tester, 'numeric-key-$char');
-    }
-  }
-  await tapKey(tester, 'numeric-key-done');
-  await tester.pumpAndSettle();
 }
 
 String textOf(WidgetTester tester, String key) {
@@ -43,24 +33,16 @@ void main() {
   testWidgets('BMI 表单计算结果与建议体重', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness());
-    expect(find.byType(TextField), findsNothing);
+    expect(find.byType(TextField), findsNWidgets(3));
 
-    await tapKey(tester, 'bmi-age');
-    await tester.pumpAndSettle();
-    await enterValue(tester, '30');
-
+    await fill(tester, 'bmi-age', '30');
     await tester.tap(find.byKey(const Key('bmi-gender-female')));
     await tester.pump();
+    await fill(tester, 'bmi-height', '175');
+    await fill(tester, 'bmi-weight', '70');
 
-    await tapKey(tester, 'bmi-height');
-    await tester.pumpAndSettle();
-    await enterValue(tester, '175');
-
-    await tapKey(tester, 'bmi-weight');
-    await tester.pumpAndSettle();
-    await enterValue(tester, '70');
-
-    await tapKey(tester, 'bmi-calculate');
+    await tester.ensureVisible(find.byKey(const Key('bmi-calculate')));
+    await tester.tap(find.byKey(const Key('bmi-calculate')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('bmi-result-page')), findsOneWidget);
@@ -73,7 +55,9 @@ void main() {
     configureSurface(tester);
     await tester.pumpWidget(harness());
 
-    await tapKey(tester, 'bmi-calculate');
+    await tester.ensureVisible(find.byKey(const Key('bmi-calculate')));
+    await tester.tap(find.byKey(const Key('bmi-calculate')));
+    await tester.pump();
     expect(find.byKey(const Key('bmi-error')), findsOneWidget);
     expect(find.textContaining('年龄'), findsWidgets);
   });

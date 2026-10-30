@@ -19,12 +19,23 @@ List<File> libFiles() {
 }
 
 void main() {
-  test('lib 内不得出现系统输入框', () {
+  test('系统输入框只允许出现在表单/表单输入组件', () {
+    const allowlist = {
+      'lib/widgets/number_form_field.dart',
+      'lib/features/multifunction/ratio/ratio_page.dart',
+      'lib/features/multifunction/tax/tax_page.dart',
+      'lib/features/multifunction/mortgage/mortgage_page.dart',
+      'lib/features/multifunction/bmi/bmi_page.dart',
+    };
     for (final file in libFiles()) {
       final source = file.readAsStringSync();
-      expect(source.contains('TextField('), isFalse, reason: file.path);
-      expect(source.contains('TextFormField('), isFalse, reason: file.path);
-      expect(source.contains('EditableText('), isFalse, reason: file.path);
+      final usesField =
+          source.contains('TextField(') ||
+          source.contains('TextFormField(') ||
+          source.contains('EditableText(');
+      if (!usesField) continue;
+      final normalized = file.path.replaceAll(RegExp(r'\\'), '/');
+      expect(allowlist.contains(normalized), isTrue, reason: file.path);
     }
   });
 
@@ -34,7 +45,7 @@ void main() {
     expect(source.contains('多功能标签'), isFalse);
   });
 
-  testWidgets('换算首页固定 15 个入口且顺序符合标准', (tester) async {
+  testWidgets('换算首页固定 16 个入口且顺序符合标准', (tester) async {
     tester.view.physicalSize = const Size(1080, 4200);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.resetPhysicalSize);
@@ -62,6 +73,7 @@ void main() {
       'converter-category-speed',
       'tool-bmi',
       'tool-time',
+      'tool-ratio',
     ];
     final rects = <String, Rect>{};
     for (final key in order) {
