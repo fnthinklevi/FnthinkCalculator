@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fnthink_calculator/app/app.dart';
 import 'package:fnthink_calculator/app/app_scope.dart';
 import 'package:fnthink_calculator/app/settings_controller.dart';
 import 'package:fnthink_calculator/features/calculator/calculator_controller.dart';
@@ -56,7 +57,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('百分比键按小米口径计算', (tester) async {
+  testWidgets('百分比键默认按数值口径计算', (tester) async {
     configureSurface(tester);
     final controller = CalculatorController();
     await tester.pumpWidget(harness(controller));
@@ -75,13 +76,13 @@ void main() {
     final preview = tester.widget<Text>(
       find.byKey(const Key('calc-preview-text')),
     );
-    expect(preview.data, '= 110');
+    expect(preview.data, '= 100.1');
 
     await tapKey(tester, 'key-equals');
     final result = tester.widget<Text>(
       find.byKey(const Key('calc-result-text')),
     );
-    expect(result.data, '110');
+    expect(result.data, '100.1');
   });
 
   testWidgets('除零错误可恢复', (tester) async {
@@ -95,7 +96,7 @@ void main() {
     await tapKey(tester, 'key-equals');
 
     final error = tester.widget<Text>(find.byKey(const Key('calc-error-text')));
-    expect(error.data, '不能除以 0');
+    expect(error.data, '不能除以0');
 
     await tapKey(tester, 'key-2');
     expect(
@@ -125,19 +126,26 @@ void main() {
     expect(result.data, contains('0.5'));
   });
 
-  testWidgets('历史记录可打开并复用', (tester) async {
+  testWidgets('历史记录页可打开并复用', (tester) async {
     configureSurface(tester);
     final controller = CalculatorController();
-    await tester.pumpWidget(harness(controller));
+    await tester.pumpWidget(
+      FnthinkCalculatorApp(
+        settings: SettingsController(),
+        calculatorController: controller,
+      ),
+    );
 
     await tapKey(tester, 'key-1');
     await tapKey(tester, 'key-plus');
     await tapKey(tester, 'key-2');
     await tapKey(tester, 'key-equals');
 
-    await tester.tap(find.byKey(const Key('calc-history')));
+    await tester.tap(find.byKey(const Key('app-menu')));
     await tester.pumpAndSettle();
-    expect(find.text('历史记录'), findsOneWidget);
+    await tester.tap(find.text('历史记录'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('history-page')), findsOneWidget);
     expect(find.byKey(const Key('history-entry-0')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('history-entry-0')));
@@ -188,6 +196,35 @@ void main() {
     expect(
       tester.widget<Text>(find.byKey(const Key('calc-input-text'))).data,
       '32+',
+    );
+  });
+
+  testWidgets('长按显示区可转换为大写金额', (tester) async {
+    configureSurface(tester);
+    final controller = CalculatorController();
+    await tester.pumpWidget(harness(controller));
+
+    for (final key in [
+      'key-1',
+      'key-2',
+      'key-3',
+      'key-plus',
+      'key-4',
+      'key-5',
+      'key-6',
+    ]) {
+      await tapKey(tester, key);
+    }
+    await tapKey(tester, 'key-equals');
+    await tester.longPress(find.byKey(const Key('calc-display')));
+    await tester.pumpAndSettle();
+    expect(find.text('转换为大写数字'), findsOneWidget);
+    await tester.tap(find.text('转换为大写数字'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-uppercase-text'))).data,
+      '伍佰柒拾玖圆整',
     );
   });
 }

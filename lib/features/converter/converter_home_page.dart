@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/tokens.dart';
+import '../multifunction/mortgage/mortgage_page.dart';
+import '../multifunction/time/time_calculator_page.dart';
+import '../multifunction/uppercase_page.dart';
 import 'converter_page.dart';
+import 'radix_page.dart';
+import '../multifunction/bmi/bmi_page.dart';
+import '../multifunction/kinship/kinship_page.dart';
+import '../multifunction/tax/tax_page.dart';
 import 'currency_page.dart';
 import 'exchange_rate_repository.dart';
 import 'unit_data.dart';
@@ -13,147 +20,149 @@ class ConverterHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondary = CalcColors.secondaryText(context);
+    final entries = <_GridEntry>[
+      _GridEntry(
+        keyId: 'converter-category-currency',
+        icon: Icons.currency_exchange,
+        label: '汇率转换',
+        onTap: () => _push(
+          context,
+          CurrencyConverterPage(repository: currencyRepository),
+        ),
+      ),
+      for (final id in const ['length', 'weight', 'area'])
+        _GridEntry(
+          keyId: 'converter-category-$id',
+          icon: UnitData.byId(id).icon,
+          label: '${UnitData.byId(id).name}转换',
+          onTap: () =>
+              _push(context, ConverterPage(category: UnitData.byId(id))),
+        ),
+      _GridEntry(
+        keyId: 'tool-tax',
+        icon: Icons.receipt_long_outlined,
+        label: '个税计算',
+        onTap: () => _push(context, const TaxPage()),
+      ),
+      _GridEntry(
+        keyId: 'tool-mortgage',
+        icon: Icons.home_work_outlined,
+        label: '房贷计算',
+        onTap: () => _push(context, const MortgagePage()),
+      ),
+      _GridEntry(
+        keyId: 'tool-kinship',
+        icon: Icons.people_alt_outlined,
+        label: '称呼计算',
+        onTap: () => _push(context, const KinshipPage()),
+      ),
+      _GridEntry(
+        keyId: 'tool-uppercase',
+        icon: Icons.text_fields,
+        label: '大写数字',
+        onTap: () => _push(context, const UppercasePage()),
+      ),
+      _GridEntry(
+        keyId: 'converter-category-time',
+        icon: Icons.schedule,
+        label: '时间转换',
+        onTap: () => _push(context, ConverterPage(category: UnitData.time)),
+      ),
+      for (final id in const ['volume'])
+        _GridEntry(
+          keyId: 'converter-category-$id',
+          icon: UnitData.byId(id).icon,
+          label: '${UnitData.byId(id).name}转换',
+          onTap: () =>
+              _push(context, ConverterPage(category: UnitData.byId(id))),
+        ),
+      _GridEntry(
+        keyId: 'converter-category-radix',
+        icon: Icons.numbers,
+        label: '进制转换',
+        onTap: () => _push(context, const RadixPage()),
+      ),
+      for (final id in const ['temperature', 'speed'])
+        _GridEntry(
+          keyId: 'converter-category-$id',
+          icon: UnitData.byId(id).icon,
+          label: '${UnitData.byId(id).name}转换',
+          onTap: () =>
+              _push(context, ConverterPage(category: UnitData.byId(id))),
+        ),
+      _GridEntry(
+        keyId: 'tool-bmi',
+        icon: Icons.monitor_weight_outlined,
+        label: 'BMI计算',
+        onTap: () => _push(context, const BmiPage()),
+      ),
+      _GridEntry(
+        keyId: 'tool-time',
+        icon: Icons.event_note_outlined,
+        label: '时间计算',
+        onTap: () => _push(context, const TimeCalculatorPage()),
+      ),
+    ];
+
     return SafeArea(
       top: false,
-      child: Column(
+      child: LayoutBuilder(
         key: const Key('converter-page'),
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-            child: Text(
-              '单位换算',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+        builder: (context, constraints) {
+          final columns = constraints.maxWidth >= 600 ? 4 : 3;
+          return GridView.builder(
+            padding: const EdgeInsets.fromLTRB(20, 36, 20, 24),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 0.82,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              '选择类别',
-              style: TextStyle(fontSize: 13, color: secondary),
-            ),
-          ),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final columns = constraints.maxWidth >= 600 ? 3 : 2;
-                return GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.25,
-                  ),
-                  itemCount: UnitData.categories.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return _EntryCard(
-                        keyId: 'converter-category-currency',
-                        icon: Icons.currency_exchange,
-                        title: '汇率',
-                        subtitle: '实时汇率 · 离线缓存',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => CurrencyConverterPage(
-                                repository: currencyRepository,
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    }
-                    final category = UnitData.categories[index - 1];
-                    return _EntryCard(
-                      keyId: 'converter-category-${category.id}',
-                      icon: category.icon,
-                      title: category.name,
-                      subtitle: '${category.units.length} 个单位',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => ConverterPage(category: category),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+            itemCount: entries.length,
+            itemBuilder: (context, index) => entries[index],
+          );
+        },
       ),
     );
   }
+
+  void _push(BuildContext context, Widget page) {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
+  }
 }
 
-class _EntryCard extends StatelessWidget {
-  const _EntryCard({
+class _GridEntry extends StatelessWidget {
+  const _GridEntry({
     required this.keyId,
     required this.icon,
-    required this.title,
-    required this.subtitle,
+    required this.label,
     required this.onTap,
   });
 
   final String keyId;
   final IconData icon;
-  final String title;
-  final String subtitle;
+  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final secondary = CalcColors.secondaryText(context);
+    final color = Theme.of(context).colorScheme.onSurface;
     return Material(
-      color: CalcColors.keyBackground(context),
-      borderRadius: BorderRadius.circular(CalcRadius.card),
-      clipBehavior: Clip.antiAlias,
+      color: Colors.transparent,
       child: InkWell(
         key: Key(keyId),
+        borderRadius: BorderRadius.circular(CalcRadius.card),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: CalcColors.orange.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: CalcColors.orange, size: 22),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(fontSize: 12, color: secondary),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 34, color: color),
+            const SizedBox(height: 16),
+            Text(
+              label,
+              style: TextStyle(fontSize: 15, height: 1.1, color: color),
+            ),
+          ],
         ),
       ),
     );

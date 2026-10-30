@@ -8,6 +8,8 @@ enum MortgageType { commercial, provident, combined }
 
 enum MortgageMethod { equalPayment, equalPrincipal }
 
+enum MortgageRateStandard { lpr, base }
+
 class MortgageController extends ChangeNotifier {
   MortgageController() {
     _recalculate();
@@ -15,18 +17,41 @@ class MortgageController extends ChangeNotifier {
 
   MortgageType type = MortgageType.commercial;
   MortgageMethod method = MortgageMethod.equalPayment;
+  MortgageRateStandard rateStandard = MortgageRateStandard.lpr;
   String amountWan = '100';
-  String ratePercent = '3.1';
+  String lprPercent = '3.5';
+  String basePoint = '0';
   String providentAmountWan = '60';
   String providentRatePercent = '2.6';
-  int years = 30;
+  int years = 40;
+  int providentYears = 40;
+  DateTime firstPaymentDate = DateTime.now();
   MortgageResult? result;
   String? error;
 
   bool get isCombined => type == MortgageType.combined;
   bool get isProvidentOnly => type == MortgageType.provident;
   bool get isEqualPayment => method == MortgageMethod.equalPayment;
-  String get paymentLabel => isEqualPayment ? '每月月供' : '首月月供';
+  String get paymentLabel => isEqualPayment ? '每月需还款' : '首月需还款';
+  String get methodLabel => isEqualPayment ? '等额本息（每月等额还款）' : '等额本金（每月递减还款）';
+  String get rateStandardLabel =>
+      rateStandard == MortgageRateStandard.lpr ? 'LPR' : '基准利率';
+
+  String get commercialRatePercent {
+    final base = _parseRate(
+      rateStandard == MortgageRateStandard.lpr ? lprPercent : '4.9',
+    );
+    final points = _parseRate(basePoint);
+    if (base == null || points == null) return lprPercent;
+    return _trim((base + points / BigRational.fromInt(10)).toDouble());
+  }
+
+  String get rateSummary {
+    if (rateStandard == MortgageRateStandard.base) {
+      return '基准利率 $commercialRatePercent%';
+    }
+    return '$lprPercent% + $basePoint‰ = $commercialRatePercent%';
+  }
 
   void setType(MortgageType value) {
     if (type == value) return;
@@ -40,15 +65,29 @@ class MortgageController extends ChangeNotifier {
     _update();
   }
 
+  void setRateStandard(MortgageRateStandard value) {
+    if (rateStandard == value) return;
+    rateStandard = value;
+    _update();
+  }
+
   void setAmount(String value) {
     if (amountWan == value) return;
     amountWan = value;
     _update();
   }
 
-  void setRate(String value) {
-    if (ratePercent == value) return;
-    ratePercent = value;
+  void setLpr(String value) {
+    if (lprPercent == value) return;
+    lprPercent = value;
+    _update();
+  }
+
+  void setRate(String value) => setLpr(value);
+
+  void setBasePoint(String value) {
+    if (basePoint == value) return;
+    basePoint = value;
     _update();
   }
 
@@ -70,6 +109,17 @@ class MortgageController extends ChangeNotifier {
     _update();
   }
 
+  void setProvidentYears(int value) {
+    if (providentYears == value) return;
+    providentYears = value;
+    _update();
+  }
+
+  void setFirstPaymentDate(DateTime value) {
+    firstPaymentDate = value;
+    notifyListeners();
+  }
+
   void _update() {
     _recalculate();
     notifyListeners();
@@ -78,51 +128,124 @@ class MortgageController extends ChangeNotifier {
   void _recalculate() {
     result = null;
     error = null;
-    if (years < 1 || years > 30) {
-      error = '贷款期限需在 1–30 年之间';
+    final commercialYears = years;
+    final providentTerm = providentYears;
+    if (commercialYears < 1 ||
+        commercialYears > 40 ||
+        providentTerm < 1 ||
+        providentTerm > 40) {
+      error = '贷款期限需在 1–40 年之间';
       return;
     }
 
-    final amount = _parseAmountCents(amountWan);
-    if (amount == null) {
-      if (isCombined) {
-        error = '组合贷商贷金额需大于 0';
-      } else {
-        error = '贷款金额需大于 0';
+    try {
+      if (type == MortgageType.commercial) {
+        final amount = _parseAmountCents(amountWan);
+        if (amount == null) {
+          error = '贷款金额需大于 0';
+          return;
+        }
+        final rate = _parseRate(commercialRatePercent);
+        if (rate == null) {
+          error = '贷款利率需在 0–100% 之间';
+          return;
+        }
+        result = calculateMortgage(
+          parts: [
+            MortgageLoanPart(principalCents: amount, annualRatePercent: rate),
+          ],
+          years: commercialYears,
+          equalPayment: isEqualPayment,
+        );
+        return;
       }
-      return;
-    }
-    final rate = _parseRate(ratePercent);
-    if (rate == null) {
-      error = '年利率需在 0–100% 之间';
-      return;
-    }
 
-    final parts = <MortgageLoanPart>[
-      MortgageLoanPart(principalCents: amount, annualRatePercent: rate),
-    ];
-    if (isCombined) {
       final providentAmount = _parseAmountCents(providentAmountWan);
       if (providentAmount == null) {
-        error = '组合贷公积金金额需大于 0';
+        error = '公积金贷款金额需大于 0';
         return;
       }
       final providentRate = _parseRate(providentRatePercent);
       if (providentRate == null) {
-        error = '公积金年利率需在 0–100% 之间';
+        error = '公积金利率需在 0–100% 之间';
         return;
       }
-      parts.add(
-        MortgageLoanPart(
-          principalCents: providentAmount,
-          annualRatePercent: providentRate,
+      final providentResult = calculateMortgage(
+        parts: [
+          MortgageLoanPart(
+            principalCents: providentAmount,
+            annualRatePercent: providentRate,
+          ),
+        ],
+        years: providentTerm,
+        equalPayment: isEqualPayment,
+      );
+      if (type == MortgageType.provident) {
+        result = providentResult;
+        return;
+      }
+
+      final amount = _parseAmountCents(amountWan);
+      if (amount == null) {
+        error = '商业贷款金额需大于 0';
+        return;
+      }
+      final rate = _parseRate(commercialRatePercent);
+      if (rate == null) {
+        error = '贷款利率需在 0–100% 之间';
+        return;
+      }
+      final commercialResult = calculateMortgage(
+        parts: [
+          MortgageLoanPart(principalCents: amount, annualRatePercent: rate),
+        ],
+        years: commercialYears,
+        equalPayment: isEqualPayment,
+      );
+      result = _merge(commercialResult, providentResult);
+    } on ArgumentError catch (error) {
+      this.error = error.message.toString();
+    }
+  }
+
+  MortgageResult _merge(MortgageResult first, MortgageResult second) {
+    final count = first.periods.length > second.periods.length
+        ? first.periods.length
+        : second.periods.length;
+    final periods = <MortgagePeriod>[];
+    for (var index = 0; index < count; index++) {
+      final a = index < first.periods.length ? first.periods[index] : null;
+      final b = index < second.periods.length ? second.periods[index] : null;
+      periods.add(
+        MortgagePeriod(
+          period: index + 1,
+          paymentCents:
+              (a?.paymentCents ?? BigInt.zero) +
+              (b?.paymentCents ?? BigInt.zero),
+          principalCents:
+              (a?.principalCents ?? BigInt.zero) +
+              (b?.principalCents ?? BigInt.zero),
+          interestCents:
+              (a?.interestCents ?? BigInt.zero) +
+              (b?.interestCents ?? BigInt.zero),
+          balanceCents:
+              (a?.balanceCents ?? BigInt.zero) +
+              (b?.balanceCents ?? BigInt.zero),
         ),
       );
     }
-
-    result = calculateMortgage(
-      parts: parts,
-      years: years,
+    final principal = first.principalCents + second.principalCents;
+    final interest = first.interestCents + second.interestCents;
+    return MortgageResult(
+      periods: periods,
+      principalCents: principal,
+      interestCents: interest,
+      repaymentCents: principal + interest,
+      firstPaymentCents: periods.first.paymentCents,
+      lastPaymentCents: periods.last.paymentCents,
+      monthlyDecreaseCents: periods.length > 1
+          ? periods[0].paymentCents - periods[1].paymentCents
+          : BigInt.zero,
       equalPayment: isEqualPayment,
     );
   }
@@ -160,4 +283,9 @@ BigRational? _parseRate(String text) {
 BigInt _roundHalfUp(BigRational value) {
   final adjusted = value.n * BigInt.two + value.d;
   return adjusted ~/ (value.d * BigInt.two);
+}
+
+String _trim(double value) {
+  final text = value.toStringAsFixed(4);
+  return text.replaceFirst(RegExp(r'\.?0+$'), '');
 }

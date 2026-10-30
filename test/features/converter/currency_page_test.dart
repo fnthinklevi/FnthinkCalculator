@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fnthink_calculator/core/math/rational.dart';
-import 'package:fnthink_calculator/features/converter/converter_home_page.dart';
 import 'package:fnthink_calculator/features/converter/currency_page.dart';
 import 'package:fnthink_calculator/features/converter/exchange_rate_repository.dart';
 import 'package:fnthink_calculator/theme/app_theme.dart';
@@ -42,7 +41,8 @@ void configureSurface(WidgetTester tester) {
 }
 
 String textOf(WidgetTester tester, String key) {
-  return tester.widget<Text>(find.byKey(Key(key))).data!;
+  final widget = tester.widget<Text>(find.byKey(Key(key)));
+  return widget.data ?? widget.textSpan?.toPlainText() ?? '';
 }
 
 Future<void> tapKey(WidgetTester tester, String key) async {
@@ -66,48 +66,65 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('汇率页默认 CNY→USD，内置键盘输入与交换正确', (tester) async {
+  testWidgets('汇率页默认三行同时换算', (tester) async {
     configureSurface(tester);
     final repository = ExchangeRateRepository(loader: () async => fixture());
     await tester.pumpWidget(harness(repository));
     await tester.pumpAndSettle();
 
     expect(find.byType(TextField), findsNothing);
-    expect(textOf(tester, 'currency-input'), '1');
-    expect(textOf(tester, 'currency-result'), '0.125');
-    expect(textOf(tester, 'currency-status'), contains('已更新'));
-    expect(textOf(tester, 'currency-rate-line'), '1 CNY = 0.125 USD');
+    expect(textOf(tester, 'currency-value-0'), '1');
+    expect(textOf(tester, 'currency-value-1'), '0.125');
+    expect(textOf(tester, 'currency-value-2'), '0.25');
+    expect(textOf(tester, 'currency-status'), contains('汇率数据由 test 提供'));
+    expect(textOf(tester, 'currency-status'), contains('2026年10月29日'));
+    expect(find.byKey(const Key('currency-swap')), findsNothing);
+  });
+
+  testWidgets('输入金额后三行联动', (tester) async {
+    configureSurface(tester);
+    final repository = ExchangeRateRepository(loader: () async => fixture());
+    await tester.pumpWidget(harness(repository));
+    await tester.pumpAndSettle();
 
     await enterNumber(tester, '100');
-    expect(textOf(tester, 'currency-input'), '100');
-    expect(textOf(tester, 'currency-result'), '12.5');
-
-    await tapKey(tester, 'numeric-key-undo');
-    expect(textOf(tester, 'currency-input'), '10');
-    expect(textOf(tester, 'currency-result'), '1.25');
-
-    await tapKey(tester, 'currency-swap');
-    expect(textOf(tester, 'currency-result'), '80');
+    expect(textOf(tester, 'currency-value-0'), '100');
+    expect(textOf(tester, 'currency-value-1'), '12.5');
+    expect(textOf(tester, 'currency-value-2'), '25');
   });
 
-  testWidgets('币种选择器可切换目标币种', (tester) async {
+  testWidgets('点第二行激活输入，首键替换原值', (tester) async {
     configureSurface(tester);
     final repository = ExchangeRateRepository(loader: () async => fixture());
     await tester.pumpWidget(harness(repository));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('currency-to-picker')));
-    await tester.pumpAndSettle();
-    expect(find.text('选择币种'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('currency-option-EUR')));
+    await tester.tap(find.byKey(const Key('currency-row-1')));
+    await tester.pump();
+    expect(textOf(tester, 'currency-value-1'), '0.125');
+
+    await tapKey(tester, 'numeric-key-8');
+    expect(textOf(tester, 'currency-value-1'), '8');
+    expect(textOf(tester, 'currency-value-0'), '64');
+    expect(textOf(tester, 'currency-value-2'), '16');
+  });
+
+  testWidgets('币种选择器可切换第三行币种', (tester) async {
+    configureSurface(tester);
+    final repository = ExchangeRateRepository(loader: () async => fixture());
+    await tester.pumpWidget(harness(repository));
     await tester.pumpAndSettle();
 
-    expect(textOf(tester, 'currency-result'), '0.25');
-    expect(textOf(tester, 'currency-rate-line'), '1 CNY = 0.25 EUR');
+    await tester.tap(find.byKey(const Key('currency-picker-2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('currency-option-JPY')));
+    await tester.pumpAndSettle();
+
+    expect(textOf(tester, 'currency-value-2'), '20');
     expect(find.byType(TextField), findsNothing);
   });
 
-  testWidgets('离线缓存可换算并在刷新失败后提示', (tester) async {
+  testWidgets('离线缓存可换算并提示缓存', (tester) async {
     configureSurface(tester);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
@@ -121,16 +138,11 @@ void main() {
     await tester.pumpWidget(harness(repository));
     await tester.pumpAndSettle();
 
-    expect(textOf(tester, 'currency-status'), contains('缓存数据'));
-    expect(textOf(tester, 'currency-result'), '0.125');
-
-    await tapKey(tester, 'currency-refresh');
-    await tester.pumpAndSettle();
-    expect(textOf(tester, 'currency-status'), contains('网络不可用'));
-    expect(textOf(tester, 'currency-result'), '0.125');
+    expect(textOf(tester, 'currency-status'), contains('缓存'));
+    expect(textOf(tester, 'currency-value-1'), '0.125');
   });
 
-  testWidgets('无缓存断网显示错误，重试后恢复', (tester) async {
+  testWidgets('无缓存断网显示错误，点击来源行重试后恢复', (tester) async {
     configureSurface(tester);
     var fail = true;
     final repository = ExchangeRateRepository(
@@ -143,44 +155,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(textOf(tester, 'currency-status'), contains('获取汇率失败'));
-    expect(textOf(tester, 'currency-result'), '—');
-    expect(
-      tester
-          .widget<IconButton>(find.byKey(const Key('currency-copy')))
-          .onPressed,
-      isNull,
-    );
+    expect(textOf(tester, 'currency-value-1'), '—');
 
     fail = false;
-    await tapKey(tester, 'currency-refresh');
+    await tester.tap(find.byKey(const Key('currency-status-tap')));
     await tester.pumpAndSettle();
-    expect(textOf(tester, 'currency-status'), contains('已更新'));
-    expect(textOf(tester, 'currency-result'), '0.125');
-  });
-
-  testWidgets('换算首页提供汇率入口且进入后无需系统键盘', (tester) async {
-    configureSurface(tester);
-    final repository = ExchangeRateRepository(loader: () async => fixture());
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('zh', 'CN'),
-        supportedLocales: const [Locale('zh', 'CN')],
-        localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        theme: buildAppTheme(Brightness.light),
-        home: ConverterHomePage(currencyRepository: repository),
-      ),
-    );
-
-    expect(
-      find.byKey(const Key('converter-category-currency')),
-      findsOneWidget,
-    );
-    await tester.tap(find.byKey(const Key('converter-category-currency')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('汇率换算'), findsOneWidget);
-    expect(find.byKey(const Key('currency-page')), findsOneWidget);
-    expect(find.byType(TextField), findsNothing);
-    expect(find.byKey(const Key('numeric-key-7')), findsOneWidget);
+    expect(textOf(tester, 'currency-status'), contains('汇率数据由 test 提供'));
+    expect(textOf(tester, 'currency-value-1'), '0.125');
   });
 }

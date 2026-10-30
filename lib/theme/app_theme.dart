@@ -48,6 +48,19 @@ ThemeData buildAppTheme(Brightness brightness) {
       contentTextStyle: const TextStyle(color: Colors.white, fontSize: 14),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? Colors.white
+            : (isDark ? Colors.white70 : Colors.white),
+      ),
+      trackColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? CalcColors.blue
+            : (isDark ? const Color(0xFF3A3A3A) : const Color(0xFFE0E0E0)),
+      ),
+      trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+    ),
     dividerTheme: DividerThemeData(
       color: isDark ? CalcColors.darkDivider : CalcColors.lightDivider,
       thickness: 1,

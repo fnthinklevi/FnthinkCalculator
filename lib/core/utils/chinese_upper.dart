@@ -12,13 +12,13 @@ class ChineseUpper {
   static String toRmb(String rawText) {
     final value = BigRational.parse(rawText);
     if (value.isZero) {
-      return '零元整';
+      return '零圆整';
     }
     final negative = value.isNegative;
     final absolute = value.abs;
     final cents = _roundToCents(absolute);
     if (cents == BigInt.zero) {
-      return '零元整';
+      return '零圆整';
     }
     final integerPart = cents ~/ BigInt.from(100);
     final fraction = (cents % BigInt.from(100)).toInt();
@@ -30,7 +30,7 @@ class ChineseUpper {
     final fen = fraction % 10;
     final buffer = StringBuffer();
     if (integerPart > BigInt.zero) {
-      buffer.write('${_integerToChinese(integerPart)}元');
+      buffer.write('${_integerToChinese(integerPart)}圆');
     }
     if (jiao == 0 && fen == 0) {
       buffer.write('整');

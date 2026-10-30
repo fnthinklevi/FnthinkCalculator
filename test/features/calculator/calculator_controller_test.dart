@@ -31,8 +31,21 @@ void main() {
     expect(controller.history.first.approximate, isFalse);
   });
 
-  test('小米百分比口径', () {
+  test('百分比默认按数值口径', () {
     final controller = CalculatorController();
+    for (final key in ['1', '0', '0']) {
+      controller.inputDigit(key);
+    }
+    controller.inputOperator('+');
+    controller.inputDigit('1');
+    controller.inputDigit('0');
+    controller.inputPostfix('%');
+    controller.evaluate();
+    expect(controller.mainText, '100.1');
+  });
+
+  test('百分比可切换按比例口径', () {
+    final controller = CalculatorController()..setPercentMode(PercentMode.proportion);
     for (final key in ['1', '0', '0']) {
       controller.inputDigit(key);
     }
@@ -126,7 +139,7 @@ void main() {
     controller.inputDigit('0');
     controller.evaluate();
     expect(controller.isErrorMode, isTrue);
-    expect(controller.errorMessage, contains('不能除以 0'));
+    expect(controller.errorMessage, contains('不能除以0'));
     controller.inputDigit('2');
     expect(controller.isInputMode, isTrue);
     expect(controller.expression, '2');

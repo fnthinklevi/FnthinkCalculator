@@ -4,12 +4,17 @@ import 'angle_unit.dart';
 import 'ast.dart';
 import 'calc_value.dart';
 import 'math_error.dart';
+import 'percent_mode.dart';
 import 'rational.dart';
 
 class Evaluator {
-  const Evaluator({this.angleUnit = AngleUnit.degrees});
+  const Evaluator({
+    this.angleUnit = AngleUnit.degrees,
+    this.percentMode = PercentMode.proportion,
+  });
 
   final AngleUnit angleUnit;
+  final PercentMode percentMode;
 
   CalcValue evaluate(Expr expression) => _evaluate(expression);
 
@@ -56,13 +61,11 @@ class Evaluator {
         rightExpr is PostfixExpr &&
         rightExpr.op == PostfixOp.percent) {
       final inner = _evaluate(rightExpr.operand);
-      final relative = divide(
-        multiply(left, inner),
-        RationalValue(BigRational.fromInt(100)),
-      );
-      return op == BinaryOp.add
-          ? add(left, relative)
-          : subtract(left, relative);
+      final hundred = RationalValue(BigRational.fromInt(100));
+      final operand = percentMode == PercentMode.value
+          ? divide(inner, hundred)
+          : divide(multiply(left, inner), hundred);
+      return op == BinaryOp.add ? add(left, operand) : subtract(left, operand);
     }
 
     final right = _evaluate(rightExpr);
@@ -103,6 +106,7 @@ class Evaluator {
             ? -math.pow(-value, 1 / 3).toDouble()
             : math.pow(value, 1 / 3).toDouble(),
       'exp' => math.exp(value),
+      'reciprocal' => _reciprocal(value),
       _ => throw MathException(MathErrorKind.unknownFunction, '未知函数「$name」'),
     };
     return _finite(result);
@@ -136,6 +140,13 @@ class Evaluator {
       throw const MathException(MathErrorKind.domain, '负数不能开平方');
     }
     return math.sqrt(value < 0 ? 0 : value);
+  }
+
+  double _reciprocal(double value) {
+    if (value == 0) {
+      throw const MathException(MathErrorKind.divideByZero, '不能除以0');
+    }
+    return 1 / value;
   }
 
   void _requireInverseDomain(double value, String name) {

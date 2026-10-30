@@ -68,24 +68,23 @@ void main() {
     expect(inputText(tester), '0');
 
     await enterNumber(tester, '100');
-    await tapKey(tester, 'converter-swap');
-    expect(resultText(tester), '1');
+    await tester.tap(find.byKey(const Key('converter-to-row')));
+    await tester.pump();
+    expect(inputText(tester), '10000');
+    expect(resultText(tester), '100');
     expect(find.byType(TextField), findsNothing);
   });
 
   testWidgets('单位选择器可切换目标单位', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness(UnitData.length));
-    await tapKey(tester, 'converter-swap');
-    await enterNumber(tester, '100');
 
     await tester.tap(find.byKey(const Key('unit-to-picker')));
     await tester.pumpAndSettle();
-    expect(find.text('选择单位'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('unit-option-km')));
+    await tester.tap(find.byKey(const Key('unit-option-mm')));
     await tester.pumpAndSettle();
 
-    expect(resultText(tester), '0.001');
+    expect(resultText(tester), '1,000');
   });
 
   testWidgets('换算页不使用系统键盘', (tester) async {
@@ -112,7 +111,7 @@ void main() {
   testWidgets('时间换算显示口径说明', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness(UnitData.time));
-    expect(find.textContaining('1 月 = 30 天'), findsOneWidget);
+    expect(find.textContaining('1 年按 365 天计算'), findsOneWidget);
   });
 
   testWidgets('换算首页可进入长度详情', (tester) async {
@@ -127,7 +126,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('converter-category-length')));
     await tester.pumpAndSettle();
-    expect(find.text('长度换算'), findsOneWidget);
+    expect(find.text('长度转换'), findsOneWidget);
     expect(find.byKey(const Key('converter-input')), findsOneWidget);
     expect(find.byKey(const Key('numeric-key-7')), findsOneWidget);
   });

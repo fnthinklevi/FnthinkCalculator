@@ -4,7 +4,7 @@ import 'package:fnthink_calculator/app/app.dart';
 import 'package:fnthink_calculator/app/settings_controller.dart';
 
 void main() {
-  testWidgets('三标签可以切换', (tester) async {
+  testWidgets('两标签可以切换，换算页含工具入口', (tester) async {
     final settings = SettingsController();
     await tester.pumpWidget(FnthinkCalculatorApp(settings: settings));
 
@@ -14,10 +14,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('converter-page')), findsOneWidget);
     expect(find.byKey(const Key('calculator-page')), findsNothing);
-
-    await tester.tap(find.byKey(const Key('tab-multifunction')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('multifunction-page')), findsOneWidget);
+    expect(find.byKey(const Key('tool-mortgage')), findsOneWidget);
+    expect(find.byKey(const Key('tool-uppercase')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('tool-time')),
+      240,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.byKey(const Key('tool-time')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('tab-calculator')));
     await tester.pumpAndSettle();
@@ -32,8 +36,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('设置'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('settings-theme-dark')), findsOneWidget);
+    expect(find.byKey(const Key('settings-page')), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-theme-dark')),
+      260,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('settings-theme-dark')));
     await tester.pumpAndSettle();
 
@@ -51,10 +61,20 @@ void main() {
     await tester.tap(find.text('设置'));
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-theme-light')),
+      260,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.byKey(const Key('settings-theme-light')));
     await tester.pumpAndSettle();
     expect(settings.themeMode, ThemeMode.light);
 
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-theme-system')),
+      260,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.byKey(const Key('settings-theme-system')));
     await tester.pumpAndSettle();
     expect(settings.themeMode, ThemeMode.system);
@@ -65,10 +85,38 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.haptics, isFalse);
 
-    await tester.ensureVisible(find.byKey(const Key('settings-angle-radians')));
+    await tester.ensureVisible(find.byKey(const Key('settings-angle-switch')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('settings-angle-radians')));
+    await tester.tap(find.byKey(const Key('settings-angle-switch')));
     await tester.pumpAndSettle();
     expect(settings.angleUnit, AngleUnit.radians);
+  });
+
+  testWidgets('设置页可切换百分数算法并即时演示', (tester) async {
+    final settings = SettingsController();
+    await tester.pumpWidget(FnthinkCalculatorApp(settings: settings));
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('设置'));
+    await tester.pumpAndSettle();
+
+    expect(settings.percentMode, PercentMode.value);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const Key('settings-percent-preview')))
+          .data,
+      '= 100.5',
+    );
+
+    await tester.tap(find.byKey(const Key('settings-percent-proportion')));
+    await tester.pumpAndSettle();
+    expect(settings.percentMode, PercentMode.proportion);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const Key('settings-percent-preview')))
+          .data,
+      '= 150',
+    );
   });
 }

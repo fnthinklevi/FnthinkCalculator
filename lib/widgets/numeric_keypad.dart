@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app/app_scope.dart';
-import '../features/calculator/widgets/calc_keypad.dart';
+import 'calc_key.dart';
 import '../theme/tokens.dart';
 
 String applyNumericKey(

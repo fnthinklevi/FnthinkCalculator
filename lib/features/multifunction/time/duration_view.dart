@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../app/app_scope.dart';
 import '../../../core/utils/duration_calc.dart';
 import '../../../theme/tokens.dart';
-import '../../calculator/widgets/calc_keypad.dart';
+import '../../../widgets/calc_key.dart';
 import 'time_widgets.dart';
 
 enum _TimeSegment { hours, minutes, seconds }

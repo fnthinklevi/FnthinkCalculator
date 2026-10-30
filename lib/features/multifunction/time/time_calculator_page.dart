@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../widgets/page_header.dart';
 import 'age_view.dart';
 import 'date_add_view.dart';
 import 'date_difference_view.dart';
@@ -22,19 +23,16 @@ class _TimeCalculatorPageState extends State<TimeCalculatorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: const Key('time-calculator-page'),
-      appBar: AppBar(
-        title: const Text('时间计算'),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
       body: SafeArea(
-        top: false,
         child: Column(
           children: [
+            PageHeader(
+              title: '时间计算',
+              titleKey: const Key('time-title'),
+              onBack: () => Navigator.of(context).pop(),
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              padding: const EdgeInsets.fromLTRB(22, 4, 22, 8),
               child: SegmentedTabs(
                 labels: _labels,
                 index: _tab,

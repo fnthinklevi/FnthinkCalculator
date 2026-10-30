@@ -7,7 +7,7 @@ class BigRational implements Comparable<BigRational> {
   factory BigRational(BigInt numerator, [BigInt? denominator]) {
     final den = denominator ?? BigInt.one;
     if (den == BigInt.zero) {
-      throw const MathException(MathErrorKind.divideByZero, '不能除以 0');
+      throw const MathException(MathErrorKind.divideByZero, '不能除以0');
     }
     var num = numerator;
     var den2 = den;
@@ -104,7 +104,7 @@ class BigRational implements Comparable<BigRational> {
 
   BigRational operator /(BigRational other) {
     if (other.isZero) {
-      throw const MathException(MathErrorKind.divideByZero, '不能除以 0');
+      throw const MathException(MathErrorKind.divideByZero, '不能除以0');
     }
     return BigRational(n * other.d, d * other.n);
   }
@@ -120,7 +120,7 @@ class BigRational implements Comparable<BigRational> {
       return BigRational(n.pow(exponent), d.pow(exponent));
     }
     if (isZero) {
-      throw const MathException(MathErrorKind.divideByZero, '不能除以 0');
+      throw const MathException(MathErrorKind.divideByZero, '不能除以0');
     }
     return BigRational(d.pow(-exponent), n.pow(-exponent));
   }

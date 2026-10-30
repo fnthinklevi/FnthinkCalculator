@@ -71,13 +71,12 @@ class SegmentedTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inactive = CalcColors.secondaryText(context);
     return Container(
-      height: 44,
+      height: 42,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: CalcColors.keyBackground(context),
-        borderRadius: BorderRadius.circular(14),
+        color: CalcColors.track(context),
+        borderRadius: BorderRadius.circular(CalcRadius.pill),
       ),
       child: Row(
         children: List.generate(labels.length, (tabIndex) {
@@ -95,15 +94,17 @@ class SegmentedTabs extends StatelessWidget {
                   duration: const Duration(milliseconds: 150),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: active ? CalcColors.orange : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
+                    color: active
+                        ? CalcColors.trackSelected(context)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(CalcRadius.pill),
                   ),
                   child: Text(
                     labels[tabIndex],
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                      color: active ? Colors.white : inactive,
+                      fontSize: 15,
+                      fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -144,7 +145,7 @@ class DateField extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(label, style: TextStyle(fontSize: 13, color: secondary)),
+                  Text(label, style: TextStyle(fontSize: 15, color: secondary)),
                   const Spacer(),
                   Icon(
                     Icons.calendar_today_outlined,
@@ -157,7 +158,7 @@ class DateField extends StatelessWidget {
               Text(
                 formatDate(value),
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 20,
                   fontWeight: FontWeight.w500,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -165,7 +166,7 @@ class DateField extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 weekdayName(value),
-                style: TextStyle(fontSize: 12, color: secondary),
+                style: TextStyle(fontSize: 15, color: secondary),
               ),
             ],
           ),
@@ -207,7 +208,7 @@ class TimeResultCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(title, style: TextStyle(fontSize: 13, color: secondary)),
+          Text(title, style: TextStyle(fontSize: 15, color: secondary)),
           const SizedBox(height: 6),
           for (final row in rows)
             Padding(
@@ -217,7 +218,7 @@ class TimeResultCard extends StatelessWidget {
                 children: [
                   Text(
                     row.label,
-                    style: TextStyle(fontSize: 14, color: secondary),
+                    style: TextStyle(fontSize: 15, color: secondary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -226,7 +227,7 @@ class TimeResultCard extends StatelessWidget {
                       key: row.valueKey,
                       textAlign: TextAlign.right,
                       style: TextStyle(
-                        fontSize: row.emphasized ? 21 : 15,
+                        fontSize: row.emphasized ? 24 : 17,
                         fontWeight: row.emphasized
                             ? FontWeight.w600
                             : FontWeight.w400,
@@ -255,7 +256,7 @@ class TimeNote extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 15,
           height: 1.5,
           color: CalcColors.secondaryText(context),
         ),

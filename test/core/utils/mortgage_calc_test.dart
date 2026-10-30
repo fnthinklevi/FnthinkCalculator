@@ -164,7 +164,7 @@ void main() {
     expect(
       () => calculateMortgage(
         parts: [part('100', '3.1')],
-        years: 31,
+        years: 41,
         equalPayment: true,
       ),
       throwsArgumentError,

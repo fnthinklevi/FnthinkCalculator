@@ -63,7 +63,7 @@ CalcValue multiply(CalcValue a, CalcValue b) {
 
 CalcValue divide(CalcValue a, CalcValue b) {
   if (b.isZero) {
-    throw const MathException(MathErrorKind.divideByZero, '不能除以 0');
+    throw const MathException(MathErrorKind.divideByZero, '不能除以0');
   }
   if (a is RationalValue && b is RationalValue) {
     return RationalValue(a.value / b.value);
@@ -99,7 +99,7 @@ CalcValue powValue(CalcValue base, CalcValue exponent) {
       throw const MathException(MathErrorKind.tooLarge, '指数过大');
     }
     if (integerExponent.isNegative && base.isZero) {
-      throw const MathException(MathErrorKind.divideByZero, '不能除以 0');
+      throw const MathException(MathErrorKind.divideByZero, '不能除以0');
     }
     if (base is RationalValue) {
       return RationalValue(base.value.pow(integerExponent.toInt()));
@@ -114,7 +114,7 @@ CalcValue powValue(CalcValue base, CalcValue exponent) {
     throw const MathException(MathErrorKind.domain, '负数不能开非整数次方');
   }
   if (baseDouble == 0 && exponentDouble <= 0) {
-    throw const MathException(MathErrorKind.divideByZero, '不能除以 0');
+    throw const MathException(MathErrorKind.divideByZero, '不能除以0');
   }
   return _finite(_mathPow(baseDouble, exponentDouble));
 }

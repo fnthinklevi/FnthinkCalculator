@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_scope.dart';
-import '../../core/utils/chinese_upper.dart';
 import 'calculator_controller.dart';
 import 'widgets/calc_display.dart';
 import 'widgets/calc_keypad.dart';
-import 'widgets/history_sheet.dart';
-import 'widgets/scientific_panel.dart';
 
 class CalculatorPage extends StatefulWidget {
   const CalculatorPage({super.key, this.controller});
@@ -32,7 +29,9 @@ class _CalculatorPageState extends State<CalculatorPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _controller.setAngleUnit(AppScope.of(context).angleUnit);
+    final settings = AppScope.of(context);
+    _controller.setAngleUnit(settings.angleUnit);
+    _controller.setPercentMode(settings.percentMode);
   }
 
   @override
@@ -50,46 +49,6 @@ class _CalculatorPageState extends State<CalculatorPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('已复制')));
-  }
-
-  void _showUppercase() {
-    final formatted = _controller.activeFormatted;
-    if (formatted == null) return;
-    final String text;
-    try {
-      text = ChineseUpper.toRmb(formatted.rawText);
-    } catch (error) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(ChineseUpper.errorMessage(error))));
-      return;
-    }
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('人民币大写'),
-          content: SelectableText(text),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('关闭'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                await Clipboard.setData(ClipboardData(text: text));
-                if (!dialogContext.mounted) return;
-                Navigator.of(dialogContext).pop();
-                if (!mounted) return;
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(const SnackBar(content: Text('已复制')));
-              },
-              child: const Text('复制'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _confirmClearHistory() async {
@@ -118,57 +77,36 @@ class _CalculatorPageState extends State<CalculatorPage> {
     }
   }
 
-  void _showHistory() {
-    showModalBottomSheet<void>(
+  Future<void> _showDisplayMenu(Offset globalPosition) async {
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    if (overlay == null) return;
+    final selected = await showMenu<String>(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * 0.65,
-          child: HistorySheet(
-            controller: _controller,
-            onClearHistory: _confirmClearHistory,
-          ),
-        );
-      },
+      position: RelativeRect.fromRect(
+        Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem<String>(
+          key: const Key('display-menu-copy'),
+          value: 'copy',
+          enabled: _controller.copyText.isNotEmpty,
+          child: const Text('复制'),
+        ),
+        PopupMenuItem<String>(
+          key: const Key('display-menu-uppercase'),
+          value: 'uppercase',
+          enabled: _controller.canConvertToUppercase,
+          child: const Text('转换为大写数字'),
+        ),
+      ],
     );
-  }
-
-  void _showActions() {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.copy_outlined),
-                title: const Text('复制结果'),
-                enabled: _controller.copyText.isNotEmpty,
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _copy();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.text_fields),
-                title: const Text('转中文大写'),
-                enabled: _controller.canConvertToUppercase,
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _showUppercase();
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
+    if (selected == 'copy') {
+      await _copy();
+    } else if (selected == 'uppercase') {
+      _controller.showUppercase();
+    }
   }
 
   @override
@@ -192,34 +130,19 @@ class _CalculatorPageState extends State<CalculatorPage> {
                 builder: (context, _) {
                   final display = CalcDisplay(
                     controller: _controller,
-                    onHistory: _showHistory,
-                    onCopy: _copy,
-                    onUppercase: _showUppercase,
-                    onClearHistory: _confirmClearHistory,
-                    onLongPressMain: _showActions,
+                    onLongPressMain: _showDisplayMenu,
                   );
                   final keypad = CalcKeypad(
                     controller: _controller,
                     clearLabel: _controller.clearLabel,
                     onClearLongPress: _confirmClearHistory,
                   );
-                  final panel = _controller.scientificVisible
-                      ? ScientificPanel(controller: _controller)
-                      : null;
 
                   if (landscape) {
                     return Row(
                       key: const Key('landscape-layout'),
                       children: [
-                        Expanded(
-                          flex: 5,
-                          child: Column(
-                            children: [
-                              Expanded(child: display),
-                              ?panel,
-                            ],
-                          ),
-                        ),
+                        Expanded(flex: 5, child: display),
                         const VerticalDivider(width: 1),
                         Expanded(flex: 5, child: keypad),
                       ],
@@ -230,7 +153,6 @@ class _CalculatorPageState extends State<CalculatorPage> {
                     key: const Key('portrait-layout'),
                     children: [
                       Expanded(flex: 4, child: display),
-                      ?panel,
                       Expanded(flex: 6, child: keypad),
                     ],
                   );

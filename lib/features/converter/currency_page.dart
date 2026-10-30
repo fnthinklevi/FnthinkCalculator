@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../theme/tokens.dart';
+import '../../widgets/anchored_picker.dart';
 import '../../widgets/numeric_keypad.dart';
+import '../../widgets/page_header.dart';
+import '../../widgets/round_keypads.dart';
 import 'currency_controller.dart';
 import 'currency_data.dart';
 import 'exchange_rate_repository.dart';
@@ -20,6 +22,7 @@ class CurrencyConverterPage extends StatefulWidget {
 
 class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
   late final CurrencyController _controller;
+  final List<GlobalKey> _pickerKeys = [GlobalKey(), GlobalKey(), GlobalKey()];
 
   @override
   void initState() {
@@ -36,7 +39,46 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     super.dispose();
   }
 
-  void _onNumericKey(String key) {
+  void _onKey(String key) {
+    switch (key) {
+      case 'clear':
+        _controller.setInput('');
+        return;
+      case 'backspace':
+        final text = _controller.input;
+        if (text.isNotEmpty) {
+          _controller.setInput(text.substring(0, text.length - 1));
+        }
+        return;
+      case 'sign':
+        return;
+      case 'equals':
+        _controller.commit();
+        return;
+      case '+':
+      case '−':
+      case '×':
+      case '÷':
+        _controller.appendOperator(key);
+        return;
+    }
+    if (_controller.replaceOnNextInput) {
+      if (key == '.') {
+        _controller.setInput('0.');
+        _controller.consumeFreshInput();
+        return;
+      }
+      if (key == '00') {
+        _controller.setInput('0');
+        _controller.consumeFreshInput();
+        return;
+      }
+      if (RegExp(r'^[0-9]$').hasMatch(key)) {
+        _controller.setInput(key);
+        _controller.consumeFreshInput();
+        return;
+      }
+    }
     _controller.setInput(
       applyNumericKey(
         _controller.input,
@@ -47,92 +89,25 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     );
   }
 
-  Future<void> _copy() async {
-    final text = _controller.copyText;
-    if (text.isEmpty) return;
-    await Clipboard.setData(ClipboardData(text: text));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('已复制')));
-  }
-
-  Future<void> _pickCurrency({required bool isFrom}) async {
-    final current = isFrom ? _controller.from : _controller.to;
-    bool available(CurrencyDef currency) {
-      return !_controller.hasRates || _controller.supports(currency.code);
-    }
-
-    final selected = await showModalBottomSheet<CurrencyDef>(
+  Future<void> _pickCurrency(int index) async {
+    final selected = await showAnchoredPicker<CurrencyDef>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * 0.7,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 12, 4),
-                child: Row(
-                  children: [
-                    const Text(
-                      '选择币种',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () => Navigator.of(sheetContext).pop(),
-                      child: const Text('取消'),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: ListView(
-                  children: [
-                    const _SheetSection(title: '常用'),
-                    for (final currency in CurrencyData.common)
-                      if (available(currency))
-                        _currencyTile(sheetContext, currency, current),
-                    const _SheetSection(title: '其他币种'),
-                    for (final currency in CurrencyData.all)
-                      if (!CurrencyData.commonCodes.contains(currency.code) &&
-                          available(currency))
-                        _currencyTile(sheetContext, currency, current),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+      anchorKey: _pickerKeys[index],
+      items: [
+        for (final currency in CurrencyData.all)
+          if (!_controller.hasRates || _controller.supports(currency.code))
+            AnchoredPickerItem(
+              id: currency.code,
+              title: currency.name,
+              subtitle: currency.code,
+              value: currency,
+            ),
+      ],
+      selected: _controller.rows[index],
+      keyPrefix: 'currency-option',
     );
     if (selected == null || !mounted) return;
-    if (isFrom) {
-      _controller.setFrom(selected);
-    } else {
-      _controller.setTo(selected);
-    }
-  }
-
-  Widget _currencyTile(
-    BuildContext sheetContext,
-    CurrencyDef currency,
-    CurrencyDef current,
-  ) {
-    return ListTile(
-      key: Key('currency-option-${currency.code}'),
-      title: Text('${currency.name}  ${currency.code}'),
-      subtitle: currency.symbol == currency.code ? null : Text(currency.symbol),
-      trailing: current.code == currency.code
-          ? const Icon(Icons.check, color: CalcColors.orange, size: 20)
-          : null,
-      onTap: () => Navigator.of(sheetContext).pop(currency),
-    );
+    _controller.setCurrency(index, selected);
   }
 
   @override
@@ -142,58 +117,44 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
       builder: (context, _) {
         return Scaffold(
           key: const Key('currency-page'),
-          appBar: AppBar(
-            title: const Text('汇率换算'),
-            centerTitle: true,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-          ),
+          backgroundColor: CalcColors.displayBackground(context),
           body: SafeArea(
-            top: false,
             child: Column(
               children: [
+                PageHeader(
+                  title: '汇率转换',
+                  titleKey: const Key('currency-title'),
+                  onBack: () => Navigator.of(context).pop(),
+                ),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Column(
                     children: [
-                      _amountCard(context),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Center(
-                          child: IconButton.filled(
-                            key: const Key('currency-swap'),
-                            tooltip: '交换币种',
-                            onPressed: _controller.swap,
-                            style: IconButton.styleFrom(
-                              backgroundColor: CalcColors.orange,
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size(40, 40),
-                              padding: const EdgeInsets.all(8),
-                            ),
-                            iconSize: 20,
-                            icon: const Icon(Icons.swap_vert),
+                      const SizedBox(height: 16),
+                      for (
+                        var index = 0;
+                        index < _controller.rows.length;
+                        index++
+                      )
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 22),
+                          child: _CurrencyRow(
+                            key: Key('currency-row-$index'),
+                            pickerKey: _pickerKeys[index],
+                            pickerTestKey: Key('currency-picker-$index'),
+                            currency: _controller.rows[index],
+                            value: _controller.valueText(index),
+                            active: _controller.activeIndex == index,
+                            valueKey: Key('currency-value-$index'),
+                            onTap: () => _controller.setActive(index),
+                            onPick: () => _pickCurrency(index),
                           ),
                         ),
-                      ),
-                      _resultCard(context),
-                      const SizedBox(height: 12),
-                      Text(
-                        '汇率来自公开接口，仅供参考，不构成交易依据。首次使用需联网，之后可离线查看最近一次缓存。',
-                        style: TextStyle(
-                          fontSize: 12,
-                          height: 1.5,
-                          color: CalcColors.secondaryText(context),
-                        ),
-                      ),
+                      const Spacer(),
+                      _SourceLine(controller: _controller),
+                      const SizedBox(height: 8),
+                      ConverterKeypad(onKey: _onKey),
                     ],
                   ),
-                ),
-                NumericKeypad(
-                  onKey: _onNumericKey,
-                  allowDecimal: true,
-                  allowNegative: false,
-                  height: 260,
                 ),
               ],
             ),
@@ -202,209 +163,131 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
       },
     );
   }
-
-  Widget _amountCard(BuildContext context) {
-    final secondary = CalcColors.secondaryText(context);
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-      decoration: BoxDecoration(
-        color: CalcColors.keyBackground(context),
-        borderRadius: BorderRadius.circular(CalcRadius.card),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text('从', style: TextStyle(fontSize: 13, color: secondary)),
-              const Spacer(),
-              Flexible(
-                child: _CurrencyPickerField(
-                  key: const Key('currency-from-picker'),
-                  currency: _controller.from,
-                  onTap: () => _pickCurrency(isFrom: true),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerRight,
-            child: Text(
-              _controller.input.isEmpty ? '0' : _controller.input,
-              key: const Key('currency-input'),
-              maxLines: 1,
-              style: const TextStyle(
-                fontSize: 34,
-                fontFeatures: CalcText.tabular,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _resultCard(BuildContext context) {
-    final secondary = CalcColors.secondaryText(context);
-    final result = _controller.result;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-      decoration: BoxDecoration(
-        color: CalcColors.keyBackground(context),
-        borderRadius: BorderRadius.circular(CalcRadius.card),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text('到', style: TextStyle(fontSize: 13, color: secondary)),
-              const Spacer(),
-              Flexible(
-                child: _CurrencyPickerField(
-                  key: const Key('currency-to-picker'),
-                  currency: _controller.to,
-                  onTap: () => _pickCurrency(isFrom: false),
-                ),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                key: const Key('currency-refresh'),
-                tooltip: '刷新汇率',
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints(),
-                padding: const EdgeInsets.all(6),
-                onPressed: _controller.loading ? null : _controller.refresh,
-                icon: _controller.loading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(Icons.refresh, size: 18, color: secondary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    result == null
-                        ? '—'
-                        : '${_controller.resultApproximate ? '≈ ' : ''}${result.text}',
-                    key: const Key('currency-result'),
-                    maxLines: 1,
-                    style: const TextStyle(
-                      fontSize: 34,
-                      fontFeatures: CalcText.tabular,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _controller.to.code,
-                style: TextStyle(fontSize: 14, color: secondary),
-              ),
-              IconButton(
-                key: const Key('currency-copy'),
-                tooltip: '复制结果',
-                onPressed: result == null ? null : _copy,
-                icon: Icon(Icons.copy_outlined, size: 18, color: secondary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _controller.unitRateText,
-            key: const Key('currency-rate-line'),
-            textAlign: TextAlign.right,
-            style: TextStyle(fontSize: 12, color: secondary),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            _controller.statusText,
-            key: const Key('currency-status'),
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              fontSize: 11,
-              height: 1.4,
-              color: _controller.hasError ? CalcColors.error : secondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-class _CurrencyPickerField extends StatelessWidget {
-  const _CurrencyPickerField({
+class _CurrencyRow extends StatelessWidget {
+  const _CurrencyRow({
     super.key,
+    required this.pickerKey,
+    required this.pickerTestKey,
     required this.currency,
+    required this.value,
+    required this.active,
+    required this.valueKey,
     required this.onTap,
+    required this.onPick,
   });
 
+  final GlobalKey pickerKey;
+  final Key pickerTestKey;
   final CurrencyDef currency;
+  final String value;
+  final bool active;
+  final Key valueKey;
   final VoidCallback onTap;
+  final VoidCallback onPick;
 
   @override
   Widget build(BuildContext context) {
     final secondary = CalcColors.secondaryText(context);
-    return Semantics(
-      button: true,
-      label: '选择币种 ${currency.name}',
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            border: Border.all(color: CalcColors.divider(context)),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text(
-                  '${currency.name} (${currency.code})',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14),
+    final valueColor = active
+        ? CalcColors.orange
+        : Theme.of(context).colorScheme.onSurface;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+        child: Row(
+          children: [
+            KeyedSubtree(
+              key: pickerTestKey,
+              child: GestureDetector(
+                key: pickerKey,
+                behavior: HitTestBehavior.opaque,
+                onTap: onPick,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      currency.name,
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      currency.code,
+                      style: TextStyle(fontSize: 17, color: secondary),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.unfold_more, size: 18, color: secondary),
+                  ],
                 ),
               ),
-              const SizedBox(width: 4),
-              Icon(Icons.expand_more, size: 18, color: secondary),
-            ],
-          ),
+            ),
+            const Spacer(),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  value.isEmpty ? '0' : value,
+                  key: valueKey,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 28,
+                    color: valueColor,
+                    fontFeatures: CalcText.tabular,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _SheetSection extends StatelessWidget {
-  const _SheetSection({required this.title});
+class _SourceLine extends StatelessWidget {
+  const _SourceLine({required this.controller});
 
-  final String title;
+  final CurrencyController controller;
 
   @override
   Widget build(BuildContext context) {
+    final secondary = CalcColors.secondaryText(context);
+    final suffix = controller.statusSuffix;
+    final hasError = controller.hasError;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: CalcColors.secondaryText(context),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: GestureDetector(
+        key: const Key('currency-status-tap'),
+        behavior: HitTestBehavior.opaque,
+        onTap: controller.refresh,
+        child: Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: controller.sourceLine,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: hasError ? CalcColors.error : secondary,
+                ),
+              ),
+              if (suffix != null)
+                TextSpan(
+                  text: '，$suffix',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: CalcColors.orange,
+                  ),
+                ),
+            ],
+          ),
+          key: const Key('currency-status'),
+          textAlign: TextAlign.center,
         ),
       ),
     );

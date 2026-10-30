@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../theme/tokens.dart';
+import '../../widgets/anchored_picker.dart';
 import '../../widgets/numeric_keypad.dart';
+import '../../widgets/round_keypads.dart';
+import '../../widgets/page_header.dart';
 import 'converter_controller.dart';
 import 'unit_data.dart';
 
@@ -17,6 +19,8 @@ class ConverterPage extends StatefulWidget {
 
 class _ConverterPageState extends State<ConverterPage> {
   late final ConverterController _controller;
+  final _fromUnitKey = GlobalKey();
+  final _toUnitKey = GlobalKey();
 
   @override
   void initState() {
@@ -30,7 +34,44 @@ class _ConverterPageState extends State<ConverterPage> {
     super.dispose();
   }
 
-  void _onNumericKey(String key) {
+  void _onKey(String key) {
+    switch (key) {
+      case 'clear':
+        _controller.clear();
+        return;
+      case 'backspace':
+        _controller.backspace();
+        return;
+      case 'sign':
+        _controller.toggleSign();
+        return;
+      case 'equals':
+        _controller.commit();
+        return;
+      case '+':
+      case '−':
+      case '×':
+      case '÷':
+        _controller.appendOperator(key);
+        return;
+    }
+    if (_controller.replaceOnNextInput) {
+      if (key == '.') {
+        _controller.setInput('0.');
+        _controller.consumeFreshInput();
+        return;
+      }
+      if (key == '00') {
+        _controller.setInput('0');
+        _controller.consumeFreshInput();
+        return;
+      }
+      if (RegExp(r'^[0-9]$').hasMatch(key)) {
+        _controller.setInput(key);
+        _controller.consumeFreshInput();
+        return;
+      }
+    }
     _controller.setInput(
       applyNumericKey(
         _controller.input,
@@ -41,73 +82,23 @@ class _ConverterPageState extends State<ConverterPage> {
     );
   }
 
-  Future<void> _copy() async {
-    final text = _controller.copyText;
-    if (text.isEmpty) return;
-    await Clipboard.setData(ClipboardData(text: text));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('已复制')));
-  }
-
   Future<void> _pickUnit({required bool isFrom}) async {
-    final selected = await showModalBottomSheet<UnitDef>(
+    final anchor = isFrom ? _fromUnitKey : _toUnitKey;
+    final current = isFrom ? _controller.from : _controller.to;
+    final selected = await showAnchoredPicker<UnitDef>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * 0.6,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 12, 4),
-                child: Row(
-                  children: [
-                    const Text(
-                      '选择单位',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () => Navigator.of(sheetContext).pop(),
-                      child: const Text('取消'),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: widget.category.units.length,
-                  itemBuilder: (context, index) {
-                    final unit = widget.category.units[index];
-                    final current = isFrom ? _controller.from : _controller.to;
-                    return ListTile(
-                      key: Key('unit-option-${unit.id}'),
-                      title: Text(unit.name),
-                      subtitle: unit.symbol == unit.name
-                          ? null
-                          : Text(unit.symbol),
-                      trailing: current == unit
-                          ? const Icon(
-                              Icons.check,
-                              color: CalcColors.orange,
-                              size: 20,
-                            )
-                          : null,
-                      onTap: () => Navigator.of(sheetContext).pop(unit),
-                    );
-                  },
-                ),
-              ),
-            ],
+      anchorKey: anchor,
+      items: [
+        for (final unit in widget.category.units)
+          AnchoredPickerItem(
+            id: unit.id,
+            title: unit.name,
+            subtitle: unit.symbol,
+            value: unit,
           ),
-        );
-      },
+      ],
+      selected: current,
+      keyPrefix: 'unit-option',
     );
     if (selected == null || !mounted) return;
     if (isFrom) {
@@ -125,50 +116,77 @@ class _ConverterPageState extends State<ConverterPage> {
       builder: (context, _) {
         return Scaffold(
           key: const Key('converter-detail-page'),
-          appBar: AppBar(
-            title: Text('${widget.category.name}换算'),
-            centerTitle: true,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-          ),
+          backgroundColor: CalcColors.displayBackground(context),
           body: SafeArea(
-            top: false,
             child: Column(
               children: [
+                PageHeader(
+                  title: '${widget.category.name}转换',
+                  titleKey: const Key('converter-title'),
+                  onBack: () => Navigator.of(context).pop(),
+                ),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Column(
                     children: [
-                      _buildCard(context, isFrom: true),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Center(
-                          child: IconButton.filled(
-                            key: const Key('converter-swap'),
-                            tooltip: '交换单位',
-                            onPressed: _controller.swap,
-                            style: IconButton.styleFrom(
-                              backgroundColor: CalcColors.orange,
-                              foregroundColor: Colors.white,
+                      const SizedBox(height: 16),
+                      _ValueRow(
+                        key: const Key('converter-from-row'),
+                        unitKey: _fromUnitKey,
+                        pickerKey: const Key('unit-from-picker'),
+                        unit: _controller.from,
+                        value: _controller.fromText,
+                        active: _controller.fromActive,
+                        valueKey: _controller.fromActive
+                            ? const Key('converter-input')
+                            : const Key('converter-result'),
+                        onTap: () => _controller.setActive(from: true),
+                        onPick: () => _pickUnit(isFrom: true),
+                      ),
+                      const SizedBox(height: 22),
+                      _ValueRow(
+                        key: const Key('converter-to-row'),
+                        unitKey: _toUnitKey,
+                        pickerKey: const Key('unit-to-picker'),
+                        unit: _controller.to,
+                        value: _controller.toText,
+                        active: !_controller.fromActive,
+                        valueKey: _controller.fromActive
+                            ? const Key('converter-result')
+                            : const Key('converter-input'),
+                        onTap: () => _controller.setActive(from: false),
+                        onPick: () => _pickUnit(isFrom: false),
+                      ),
+                      if (_controller.error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            _controller.error!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: CalcColors.error,
                             ),
-                            icon: const Icon(Icons.swap_vert),
                           ),
                         ),
-                      ),
-                      _buildCard(context, isFrom: false),
                       if (widget.category.note != null)
                         Padding(
-                          padding: const EdgeInsets.only(top: 16),
+                          padding: const EdgeInsets.only(bottom: 12),
                           child: Text(
                             widget.category.note!,
-                            style: TextStyle(fontSize: 13, color: secondary),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 15, color: secondary),
                           ),
                         ),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: widget.category.id == 'temperature'
+                              ? TemperatureKeypad(onKey: _onKey)
+                              : ConverterKeypad(onKey: _onKey),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                NumericKeypad(onKey: _onNumericKey),
               ],
             ),
           ),
@@ -176,137 +194,87 @@ class _ConverterPageState extends State<ConverterPage> {
       },
     );
   }
-
-  Widget _buildCard(BuildContext context, {required bool isFrom}) {
-    final unit = isFrom ? _controller.from : _controller.to;
-    final secondary = CalcColors.secondaryText(context);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CalcColors.keyBackground(context),
-        borderRadius: BorderRadius.circular(CalcRadius.card),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text(
-                isFrom ? '从' : '到',
-                style: TextStyle(fontSize: 13, color: secondary),
-              ),
-              const Spacer(),
-              Flexible(
-                child: _UnitPickerField(
-                  key: Key(isFrom ? 'unit-from-picker' : 'unit-to-picker'),
-                  unit: unit,
-                  onTap: () => _pickUnit(isFrom: isFrom),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (isFrom)
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerRight,
-              child: Text(
-                _controller.input.isEmpty ? '0' : _controller.input,
-                key: const Key('converter-input'),
-                maxLines: 1,
-                style: const TextStyle(
-                  fontSize: 34,
-                  fontFeatures: CalcText.tabular,
-                ),
-              ),
-            )
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      _controller.result == null
-                          ? '—'
-                          : '${_controller.approximate ? '≈ ' : ''}${_controller.resultText}',
-                      key: const Key('converter-result'),
-                      maxLines: 1,
-                      style: const TextStyle(
-                        fontSize: 34,
-                        fontFeatures: CalcText.tabular,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  unit.symbol,
-                  style: TextStyle(fontSize: 14, color: secondary),
-                ),
-                IconButton(
-                  key: const Key('converter-copy'),
-                  tooltip: '复制结果',
-                  onPressed: _controller.result == null ? null : _copy,
-                  icon: Icon(Icons.copy_outlined, size: 18, color: secondary),
-                ),
-              ],
-            ),
-          if (isFrom && _controller.error != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                _controller.error!,
-                style: const TextStyle(fontSize: 13, color: CalcColors.error),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 }
 
-class _UnitPickerField extends StatelessWidget {
-  const _UnitPickerField({super.key, required this.unit, required this.onTap});
+class _ValueRow extends StatelessWidget {
+  const _ValueRow({
+    super.key,
+    required this.unitKey,
+    required this.pickerKey,
+    required this.unit,
+    required this.value,
+    required this.active,
+    required this.valueKey,
+    required this.onTap,
+    required this.onPick,
+  });
 
+  final GlobalKey unitKey;
+  final Key pickerKey;
   final UnitDef unit;
+  final String value;
+  final bool active;
+  final Key valueKey;
   final VoidCallback onTap;
+  final VoidCallback onPick;
 
   @override
   Widget build(BuildContext context) {
     final secondary = CalcColors.secondaryText(context);
-    final label = unit.symbol == unit.name
-        ? unit.name
-        : '${unit.name} (${unit.symbol})';
-    return Semantics(
-      button: true,
-      label: '选择单位 ${unit.name}',
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            border: Border.all(color: CalcColors.divider(context)),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14),
+    final valueColor = active
+        ? CalcColors.orange
+        : Theme.of(context).colorScheme.onSurface;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+        child: Row(
+          children: [
+            KeyedSubtree(
+              key: pickerKey,
+              child: GestureDetector(
+                key: unitKey,
+                behavior: HitTestBehavior.opaque,
+                onTap: onPick,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      unit.name,
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      unit.symbol,
+                      style: TextStyle(fontSize: 17, color: secondary),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.unfold_more, size: 18, color: secondary),
+                  ],
                 ),
               ),
-              const SizedBox(width: 4),
-              Icon(Icons.expand_more, size: 18, color: secondary),
-            ],
-          ),
+            ),
+            const Spacer(),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  value.isEmpty ? '0' : value,
+                  key: valueKey,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 28,
+                    color: valueColor,
+                    fontFeatures: CalcText.tabular,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

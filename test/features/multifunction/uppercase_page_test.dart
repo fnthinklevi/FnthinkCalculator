@@ -20,8 +20,6 @@ Future<void> enterNumber(WidgetTester tester, String value) async {
   for (final char in value.split('')) {
     if (char == '.') {
       await tapKey(tester, 'numeric-key-dot');
-    } else if (char == '-') {
-      await tapKey(tester, 'numeric-key-sign');
     } else {
       await tapKey(tester, 'numeric-key-$char');
     }
@@ -36,23 +34,28 @@ Widget harness() {
 }
 
 void main() {
-  testWidgets('默认金额转人民币大写且不使用系统键盘', (tester) async {
+  testWidgets('默认显示零圆整且不使用系统键盘', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness());
-    expect(find.text('壹仟贰佰叁拾肆元伍角陆分'), findsOneWidget);
+    expect(find.text('零圆整'), findsOneWidget);
     expect(find.byType(TextField), findsNothing);
     expect(find.byKey(const Key('numeric-key-7')), findsOneWidget);
+    expect(find.byKey(const Key('numeric-key-sign')), findsNothing);
   });
 
-  testWidgets('内置键盘输入金额与负号', (tester) async {
+  testWidgets('实时转换大写金额', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness());
 
     await enterNumber(tester, '100.05');
-    expect(find.text('壹佰元零伍分'), findsOneWidget);
+    expect(find.text('壹佰圆零伍分'), findsOneWidget);
 
-    await enterNumber(tester, '-12');
-    expect(find.text('负壹拾贰元整'), findsOneWidget);
+    await enterNumber(tester, '1234.05');
+    expect(find.text('壹仟贰佰叁拾肆圆零伍分'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('uppercase-input'))).data,
+      '1,234.05',
+    );
     expect(find.byType(TextField), findsNothing);
   });
 }

@@ -53,7 +53,7 @@ MortgageResult calculateMortgage({
   required int years,
   required bool equalPayment,
 }) {
-  if (parts.isEmpty || years < 1 || years > 30) {
+  if (parts.isEmpty || years < 1 || years > 40) {
     throw ArgumentError('贷款参数不合法');
   }
   for (final part in parts) {

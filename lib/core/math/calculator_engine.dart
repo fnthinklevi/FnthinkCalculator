@@ -5,6 +5,7 @@ import 'formatter.dart';
 import 'lexer.dart';
 import 'math_error.dart';
 import 'parser.dart';
+import 'percent_mode.dart';
 
 class EvalOutcome {
   const EvalOutcome.success(this.value, this.formatted) : error = null;
@@ -24,6 +25,7 @@ class CalculatorEngine {
   EvalOutcome evaluate(
     String source, {
     AngleUnit angleUnit = AngleUnit.degrees,
+    PercentMode percentMode = PercentMode.proportion,
     int significantDigits = 12,
   }) {
     final text = source.trim();
@@ -36,7 +38,10 @@ class CalculatorEngine {
       final prepared = autoCloseParentheses(text);
       final tokens = Lexer(prepared).tokenize();
       final expression = Parser(tokens).parse();
-      final value = Evaluator(angleUnit: angleUnit).evaluate(expression);
+      final value = Evaluator(
+        angleUnit: angleUnit,
+        percentMode: percentMode,
+      ).evaluate(expression);
       final formatted = NumberFormatter(significantDigits: significantDigits)
           .format(value);
       return EvalOutcome.success(value, formatted);

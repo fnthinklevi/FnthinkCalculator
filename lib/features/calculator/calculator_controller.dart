@@ -6,6 +6,10 @@ import '../../core/math/angle_unit.dart';
 import '../../core/math/calculator_engine.dart';
 import '../../core/math/formatter.dart';
 import '../../core/math/math_error.dart';
+import '../../core/math/percent_mode.dart';
+import '../../core/utils/chinese_upper.dart';
+export '../../core/math/percent_mode.dart';
+
 import 'history_entry.dart';
 import 'history_repository.dart';
 
@@ -44,6 +48,7 @@ class CalculatorController extends ChangeNotifier {
   final int maxHistory;
   final List<HistoryEntry> _history;
   AngleUnit _angleUnit;
+  PercentMode _percentMode = PercentMode.value;
 
   String _expression = '';
   int _caret = 0;
@@ -54,6 +59,7 @@ class CalculatorController extends ChangeNotifier {
   FormattedNumber? _result;
   bool _scientificVisible = false;
   bool _second = false;
+  bool _uppercaseVisible = false;
 
   static const _functions = {
     'sin',
@@ -68,12 +74,14 @@ class CalculatorController extends ChangeNotifier {
     'cbrt',
     'abs',
     'exp',
+    'reciprocal',
   };
 
   String get expression => _expression;
   int get caret => _caret;
   CalculatorMode get mode => _mode;
   AngleUnit get angleUnit => _angleUnit;
+  PercentMode get percentMode => _percentMode;
   bool get scientificVisible => _scientificVisible;
   bool get second => _second;
   bool get isInputMode => _mode == CalculatorMode.input;
@@ -115,6 +123,19 @@ class CalculatorController extends ChangeNotifier {
 
   bool get canConvertToUppercase => activeFormatted != null;
 
+  bool get uppercaseVisible => _uppercaseVisible;
+
+  String get uppercaseText {
+    if (!_uppercaseVisible) return '';
+    final active = activeFormatted;
+    if (active == null) return '';
+    try {
+      return ChineseUpper.toRmb(active.rawText);
+    } on Object {
+      return '';
+    }
+  }
+
   List<HistoryEntry> get history => List.unmodifiable(_history);
 
   List<HistoryEntry> get recentHistory {
@@ -124,7 +145,26 @@ class CalculatorController extends ChangeNotifier {
         entries.first.expression == _expression) {
       entries = entries.skip(1);
     }
-    return entries.take(2).toList(growable: false);
+    return entries.take(3).toList(growable: false);
+  }
+
+  void showUppercase() {
+    if (_uppercaseVisible || !canConvertToUppercase) return;
+    _uppercaseVisible = true;
+    notifyListeners();
+  }
+
+  void hideUppercase() {
+    if (!_uppercaseVisible) return;
+    _uppercaseVisible = false;
+    notifyListeners();
+  }
+
+  void setPercentMode(PercentMode value) {
+    if (_percentMode == value) return;
+    _percentMode = value;
+    _refreshPreview();
+    notifyListeners();
   }
 
   void setAngleUnit(AngleUnit value) {
@@ -355,6 +395,7 @@ class CalculatorController extends ChangeNotifier {
       _caret = _expression.length;
       _result = null;
       _error = null;
+      _uppercaseVisible = false;
       _refreshPreview();
       notifyListeners();
       return;
@@ -370,6 +411,7 @@ class CalculatorController extends ChangeNotifier {
     _caret = index - 1;
     _result = null;
     _committedExpression = '';
+    _uppercaseVisible = false;
     _refreshPreview();
     notifyListeners();
   }
@@ -382,13 +424,18 @@ class CalculatorController extends ChangeNotifier {
     _preview = null;
     _error = null;
     _result = null;
+    _uppercaseVisible = false;
     notifyListeners();
   }
 
   void evaluate() {
     if (_expression.isEmpty) return;
     final prepared = CalculatorEngine.autoCloseParentheses(_expression);
-    final outcome = _engine.evaluate(prepared, angleUnit: _angleUnit);
+    final outcome = _engine.evaluate(
+      prepared,
+      angleUnit: _angleUnit,
+      percentMode: _percentMode,
+    );
     final error = outcome.error;
     if (error != null) {
       _expression = prepared;
@@ -465,6 +512,7 @@ class CalculatorController extends ChangeNotifier {
     _preview = null;
     _error = null;
     _result = null;
+    _uppercaseVisible = false;
   }
 
   void _insertAtCaret(String text) {
@@ -487,6 +535,7 @@ class CalculatorController extends ChangeNotifier {
     _error = null;
     _result = null;
     _committedExpression = '';
+    _uppercaseVisible = false;
     _refreshPreview();
     notifyListeners();
   }
@@ -496,7 +545,11 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.input || _expression.isEmpty) {
       return;
     }
-    final outcome = _engine.evaluate(_expression, angleUnit: _angleUnit);
+    final outcome = _engine.evaluate(
+      _expression,
+      angleUnit: _angleUnit,
+      percentMode: _percentMode,
+    );
     if (outcome.isSuccess) {
       _preview = outcome.formatted;
     }

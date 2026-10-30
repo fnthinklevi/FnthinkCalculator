@@ -8,130 +8,65 @@ class CalcDisplay extends StatelessWidget {
   const CalcDisplay({
     super.key,
     required this.controller,
-    required this.onHistory,
-    required this.onCopy,
-    required this.onUppercase,
-    required this.onClearHistory,
     required this.onLongPressMain,
   });
 
   final CalculatorController controller;
-  final VoidCallback onHistory;
-  final VoidCallback onCopy;
-  final VoidCallback onUppercase;
-  final VoidCallback onClearHistory;
-  final VoidCallback onLongPressMain;
+  final ValueChanged<Offset> onLongPressMain;
 
   @override
   Widget build(BuildContext context) {
     final secondary = CalcColors.secondaryText(context);
 
-    return Stack(
-      children: [
-        Positioned(
-          top: 0,
-          left: 4,
-          child: IconButton(
-            key: const Key('calc-history'),
-            tooltip: '历史记录',
-            icon: Icon(Icons.history, size: 22, color: secondary),
-            onPressed: onHistory,
-          ),
-        ),
-        Positioned(
-          top: 0,
-          right: 4,
-          child: PopupMenuButton<String>(
-            key: const Key('calc-menu'),
-            tooltip: '更多',
-            icon: Icon(Icons.more_horiz, size: 22, color: secondary),
-            onSelected: (value) {
-              if (value == 'copy') {
-                onCopy();
-              } else if (value == 'uppercase') {
-                onUppercase();
-              } else if (value == 'clear-history') {
-                onClearHistory();
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'copy',
-                enabled: controller.copyText.isNotEmpty,
-                child: const Text('复制结果'),
+    return GestureDetector(
+      key: const Key('calc-display'),
+      behavior: HitTestBehavior.opaque,
+      onLongPressStart: (details) => onLongPressMain(details.globalPosition),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            for (final entry in controller.recentHistory)
+              _HistoryLine(entry: entry),
+            _buildMainLine(context),
+            if (controller.showPreview)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  '${controller.previewApproximate ? '≈' : '='} ${controller.previewText}',
+                  key: const Key('calc-preview-text'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: CalcText.preview,
+                    color: secondary,
+                    fontFeatures: CalcText.tabular,
+                  ),
+                ),
               ),
-              PopupMenuItem(
-                value: 'uppercase',
-                enabled: controller.canConvertToUppercase,
-                child: const Text('转中文大写'),
+            if (controller.uppercaseVisible &&
+                controller.uppercaseText.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  controller.uppercaseText,
+                  key: const Key('calc-uppercase-text'),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: CalcText.resultSecondary,
+                    height: 1.25,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
               ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(value: 'clear-history', child: Text('清空历史')),
-            ],
-          ),
+          ],
         ),
-        Positioned.fill(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 52, 24, 8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                for (final entry in controller.recentHistory)
-                  _HistoryLine(entry: entry),
-                if (controller.isResultMode &&
-                    controller.committedExpression.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      controller.committedExpression,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: secondary,
-                        fontFeatures: CalcText.tabular,
-                      ),
-                    ),
-                  ),
-                _buildMainLine(context),
-                if (controller.showPreview)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      '${controller.previewApproximate ? '≈' : '='} ${controller.previewText}',
-                      key: const Key('calc-preview-text'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontSize: 21,
-                        color: secondary,
-                        fontFeatures: CalcText.tabular,
-                      ),
-                    ),
-                  ),
-                if (controller.isErrorMode)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      controller.errorMessage,
-                      key: const Key('calc-error-text'),
-                      maxLines: 2,
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: CalcColors.error,
-                        height: 1.3,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -149,18 +84,16 @@ class CalcDisplay extends StatelessWidget {
           color: color,
           textKey: const Key('calc-input-text'),
           onCaretChanged: controller.setCaret,
-          onLongPress: onLongPressMain,
         ),
       );
     }
 
     final isError = controller.isErrorMode;
-    final text = isError
-        ? (controller.expression.isEmpty ? '0' : controller.expression)
-        : '${controller.mainApproximate ? '≈ ' : ''}${controller.mainText}';
+    final secondary = CalcColors.secondaryText(context);
+    final expression = controller.committedExpression;
     final style = TextStyle(
-      fontSize: CalcText.displayLarge,
-      height: 1.05,
+      fontSize: isError ? 52 : CalcText.displayLarge,
+      height: 1.08,
       fontWeight: FontWeight.w400,
       color: color,
       fontFeatures: CalcText.tabular,
@@ -171,24 +104,55 @@ class CalcDisplay extends StatelessWidget {
       label: isError
           ? '错误 ${controller.errorMessage}'
           : '结果 ${controller.mainText}',
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onLongPress: onLongPressMain,
-        child: SizedBox(
-          width: double.infinity,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerRight,
-            child: Text(
-              text,
-              key: isError
-                  ? const Key('calc-error-expression')
-                  : const Key('calc-result-text'),
-              maxLines: 1,
-              style: style,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (expression.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                expression,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontSize: 24,
+                  height: 1.2,
+                  color: secondary,
+                  fontFeatures: CalcText.tabular,
+                ),
+              ),
+            ),
+          SizedBox(
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    isError ? '= ' : (controller.mainApproximate ? '≈ ' : '= '),
+                    style: style.copyWith(
+                      fontSize: isError ? 44 : 44,
+                      color: secondary,
+                    ),
+                  ),
+                  Text(
+                    isError ? controller.errorMessage : controller.mainText,
+                    key: isError
+                        ? const Key('calc-error-text')
+                        : const Key('calc-result-text'),
+                    maxLines: 1,
+                    style: style,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -207,9 +171,9 @@ class _HistoryLine extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.right,
       style: TextStyle(
-        fontSize: 13,
-        color: CalcColors.secondaryText(context),
-        height: 1.5,
+        fontSize: CalcText.history,
+        color: CalcColors.tertiaryText(context),
+        height: 1.45,
         fontFeatures: CalcText.tabular,
       ),
     );
@@ -223,7 +187,6 @@ class CaretText extends StatelessWidget {
     required this.caret,
     required this.onCaretChanged,
     required this.color,
-    this.onLongPress,
     this.textKey,
   });
 
@@ -231,15 +194,14 @@ class CaretText extends StatelessWidget {
   final int caret;
   final ValueChanged<int> onCaretChanged;
   final Color color;
-  final VoidCallback? onLongPress;
   final Key? textKey;
 
   @override
   Widget build(BuildContext context) {
     final display = text.isEmpty ? '0' : text;
     final baseStyle = TextStyle(
-      fontSize: CalcText.displayLarge,
-      height: 1.05,
+      fontSize: CalcText.expression,
+      height: 1.08,
       fontWeight: FontWeight.w400,
       color: color,
       fontFeatures: CalcText.tabular,
@@ -249,7 +211,7 @@ class CaretText extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        var fontSize = CalcText.displayLarge;
+        var fontSize = CalcText.expression;
         late TextPainter painter;
         while (true) {
           painter = TextPainter(
@@ -267,7 +229,7 @@ class CaretText extends StatelessWidget {
           }
           fontSize = (fontSize - 2).clamp(
             CalcText.displayMin,
-            CalcText.displayLarge,
+            CalcText.expression,
           );
         }
 
@@ -284,7 +246,6 @@ class CaretText extends StatelessWidget {
 
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onLongPress: onLongPress,
           onTapDown: (details) {
             final dx = (details.localPosition.dx - left).clamp(0.0, textWidth);
             final position = painter.getPositionForOffset(
@@ -312,12 +273,12 @@ class CaretText extends StatelessWidget {
                 Positioned(
                   left: (left + caretOffset.dx).clamp(
                     0.0,
-                    constraints.maxWidth - 2,
+                    constraints.maxWidth - 4,
                   ),
-                  top: caretOffset.dy + fontSize * 0.08,
+                  top: caretOffset.dy + fontSize * 0.06,
                   child: Container(
-                    width: 2,
-                    height: fontSize * 0.9,
+                    width: 4,
+                    height: fontSize * 0.94,
                     color: CalcColors.orange,
                   ),
                 ),
