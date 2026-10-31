@@ -134,7 +134,45 @@ void main() {
     expect(valueOf(tester, 'duration-calc-display'), '00:02:00');
     await tapKey(tester, 'duration-key-backspace');
     expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
-    expect(valueOf(tester, 'duration-calc-expression'), '32:00:00 +');
+    expect(valueOf(tester, 'duration-calc-expression'), '32:00:00 + 00:00:00');
+  });
+
+  testWidgets('连续公式按左到右累计', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const DurationPage()));
+
+    // 12:00 +
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-add');
+
+    // 12:01 +
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-add');
+
+    // 13:01 =
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-equals');
+
+    expect(
+      valueOf(tester, 'duration-calc-expression'),
+      '12:00:00 + 12:01:00 + 13:01:00 =',
+    );
+    expect(valueOf(tester, 'duration-calc-display'), '1天 13:02:00');
+
+    await tapKey(tester, 'duration-carry-1');
+    expect(valueOf(tester, 'duration-calc-display'), '37:02:00');
   });
 
   testWidgets('时长键盘首行顺序与跨格布局', (tester) async {

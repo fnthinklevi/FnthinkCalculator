@@ -54,9 +54,8 @@ class _DurationArithmeticView extends StatefulWidget {
 }
 
 class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
-  int? _operandA;
-  int? _operandB;
-  String? _operator;
+  final List<int> _values = [];
+  final List<String> _operators = [];
   int? _result;
   bool _showResult = false;
   bool _negative = false;
@@ -84,13 +83,25 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
 
   String get _expressionText {
     if (_showResult) {
-      return '${formatDurationAccumulated(_operandA!)} '
-          '$_operator ${formatDurationAccumulated(_operandB!)} =';
+      return '${_expressionParts(includeCurrentEntry: false).join(' ')} =';
     }
-    if (_operator != null) {
-      return '${formatDurationAccumulated(_operandA!)} $_operator';
+    if (_values.isEmpty) return '时 : 分 : 秒';
+    return _expressionParts(includeCurrentEntry: true).join(' ');
+  }
+
+  List<String> _expressionParts({required bool includeCurrentEntry}) {
+    final parts = <String>[];
+    for (var index = 0; index < _values.length; index++) {
+      parts.add(formatDurationAccumulated(_values[index]));
+      if (index < _operators.length) parts.add(_operators[index]);
     }
-    return '时 : 分 : 秒';
+    if (includeCurrentEntry &&
+        _operators.isNotEmpty &&
+        _values.length == _operators.length &&
+        _buffer.isNotEmpty) {
+      parts.add(formatDurationAccumulated(_entrySeconds));
+    }
+    return parts;
   }
 
   int get _totalSeconds => _showResult ? _result! : _entrySeconds;
@@ -135,9 +146,8 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
 
   void _resetCalculation() {
     _resetEntry();
-    _operandA = null;
-    _operandB = null;
-    _operator = null;
+    _values.clear();
+    _operators.clear();
     _result = null;
     _showResult = false;
   }
@@ -194,37 +204,45 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
   }
 
   void _operatorPressed(String operator) {
-    if (_showResult) {
-      setState(() {
-        _operandA = _result;
-        _operator = operator;
-        _operandB = null;
-        _showResult = false;
-        _result = null;
-        _resetEntry();
-      });
-      return;
-    }
-    if (_operator != null && _entrySeconds == 0 && _buffer.isEmpty) {
-      setState(() => _operator = operator);
-      return;
-    }
     setState(() {
-      _operandA = _entrySeconds;
-      _operator = operator;
-      _operandB = null;
+      if (_showResult) {
+        final base = _result!;
+        _values
+          ..clear()
+          ..add(base);
+        _operators
+          ..clear()
+          ..add(operator);
+        _result = null;
+        _showResult = false;
+        _resetEntry();
+        return;
+      }
+      if (_operators.isNotEmpty &&
+          _values.length == _operators.length &&
+          _buffer.isEmpty) {
+        _operators[_operators.length - 1] = operator;
+        return;
+      }
+      _values.add(_entrySeconds);
+      _operators.add(operator);
       _resetEntry();
     });
   }
 
   void _equalsPressed() {
-    if (_showResult || _operator == null || _operandA == null) {
-      return;
-    }
+    if (_showResult || _values.isEmpty || _operators.isEmpty) return;
     setState(() {
-      final right = _entrySeconds;
-      _operandB = right;
-      _result = _operator == '+' ? _operandA! + right : _operandA! - right;
+      if (_values.length == _operators.length) {
+        _values.add(_entrySeconds);
+      }
+      var total = _values.first;
+      for (var index = 0; index < _operators.length; index++) {
+        total = _operators[index] == '+'
+            ? total + _values[index + 1]
+            : total - _values[index + 1];
+      }
+      _result = total;
       _showResult = true;
       _resetEntry();
     });
