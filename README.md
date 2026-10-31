@@ -11,7 +11,7 @@
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
 [![Version](https://badgen.net/badge/Version/0.1.0%2B2/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/209%20passed/green)](#质量保障)
+[![Tests](https://badgen.net/badge/Tests/212%20passed/green)](#质量保障)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
 </div>
@@ -85,7 +85,8 @@
 ### 界面与交互
 
 - 两标签胶囊导航；子页统一整宽标题栏，返回键固定在左侧
-- 换算首页 3 列网格（宽屏 4 列），共 19 个固定顺序入口
+- 换算首页 3/4/5/6 列自适应网格，共 19 个固定顺序入口
+- 大屏与折叠屏：900dp 内容上限；内屏展开全宽重排，展开/折叠保留输入状态；计算器竖屏 600dp、横屏左右分栏
 - 小米口径配色：`#FF6900` 强调色、浅色 `#F3F3F3` 背景、深色模式纯黑
 - 长按显示区弹出复制 / 大写菜单；长按历史条目进入多选
 - 计算器/换算内置键盘与表单系统键盘的边界由 UI 标准守卫锁定
@@ -103,6 +104,7 @@
 | 音频 | `audioplayers` 6.8.1 + 内置 MP3 短音；构建期由 Edge TTS 生成 |
 | 计算核心 | 自研有理数、词法、解析、AST、求值、格式化与引擎 |
 | 原生侧 | Android Kotlin（Flutter 默认 `FlutterActivity`，无自建原生服务） |
+| 大屏适配 | 900dp 内容上限 + `LayoutBuilder` 断点；换算网格 3–6 列；折叠屏展开保持状态 |
 | 构建 | Gradle 9.8.2 + AGP 9.4.1（内置 Kotlin）+ JDK 21 |
 | Android SDK | minSdk 28 / compileSdk 37 / targetSdk 37 |
 | 测试 | `flutter_test`：单元、widget、golden、无障碍、fuzz、UI 标准守卫 |
@@ -151,7 +153,7 @@ FnthinkCalculator/
 │   ├── xiaomi-reference.md           # 小米 17.3.9 UI/交互/验收标准
 │   ├── roadmap.md                    # 任务状态与闸门记录
 │   └── update.md                     # 版本变更记录
-├── test/                             # 39 个测试文件
+├── test/                             # 40 个测试文件
 ├── tool/
 │   ├── build_release_arm64.sh        # 签名 release 打包 + 纯净检查
 │   ├── check_apk_purity.sh           # ABI/密钥/模型/测试资源检查
@@ -235,10 +237,10 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 209 例全绿 |
-| 测试文件 | 39 个 |
+| `flutter test` | 212 例全绿 |
+| 测试文件 | 40 个 |
 | Dart 源码 | 69 个文件 / 约 1.43 万行 |
-| 测试代码 | 约 4,184 行 |
+| 测试代码 | 约 4,369 行 |
 | `flutter analyze` | 无问题 |
 | release APK | 纯 arm64-v8a / 19.7MB / 非 debug 签名 |
 
@@ -249,7 +251,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - **换算** —— 单位数据规模、页面联动、汇率缓存/降级、进制转换
 - **工具** —— 时间四页、个税、房贷控制器、BMI、称呼、比例、大写
 - **语音** —— 片段映射、资源数量与大小（<1MB）
-- **UI 标准守卫** —— 两标签、19 入口固定顺序、104 个单位/109 币种规模、系统输入框白名单、深色纯黑、不冒充数据来源、内置键盘圆径一致性
+- **UI 标准守卫** —— 两标签、19 入口固定顺序、104 个单位/109 币种规模、系统输入框白名单、深色纯黑、不冒充数据来源、内置键盘圆径一致性、大屏/折叠屏断点与无溢出
 
 发布前闸门：
 

@@ -22,9 +22,9 @@
 
 - 平台：Android，纯 arm64-v8a。
 - APK：`build/app/outputs/flutter-apk/app-release.apk`，19.7MB。
-- SHA-256：`a964b1da4db596fa7cfb933a6d3f017ec0883168d7be6f8b157eba494d34120e`
+- SHA-256：`cc0f787e63810d93b3122a2f2d5a7e6084981ce3813e1e3f0899b7c88bf15241`
 - 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
-- 测试：209 项全绿；`tool/check_apk_purity.sh` 通过。
+- 测试：212 项全绿；`tool/check_apk_purity.sh` 通过。
 
 ### 2026-10-29 基础版本
 
@@ -104,6 +104,15 @@
 - 版本：`pubspec.yaml` 由 `1.0.0+1` 订正为 `0.1.0+2`；设置页版本显示同步为 `0.1.0`。
 - 构建：签名纯 arm64 APK 19.7MB、SHA-256 `945f9a0d4b0466ea530519e5bf439b4d0be8750318b2438e4eee41e0b3f4b9d1`、`PURITY CHECK PASSED`；`versionName=0.1.0`、`versionCode=2`；真机 2410DPN6CC 覆盖安装成功（lastUpdateTime 2026-10-31 12:15:54）。
 - 验证：`flutter analyze` 无问题；208 项测试全绿。
+
+### 2026-10-31 大屏与折叠屏适配
+
+- 提交：`a86b583`
+- 适配：应用级 900dp 内容上限，超宽屏整体居中并保留主题背景；换算首页按 560/760/880dp 断点切换 3/4/5/6 列；折叠内屏 835dp 仍全宽；计算器保留竖屏 600dp、横屏左右分栏。
+- 验证尺寸：405×940（外屏级）、800×1280（8/10 英寸）、835×938（内屏）、938×835（内屏横屏）、1200×1920（11 英寸）、1280×800（平板横屏）；展开/折叠保留计算输入，12 个主要页面无溢出。
+- 备注：以上为逻辑 dp 代表尺寸，未持有对应实体机，最终以真机走查补充。
+- 构建：签名纯 arm64 APK 19.7MB、SHA-256 `cc0f787e63810d93b3122a2f2d5a7e6084981ce3813e1e3f0899b7c88bf15241`、`PURITY CHECK PASSED`；真机 2410DPN6CC 覆盖安装成功（lastUpdateTime 2026-10-31 12:59:39）。
+- 验证：`flutter analyze` 无问题；212 项测试全绿。
 
 ### 2026-10-31 键盘比例修复
 
