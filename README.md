@@ -266,12 +266,11 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 发布前闸门：
 
 ```bash
-flutter analyze
-flutter test
-bash tool/build_release_arm64.sh   # 打包 + 纯净检查
+bash tool/release.sh --preflight
+bash tool/release.sh   # 格式 + analyze + 测试 + 构建 + 纯净检查 + 归档
 ```
 
-本项目没有配置 CI；以上命令就是发布前的完整本地闸门。
+本项目没有配置 CI；`tool/release.sh` 就是发布前的完整本地闸门，步骤见 [doc/release.md](doc/release.md)。
 
 ---
 
