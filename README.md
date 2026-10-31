@@ -11,7 +11,7 @@
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
 [![Version](https://badgen.net/badge/Version/0.1.0%2B2/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/208%20passed/green)](#质量保障)
+[![Tests](https://badgen.net/badge/Tests/209%20passed/green)](#质量保障)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
 </div>
@@ -151,7 +151,7 @@ FnthinkCalculator/
 │   ├── xiaomi-reference.md           # 小米 17.3.9 UI/交互/验收标准
 │   ├── roadmap.md                    # 任务状态与闸门记录
 │   └── update.md                     # 版本变更记录
-├── test/                             # 38 个测试文件
+├── test/                             # 39 个测试文件
 ├── tool/
 │   ├── build_release_arm64.sh        # 签名 release 打包 + 纯净检查
 │   ├── check_apk_purity.sh           # ABI/密钥/模型/测试资源检查
@@ -235,10 +235,10 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 208 例全绿 |
-| 测试文件 | 38 个 |
+| `flutter test` | 209 例全绿 |
+| 测试文件 | 39 个 |
 | Dart 源码 | 69 个文件 / 约 1.43 万行 |
-| 测试代码 | 约 4,074 行 |
+| 测试代码 | 约 4,184 行 |
 | `flutter analyze` | 无问题 |
 | release APK | 纯 arm64-v8a / 19.7MB / 非 debug 签名 |
 
@@ -249,7 +249,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - **换算** —— 单位数据规模、页面联动、汇率缓存/降级、进制转换
 - **工具** —— 时间四页、个税、房贷控制器、BMI、称呼、比例、大写
 - **语音** —— 片段映射、资源数量与大小（<1MB）
-- **UI 标准守卫** —— 两标签、19 入口固定顺序、104 个单位/109 币种规模、系统输入框白名单、深色纯黑、不冒充数据来源
+- **UI 标准守卫** —— 两标签、19 入口固定顺序、104 个单位/109 币种规模、系统输入框白名单、深色纯黑、不冒充数据来源、内置键盘圆径一致性
 
 发布前闸门：
 

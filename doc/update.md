@@ -22,9 +22,9 @@
 
 - 平台：Android，纯 arm64-v8a。
 - APK：`build/app/outputs/flutter-apk/app-release.apk`，19.7MB。
-- SHA-256：`945f9a0d4b0466ea530519e5bf439b4d0be8750318b2438e4eee41e0b3f4b9d1`
+- SHA-256：`a964b1da4db596fa7cfb933a6d3f017ec0883168d7be6f8b157eba494d34120e`
 - 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
-- 测试：208 项全绿；`tool/check_apk_purity.sh` 通过。
+- 测试：209 项全绿；`tool/check_apk_purity.sh` 通过。
 
 ### 2026-10-29 基础版本
 
@@ -104,6 +104,15 @@
 - 版本：`pubspec.yaml` 由 `1.0.0+1` 订正为 `0.1.0+2`；设置页版本显示同步为 `0.1.0`。
 - 构建：签名纯 arm64 APK 19.7MB、SHA-256 `945f9a0d4b0466ea530519e5bf439b4d0be8750318b2438e4eee41e0b3f4b9d1`、`PURITY CHECK PASSED`；`versionName=0.1.0`、`versionCode=2`；真机 2410DPN6CC 覆盖安装成功（lastUpdateTime 2026-10-31 12:15:54）。
 - 验证：`flutter analyze` 无问题；208 项测试全绿。
+
+### 2026-10-31 键盘比例修复
+
+- 提交：`23b913f`、`d2a92ff`
+- 修复：大写数字键盘分配高度 1→2、进制键盘 1→3；在 384dp 宽设备上圆键由 61.0/44.8dp 放大到 74.5dp，与换算键盘基准一致；大写页跨行 C/⌫ 保持标准比例。
+- 审计：换算 74.5dp、温度换算 74.5dp、称呼 74.5dp、计算器 71dp、时长约 70dp，均纳入新增 `test/guards/keypad_size_guard_test.dart`。
+- 反证：分别回退两处 flex，守卫均红并点名「大写数字」「进制转换」。
+- 构建：签名纯 arm64 APK 19.7MB、SHA-256 `a964b1da4db596fa7cfb933a6d3f017ec0883168d7be6f8b157eba494d34120e`、`PURITY CHECK PASSED`；真机 2410DPN6CC 覆盖安装成功（lastUpdateTime 2026-10-31 12:48:23）。
+- 验证：`flutter analyze` 无问题；209 项测试全绿。
 
 ---
 
