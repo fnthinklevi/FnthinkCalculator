@@ -69,6 +69,10 @@ void main() {
     expect(baseline, greaterThanOrEqualTo(70));
     expect(tester.takeException(), isNull);
 
+    await tester.pumpWidget(app(ConverterPage(category: UnitData.temperature)));
+    expectConsistentKey(tester, '温度换算', 'numeric-key-7', baseline);
+    expect(tester.takeException(), isNull);
+
     await tester.pumpWidget(app(const UppercasePage()));
     final uppercase = keySize(tester, 'numeric-key-7');
     expect(uppercase.width, closeTo(uppercase.height, 0.5));
