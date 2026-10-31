@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../features/calculator/calculator_controller.dart';
 import '../theme/app_theme.dart';
 import 'app_scope.dart';
+import 'privacy_gate.dart';
 import 'settings_controller.dart';
 import 'shell.dart';
 import 'wide_layout.dart';
@@ -35,7 +36,9 @@ class FnthinkCalculatorApp extends StatelessWidget {
             supportedLocales: const [Locale('zh', 'CN')],
             localizationsDelegates: GlobalMaterialLocalizations.delegates,
             builder: (context, child) => AppWideLayout(child: child!),
-            home: AppShell(calculatorController: calculatorController),
+            home: PrivacyGate(
+              child: AppShell(calculatorController: calculatorController),
+            ),
           );
         },
       ),

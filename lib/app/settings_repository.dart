@@ -14,6 +14,7 @@ class SettingsRepository {
   static const _voiceKey = 'settings.voice.v1';
   static const _angleKey = 'settings.angleUnit.v1';
   static const _percentKey = 'settings.percentMode.v1';
+  static const _privacyAcceptedKey = 'settings.privacyAccepted.v1';
 
   ThemeMode loadThemeMode() {
     return switch (_prefs.getString(_themeKey)) {
@@ -26,6 +27,8 @@ class SettingsRepository {
   bool loadHaptics() => _prefs.getBool(_hapticsKey) ?? true;
 
   bool loadVoice() => _prefs.getBool(_voiceKey) ?? false;
+
+  bool loadPrivacyAccepted() => _prefs.getBool(_privacyAcceptedKey) ?? false;
 
   AngleUnit loadAngleUnit() {
     return _prefs.getString(_angleKey) == 'radians'
@@ -49,6 +52,10 @@ class SettingsRepository {
 
   Future<void> saveVoice(bool value) {
     return _prefs.setBool(_voiceKey, value);
+  }
+
+  Future<void> savePrivacyAccepted(bool value) {
+    return _prefs.setBool(_privacyAcceptedKey, value);
   }
 
   Future<void> saveAngleUnit(AngleUnit unit) {

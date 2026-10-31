@@ -16,6 +16,7 @@ class SettingsController extends ChangeNotifier {
     bool? voice,
     AngleUnit? angleUnit,
     PercentMode? percentMode,
+    bool? privacyAccepted,
     SettingsRepository? repository,
   }) : this._(
          themeMode ?? repository?.loadThemeMode() ?? ThemeMode.system,
@@ -23,6 +24,7 @@ class SettingsController extends ChangeNotifier {
          voice ?? repository?.loadVoice() ?? false,
          angleUnit ?? repository?.loadAngleUnit() ?? AngleUnit.degrees,
          percentMode ?? repository?.loadPercentMode() ?? PercentMode.value,
+         privacyAccepted ?? repository?.loadPrivacyAccepted() ?? true,
          repository,
        );
 
@@ -32,6 +34,7 @@ class SettingsController extends ChangeNotifier {
     this._voice,
     this._angleUnit,
     this._percentMode,
+    this._privacyAccepted,
     this._repository,
   );
 
@@ -41,12 +44,14 @@ class SettingsController extends ChangeNotifier {
   bool _voice;
   AngleUnit _angleUnit;
   PercentMode _percentMode;
+  bool _privacyAccepted;
 
   ThemeMode get themeMode => _themeMode;
   bool get haptics => _haptics;
   bool get voice => _voice;
   AngleUnit get angleUnit => _angleUnit;
   PercentMode get percentMode => _percentMode;
+  bool get privacyAccepted => _privacyAccepted;
 
   set themeMode(ThemeMode value) {
     if (_themeMode == value) return;
@@ -80,6 +85,13 @@ class SettingsController extends ChangeNotifier {
     if (_percentMode == value) return;
     _percentMode = value;
     unawaited(_repository?.savePercentMode(value));
+    notifyListeners();
+  }
+
+  set privacyAccepted(bool value) {
+    if (_privacyAccepted == value) return;
+    _privacyAccepted = value;
+    unawaited(_repository?.savePrivacyAccepted(value));
     notifyListeners();
   }
 }

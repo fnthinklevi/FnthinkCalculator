@@ -105,6 +105,28 @@ void main() {
     expect(settings.voice, isTrue);
   });
 
+  testWidgets('设置页底部有隐私政策且无数据保存条目', (tester) async {
+    final settings = SettingsController();
+    await tester.pumpWidget(FnthinkCalculatorApp(settings: settings));
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('设置'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-privacy-policy')),
+      260,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.byKey(const Key('settings-privacy-policy')), findsOneWidget);
+    expect(find.text('数据保存'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('settings-privacy-policy')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('privacy-policy-page')), findsOneWidget);
+  });
+
   testWidgets('设置页可切换百分数算法并即时演示', (tester) async {
     final settings = SettingsController();
     await tester.pumpWidget(FnthinkCalculatorApp(settings: settings));

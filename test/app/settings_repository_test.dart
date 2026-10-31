@@ -21,6 +21,7 @@ void main() {
       'settings.voice.v1': true,
       'settings.angleUnit.v1': 'radians',
       'settings.percentMode.v1': 'proportion',
+      'settings.privacyAccepted.v1': true,
     });
     final repository = SettingsRepository(prefs);
 
@@ -29,18 +30,21 @@ void main() {
     expect(repository.loadVoice(), isTrue);
     expect(repository.loadAngleUnit(), AngleUnit.radians);
     expect(repository.loadPercentMode(), PercentMode.proportion);
+    expect(repository.loadPrivacyAccepted(), isTrue);
 
     await repository.saveThemeMode(ThemeMode.light);
     await repository.saveHaptics(true);
     await repository.saveVoice(false);
     await repository.saveAngleUnit(AngleUnit.degrees);
     await repository.savePercentMode(PercentMode.value);
+    await repository.savePrivacyAccepted(false);
 
     expect(prefs.getString('settings.themeMode.v1'), 'light');
     expect(prefs.getBool('settings.haptics.v1'), isTrue);
     expect(prefs.getBool('settings.voice.v1'), isFalse);
     expect(prefs.getString('settings.angleUnit.v1'), 'degrees');
     expect(prefs.getString('settings.percentMode.v1'), 'value');
+    expect(prefs.getBool('settings.privacyAccepted.v1'), isFalse);
   });
 
   test('设置控制器写入后可重新加载', () async {
@@ -53,6 +57,7 @@ void main() {
     controller.voice = true;
     controller.angleUnit = AngleUnit.radians;
     controller.percentMode = PercentMode.proportion;
+    controller.privacyAccepted = true;
     await Future<void>.delayed(Duration.zero);
 
     final reloaded = SettingsController(repository: SettingsRepository(prefs));
@@ -61,5 +66,6 @@ void main() {
     expect(reloaded.voice, isTrue);
     expect(reloaded.angleUnit, AngleUnit.radians);
     expect(reloaded.percentMode, PercentMode.proportion);
+    expect(reloaded.privacyAccepted, isTrue);
   });
 }

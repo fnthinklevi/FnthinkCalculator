@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/settings_controller.dart';
 import '../../theme/tokens.dart';
+import 'privacy_policy_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key, required this.settings});
@@ -118,7 +119,16 @@ class SettingsPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      _InfoRow(title: '数据保存', subtitle: '历史记录与设置仅保存在本机'),
+                      _InfoRow(
+                        key: const Key('settings-privacy-policy'),
+                        title: '隐私政策',
+                        subtitle: '查看完整隐私政策',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const PrivacyPolicyPage(),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

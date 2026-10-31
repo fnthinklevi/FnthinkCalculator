@@ -11,7 +11,7 @@
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
 [![Version](https://badgen.net/badge/Version/0.1.1%2B3/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/222%20passed/green)](#质量保障)
+[![Tests](https://badgen.net/badge/Tests/225%20passed/green)](#质量保障)
 [![CI](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
@@ -93,6 +93,7 @@
 - 小米口径配色：`#FF6900` 强调色、浅色 `#F3F3F3` 背景、深色模式纯黑
 - 长按显示区弹出复制 / 大写菜单；长按历史条目进入多选
 - 计算器/换算内置键盘与表单系统键盘的边界由 UI 标准守卫锁定
+- 首次启动显示不可跳过的隐私弹窗；同意状态持久化，设置页底部可随时查看完整《隐私政策》
 
 ---
 
@@ -159,7 +160,7 @@ FnthinkCalculator/
 │   ├── update.md                     # 版本变更记录
 │   └── release.md                    # 标准发版流程
 ├── integration_test/                 # 设备级 integration smoke
-├── test/                             # 42 个测试文件
+├── test/                             # 43 个测试文件
 ├── tool/
 │   ├── release.sh                    # 发版闸门：格式/测试/构建/归档
 │   ├── smoke_emulator.sh             # 模拟器 integration 冒烟
@@ -254,11 +255,11 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 222 例全绿 |
-| 测试文件 | 42 个 |
+| `flutter test` | 225 例全绿 |
+| 测试文件 | 43 个 |
 | integration smoke | 1 条（模拟器） |
 | Dart 源码 | 69 个文件 / 约 1.43 万行 |
-| 测试代码 | 约 4,608 行 |
+| 测试代码 | 约 4,671 行 |
 | `flutter analyze` | 无问题 |
 | release APK | 纯 arm64-v8a / 19.7MB / 非 debug 签名 |
 
@@ -284,7 +285,7 @@ bash tool/smoke_emulator.sh
 
 GitHub Actions：
 
-- `ci.yml`：push/PR 执行格式、analyze、222 项测试
+- `ci.yml`：push/PR 执行格式、analyze、225 项测试
 - `smoke.yml`：tag/manual/每周二执行模拟器 integration smoke
 - `release-check.yml`：tag 校验 `vX.Y.Z` 与 `pubspec` 版本、产物命名契约并跑完整测试
 - 签名 release APK 仍只在本地生成，CI 不接触 keystore、不上传 APK
@@ -295,6 +296,7 @@ GitHub Actions：
 
 ## 数据与隐私
 
+- **首次启动同意** —— 首启显示隐私弹窗，同意状态持久化；不同意退出应用，设置页底部可查看完整《隐私政策》
 - **不上传用户数据** —— 无账号、无广告、无统计 SDK、无云同步
 - **本地存储** —— 历史记录、设置、汇率缓存只保存在应用私有存储
 - **汇率** —— 仅向公开汇率接口发送货币代码请求；成功后缓存，断网时使用缓存并提示数据时间；界面显示来源与更新时间
