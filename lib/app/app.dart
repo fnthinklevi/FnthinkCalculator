@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import 'app_scope.dart';
 import 'settings_controller.dart';
 import 'shell.dart';
+import 'wide_layout.dart';
 
 class FnthinkCalculatorApp extends StatelessWidget {
   const FnthinkCalculatorApp({
@@ -33,6 +34,7 @@ class FnthinkCalculatorApp extends StatelessWidget {
             locale: const Locale('zh', 'CN'),
             supportedLocales: const [Locale('zh', 'CN')],
             localizationsDelegates: GlobalMaterialLocalizations.delegates,
+            builder: (context, child) => AppWideLayout(child: child!),
             home: AppShell(calculatorController: calculatorController),
           );
         },

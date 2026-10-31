@@ -134,7 +134,14 @@ class ConverterHomePage extends StatelessWidget {
       child: LayoutBuilder(
         key: const Key('converter-page'),
         builder: (context, constraints) {
-          final columns = constraints.maxWidth >= 600 ? 4 : 3;
+          final width = constraints.maxWidth;
+          final columns = width >= 880
+              ? 6
+              : width >= 760
+              ? 5
+              : width >= 560
+              ? 4
+              : 3;
           return GridView.builder(
             padding: const EdgeInsets.fromLTRB(20, 36, 20, 24),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
