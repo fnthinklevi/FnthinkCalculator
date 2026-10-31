@@ -38,8 +38,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   http: 1.5.0
-  audioplayers: ^6.8.1
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -62,8 +60,6 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  assets:
-    - assets/voice/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

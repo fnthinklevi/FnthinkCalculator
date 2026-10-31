@@ -64,7 +64,7 @@ class SettingsPage extends StatelessWidget {
                         key: const Key('settings-voice'),
                         contentPadding: EdgeInsets.zero,
                         title: const Text('语音播报'),
-                        subtitle: const Text('按键与结果离线播报（内置短音频）'),
+                        subtitle: const Text('按键与结果使用手机系统中文语音播报'),
                         value: settings.voice,
                         activeThumbColor: Colors.white,
                         activeTrackColor: CalcColors.blue,
@@ -166,6 +166,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      width: double.infinity,
       height: 56,
       child: Stack(
         alignment: Alignment.center,

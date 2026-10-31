@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_scope.dart';
-import '../../core/voice/voice_clips.dart';
+import '../../core/voice/voice_text.dart';
 import '../../core/voice/voice_service.dart';
 import 'calculator_controller.dart';
 import 'widgets/calc_display.dart';
@@ -56,14 +56,14 @@ class _CalculatorPageState extends State<CalculatorPage> {
     final mode = _controller.mode;
     if (mode != _lastMode && _voiceEnabled) {
       if (mode == CalculatorMode.result) {
-        _voice.speak(
-          VoiceClips.forResult(
+        _voice.speakText(
+          VoiceText.forResult(
             _controller.mainText,
             approximate: _controller.mainApproximate,
           ),
         );
       } else if (mode == CalculatorMode.error) {
-        _voice.speak(const ['error']);
+        _voice.speakText(VoiceText.error);
       }
     }
     _lastMode = mode;
@@ -71,8 +71,8 @@ class _CalculatorPageState extends State<CalculatorPage> {
 
   void _onAnnounce(String semantic) {
     if (!_voiceEnabled) return;
-    final clips = VoiceClips.forSemantic(semantic);
-    if (clips.isNotEmpty) _voice.speak(clips);
+    final text = VoiceText.forSemantic(semantic);
+    if (text != null) _voice.speakText(text);
   }
 
   Future<void> _copy() async {
