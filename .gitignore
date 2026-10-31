@@ -49,3 +49,9 @@ app.*.map.json
 .vscode/
 .idea/
 android/build/
+
+# Signing material must never be committed
+android/key.properties
+*.jks
+*.keystore
+*.p12
