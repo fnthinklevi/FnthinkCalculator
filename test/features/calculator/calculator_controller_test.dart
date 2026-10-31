@@ -45,7 +45,8 @@ void main() {
   });
 
   test('百分比可切换按比例口径', () {
-    final controller = CalculatorController()..setPercentMode(PercentMode.proportion);
+    final controller = CalculatorController()
+      ..setPercentMode(PercentMode.proportion);
     for (final key in ['1', '0', '0']) {
       controller.inputDigit(key);
     }

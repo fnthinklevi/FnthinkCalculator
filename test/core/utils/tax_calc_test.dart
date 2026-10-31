@@ -32,22 +32,10 @@ void main() {
   });
 
   test('税率分界点', () {
-    expect(
-      calculateMonthlyTax(incomeCents: yuan('8000')).ratePercent,
-      3,
-    );
-    expect(
-      calculateMonthlyTax(incomeCents: yuan('8001')).ratePercent,
-      10,
-    );
-    expect(
-      calculateMonthlyTax(incomeCents: yuan('17000')).ratePercent,
-      10,
-    );
-    expect(
-      calculateMonthlyTax(incomeCents: yuan('17001')).ratePercent,
-      20,
-    );
+    expect(calculateMonthlyTax(incomeCents: yuan('8000')).ratePercent, 3);
+    expect(calculateMonthlyTax(incomeCents: yuan('8001')).ratePercent, 10);
+    expect(calculateMonthlyTax(incomeCents: yuan('17000')).ratePercent, 10);
+    expect(calculateMonthlyTax(incomeCents: yuan('17001')).ratePercent, 20);
   });
 
   test('年终奖单独计税', () {

@@ -56,10 +56,7 @@ void main() {
     expect(find.byKey(const Key('history-page')), findsOneWidget);
     expect(find.text('2026.10.29'), findsOneWidget);
     expect(find.text('2026.10.28'), findsOneWidget);
-    expect(
-      find.textContaining('不能除以0', findRichText: true),
-      findsOneWidget,
-    );
+    expect(find.textContaining('不能除以0', findRichText: true), findsOneWidget);
     expect(find.byKey(const Key('history-entry-2')), findsOneWidget);
   });
 

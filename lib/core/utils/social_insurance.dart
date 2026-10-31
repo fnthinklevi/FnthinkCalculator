@@ -11,8 +11,7 @@ class ProvinceSocialBase {
   final double lowerYuan;
   final double upperYuan;
 
-  String get rangeLabel =>
-      '基数 ${_group(lowerYuan)}–${_group(upperYuan)} 元';
+  String get rangeLabel => '基数 ${_group(lowerYuan)}–${_group(upperYuan)} 元';
 }
 
 // 2025 社保年度（基于 2024 社平工资），数据来源：人社通公开汇总。
