@@ -569,16 +569,6 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
               children: [
                 Expanded(
                   child: key(
-                    id: 'duration-key-undo',
-                    semantic: '撤回',
-                    icon: Icons.backspace_outlined,
-                    operator: true,
-                    onTap: _backspacePressed,
-                  ),
-                ),
-                const SizedBox(width: CalcSpacing.keyGap),
-                Expanded(
-                  child: key(
                     id: 'duration-key-colon',
                     label: ':',
                     semantic: '冒号',
@@ -588,7 +578,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                 ),
                 const SizedBox(width: CalcSpacing.keyGap),
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: key(
                     id: 'duration-key-0',
                     label: '0',

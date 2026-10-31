@@ -114,9 +114,13 @@ void main() {
     expect(valueOf(tester, 'time-diff-result'), '09:00:00');
   });
 
-  testWidgets('时长键盘左下角撤回逐次删除', (tester) async {
+  testWidgets('时长键盘只有一个退格键且逐次删除', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness(const DurationPage()));
+    expect(find.byKey(const Key('duration-key-backspace')), findsOneWidget);
+    expect(find.byKey(const Key('duration-key-undo')), findsNothing);
+    expect(find.byIcon(Icons.backspace_outlined), findsOneWidget);
+
     await tapKey(tester, 'duration-key-3');
     await tapKey(tester, 'duration-key-2');
     await tapKey(tester, 'duration-key-add');
@@ -125,9 +129,9 @@ void main() {
     await tapKey(tester, 'duration-key-5');
     expect(valueOf(tester, 'duration-calc-display'), '00:25:00');
 
-    await tapKey(tester, 'duration-key-undo');
+    await tapKey(tester, 'duration-key-backspace');
     expect(valueOf(tester, 'duration-calc-display'), '00:02:00');
-    await tapKey(tester, 'duration-key-undo');
+    await tapKey(tester, 'duration-key-backspace');
     expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
     expect(valueOf(tester, 'duration-calc-expression'), '32:00:00 +');
   });
