@@ -17,9 +17,30 @@
 
 ---
 
-## 0.2.0+4（2026-10-31 发布，tag `v0.2.0`）
+## 0.2.01+5（2026-10-31 发布，tag `v0.2.01`）
 
 当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator_0.2.01.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.7MB。
+- SHA-256：`a30ce9cf295d6f9992827b9f1845b5a060241044888c2f10b99c0a9aee2dc748`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：225 项全绿；`tool/check_apk_purity.sh` 通过。
+
+### 2026-10-31 发布 0.2.01+5
+
+- 提交：`f69e2a6`（版本准备）
+- 版本：按新规则 `A.B.CC+BUILD` 发布 `0.2.01+5`；补丁位固定两位，设置页显示同步为 `0.2.01`。应用功能与 0.2.0+4 一致。
+- 规则：`0.2.0+4` 作为规则生效前的历史构建保留，tag `v0.2.0` 不移动；`tool/release.sh` 与 `release-check` workflow 已强制 `A.B.CC`。
+- 闸门：格式检查、`flutter analyze`、225 项测试通过；签名纯 arm64 19.7MB；SHA-256 `a30ce9cf295d6f9992827b9f1845b5a060241044888c2f10b99c0a9aee2dc748`；`PURITY CHECK PASSED`。
+- 模拟器：`ci_api34_pixel6` integration smoke 通过；发行 APK 安装成功，`versionName=0.2.01`、`versionCode=5`；模拟器已关闭，真机未安装。
+- GitHub Release：`v0.2.01` 发布并上传 `FnthinkCalculator_0.2.01.apk`（此前 0.2.0+4 无 GitHub Release）。
+
+---
+
+## 0.2.0+4（历史构建，tag `v0.2.0`）
+
+历史构建：
 
 - 平台：Android，纯 arm64-v8a。
 - APK：`build/release/FnthinkCalculator_0.2.0.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.7MB。
