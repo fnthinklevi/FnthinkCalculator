@@ -104,19 +104,32 @@ flutter build apk --debug
 APK 路径：
 
 ```text
-build/app/outputs/flutter-apk/app-debug.apk       # 调试
-build/app/outputs/flutter-apk/app-release.apk     # 通用 release（54.0MB）
-build/app/outputs/flutter-apk/app-arm64-v8a-release.apk  # arm64（19.4MB）
+build/app/outputs/flutter-apk/app-debug.apk       # 调试（多 ABI）
+build/app/outputs/flutter-apk/app-release.apk     # release，仅 arm64-v8a（约 19.6MB）
 ```
 
-release 构建：
+release 构建（必须走脚本）：
 
 ```bash
-flutter build apk --release
-flutter build apk --release --split-per-abi
+tool/build_release_arm64.sh
 ```
 
-当前 release 使用模板默认 debug 签名；正式签名需提供 keystore。
+签名：
+
+- Gradle 读取 `android/key.properties`（已 gitignore），`storeFile` 指向仓库外的 keystore。
+- **keystore、key.properties 与密码禁止提交/上传 GitHub**；仓库只保留读取逻辑和占位说明。
+- `key.properties` 缺失时 Gradle 回退 debug 签名，只允许本机开发；发布包必须用 `tool/check_apk_purity.sh` 检查证书不是 debug。
+- 当前签名证书：`CN=fnthinklevi, OU=fnthink, O=fnthink, L=xian, ST=shaanxi, C=cn`。
+
+纯净度检查：
+
+```bash
+tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
+```
+
+检查项：仅 `lib/arm64-v8a`；无 armeabi-v7a/x86/x86_64；无密钥、TTS 音频/模型、诊断入口、测试资源；`apksigner` 证书非 `CN=Android Debug`。通过输出 `PURITY CHECK PASSED`、APK 大小与 SHA-256。
+
+> 换签名后，已安装的 debug 签名包不能直接覆盖；安装前需卸载旧包（会清除应用数据），需明确确认。
 
 模拟器：
 
@@ -387,7 +400,7 @@ adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 3. 不要将 `org.jetbrains.kotlin.android` 改为 apply true；会重新触发 KGP 弃用警告。
 4. Java/Kotlin 字节码目标 21 已验证；不要再改回 17，除非明确要求。
 5. release 已声明 `INTERNET`（T10 汇率）；仅用于请求公开汇率接口，不做统计或上传用户数据。
-6. T11 房贷、T12 个税、T13 称呼、T14 比例均已完成（个税/称呼并入 R3 复刻）。release 使用模板默认 debug 签名，正式发布前需提供 keystore 并重新构建。
+6. T11 房贷、T12 个税、T13 称呼、T14 比例均已完成（个税/称呼并入 R3 复刻）。release 使用仓库外 keystore 本地签名；`android/key.properties` 不提交，发布前跑纯 arm64 检查。
 
 ## 9. 范围与非目标
 

@@ -86,6 +86,7 @@ adb -s emulator-5554 emu kill
 | T12.1 | 个税省级社保基数 | 已完成 | 31 省 2025 平均工资/基数上下限；个人费率 10.5% 估算五险一金；标注来源/年度/不含公积金 | 31 项数据/北京数值/估算测试；省市选择走查 | `d25b57e` |
 | T15 | 语音播报 | 已完成 | Android 系统 TextToSpeech（真机为小米小爱引擎）；设置开关；按键/结果播报 | 文本映射/开关持久化测试；真机引擎确认 | `160e1c1`、`6f8e2da` |
 | T15.1 | 标题栏与语音修复 | 已完成 | 子页标题栏整宽，返回键不再被标题覆盖；短音频/audioplayers 改为系统 TTS MethodChannel | 标题栏几何/语音文本测试；真机安装走查 | `6f8e2da` |
+| T16 | 签名与纯 arm64 包 | 已完成 | 本地 key.properties + 仓库外 keystore；Gradle 过滤非 arm64；打包/纯净检查脚本 | 签名成功；仅 arm64 .so；无密钥/音频/测试残留；非 debug 证书；SHA-256 | `1e71501` |
 | R1 | 视觉底座与计算器复刻 | 已完成 | 两标签胶囊、圆键键盘、显示区层级、长按菜单、历史页、设置页、百分数双口径 | 198 项测试含 history/settings/守卫；模拟器亮暗走查 | `4e8ca3a` |
 | R2 | 换算与汇率复刻 | 已完成 | 换算首页 15 入口；单位多行联动 + 锚定选择器；温度专用键盘；汇率三行 + 109 币种 + 来源行 | 单位/汇率/守卫测试；模拟器走查 | `4e8ca3a` |
 | R3 | 新工具（进制/BMI/称呼/个税） | 已完成 | 进制键禁用与 2/8/10/16；BMI 表单/刻度结果；称呼互查；个税月薪/年终奖 | 各工具单元 + widget 测试；模拟器走查 | `4e8ca3a` |
@@ -456,7 +457,7 @@ adb -s emulator-5554 emu kill
 3. 日期月末夹取、闰年、反向区间是时间计算的主要 bug 源。
 4. T12–T15、T12.1 与 T15.1 已全部完成；新增入口必须同时具备实现、测试与标准记录。
 5. 模拟器与真机必须区分；所有 adb 命令带 `-s emulator-<n>`（本次冒烟为 `emulator-5556`），不操作真机。
-6. T0–T15、T12.1、T15.1 与 R1–R4 已完成。release arm64 19.9MB，仍为 debug 签名，正式发布前需提供 keystore 并重新构建。
+6. T0–T16、T12.1、T15.1 与 R1–R4 已完成。release 为纯 arm64、约 19.6MB、真实 keystore 签名；`key.properties`/keystore/密码不得上传。
 
 ## 6. 更新规则
 
@@ -503,3 +504,16 @@ adb -s emulator-5554 emu kill
 - 冒烟：release 安装真机 `d78f2b5b` 成功、冷启动无 FATAL；系统默认 TTS 为 `com.xiaomi.mibrain.speech`。
 - 提交：T15 `160e1c1`；T15.1 `6f8e2da`（清理 `879106c`）。
 - 备注：真机可听音需用户在设置开启语音播报；系统缺少中文语音时需安装系统语音引擎。
+
+### T16 签名与纯 arm64 包
+
+- 日期：2026-10-30
+- 签名：`android/key.properties` 指向仓库外 keystore；该文件与 keystore 均在 `.gitignore`，禁止上传。
+- 打包：`tool/build_release_arm64.sh`；Gradle `packaging.jniLibs.excludes` 过滤插件带入的 armeabi-v7a/x86/x86_64。
+- 纯净检查：`tool/check_apk_purity.sh`。
+  - 仅 `lib/arm64-v8a`：`libapp.so`、`libdartjni.so`、`libdatastore_shared_counter.so`、`libflutter.so`。
+  - 无 `.jks/.keystore/key.properties/.pem`、无音频/模型、无诊断/测试资源。
+  - `apksigner` 证书：`CN=fnthinklevi, OU=fnthink, O=fnthink, L=xian, ST=shaanxi, C=cn`（非 Android Debug）。
+- 结果：`PURITY CHECK PASSED`；APK 约 19.6MB；SHA-256 记录在构建输出。
+- 提交：`1e71501`。
+- 备注：更换签名后不能覆盖安装现有 debug 签名包，安装需先卸载（会清数据），须明确确认。
