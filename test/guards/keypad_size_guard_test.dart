@@ -88,8 +88,8 @@ void main() {
     expectConsistentKey(tester, '进制转换', 'radix-key-7', baseline);
     expect(tester.takeException(), isNull);
 
-    await tester.pumpWidget(app(const DurationPage()));
-    expectConsistentKey(tester, '时长计算', 'duration-key-7', baseline);
+    await tester.pumpWidget(app(const TimeCalculationPage()));
+    expectConsistentKey(tester, '时间计算', 'duration-key-7', baseline);
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(app(const KinshipPage()));

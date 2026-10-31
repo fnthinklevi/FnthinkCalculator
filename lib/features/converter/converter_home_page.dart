@@ -31,6 +31,12 @@ class ConverterHomePage extends StatelessWidget {
           CurrencyConverterPage(repository: currencyRepository),
         ),
       ),
+      _GridEntry(
+        keyId: 'tool-time-calculation',
+        icon: Icons.timer_outlined,
+        label: '时间计算',
+        onTap: () => _push(context, const TimeCalculationPage()),
+      ),
       for (final id in const ['length', 'weight', 'area'])
         _GridEntry(
           keyId: 'converter-category-$id',
@@ -110,10 +116,10 @@ class ConverterHomePage extends StatelessWidget {
         onTap: () => _push(context, const DateAddPage()),
       ),
       _GridEntry(
-        keyId: 'tool-duration',
-        icon: Icons.timer_outlined,
-        label: '时长计算',
-        onTap: () => _push(context, const DurationPage()),
+        keyId: 'tool-time-difference',
+        icon: Icons.timelapse,
+        label: '时差计算',
+        onTap: () => _push(context, const TimeDifferencePage()),
       ),
       _GridEntry(
         keyId: 'tool-age',

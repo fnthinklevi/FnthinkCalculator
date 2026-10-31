@@ -66,7 +66,7 @@ void main() {
 
   testWidgets('时分秒键盘、冒号、60进制与进位开关', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness(const DurationPage()));
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
     expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
     expect(valueOf(tester, 'duration-calc-total-seconds'), '共 0 秒');
 
@@ -110,14 +110,21 @@ void main() {
     expect(valueOf(tester, 'duration-calc-display'), '25:00:00');
     await tapKey(tester, 'duration-carry-0');
     expect(valueOf(tester, 'duration-calc-display'), '1天 01:00:00');
+  });
 
-    await tapKey(tester, 'duration-sub-1');
+  testWidgets('时差计算为独立页', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const TimeDifferencePage()));
+
+    expect(find.byKey(const Key('time-difference-page')), findsOneWidget);
+    expect(find.text('时差计算'), findsOneWidget);
     expect(valueOf(tester, 'time-diff-result'), '09:00:00');
+    expect(find.byKey(const Key('duration-key-7')), findsNothing);
   });
 
   testWidgets('时长键盘只有一个退格键且逐次删除', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness(const DurationPage()));
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
     expect(find.byKey(const Key('duration-key-backspace')), findsOneWidget);
     expect(find.byKey(const Key('duration-key-undo')), findsNothing);
     expect(find.byIcon(Icons.backspace_outlined), findsOneWidget);
@@ -139,7 +146,7 @@ void main() {
 
   testWidgets('连续公式按左到右累计', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness(const DurationPage()));
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
 
     // 12:00 +
     await tapKey(tester, 'duration-key-1');
@@ -190,7 +197,7 @@ void main() {
 
   testWidgets('时长键盘首行顺序与跨格布局', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness(const DurationPage()));
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
 
     final firstRow = [
       tester.getCenter(find.byKey(const Key('duration-key-clear'))),
@@ -223,7 +230,7 @@ void main() {
 
   testWidgets('分段点击修改与冒号输入自动进位', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness(const DurationPage()));
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
 
     await tapKey(tester, 'duration-key-9');
     await tapKey(tester, 'duration-key-6');

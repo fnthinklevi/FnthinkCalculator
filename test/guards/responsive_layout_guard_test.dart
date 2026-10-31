@@ -155,7 +155,8 @@ void main() {
       ('房贷计算', () => const MortgagePage()),
       ('BMI', () => const BmiPage()),
       ('比例计算', () => const RatioPage()),
-      ('时长计算', () => const DurationPage()),
+      ('时间计算', () => const TimeCalculationPage()),
+      ('时差计算', () => const TimeDifferencePage()),
       ('日期差', () => const DateDifferencePage()),
     ];
     final sizes = <(double, double)>[

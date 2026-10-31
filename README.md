@@ -4,14 +4,14 @@
 
 # 幻念计算器
 
-按小米计算器 17.3.9 的界面与交互标准复刻的 Flutter Android 计算器。两标签壳、19 个功能入口、109 种货币、完整单位表、时间四页，以及完全离线的按键与结果语音播报。
+按小米计算器 17.3.9 的界面与交互标准复刻的 Flutter Android 计算器。两标签壳、20 个功能入口、109 种货币、完整单位表、时间五个工具，以及完全离线的按键与结果语音播报。
 
 [![Flutter](https://badgen.net/badge/Flutter/3.47.7/02569B?icon=flutter)](https://flutter.dev/)
 [![AGP](https://badgen.net/badge/AGP/9.4.1/3DDC84?icon=android)](https://developer.android.com/build/releases/gradle-plugin)
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
 [![Version](https://badgen.net/badge/Version/0.1.1%2B3/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/221%20passed/green)](#质量保障)
+[![Tests](https://badgen.net/badge/Tests/222%20passed/green)](#质量保障)
 [![CI](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
@@ -41,7 +41,7 @@
 应用只有两个顶层标签：
 
 - **计算** —— 标准/科学计算、历史记录、结果复制与大写转换
-- **换算** —— 汇率、7 类单位、进制、时间四页，以及个税、房贷、BMI、称呼、比例、大写数字等工具
+- **换算** —— 汇率、7 类单位、进制、时间五个工具，以及个税、房贷、BMI、称呼、比例、大写数字等工具
 
 除汇率刷新外，所有计算、历史、设置和语音都在本机完成；没有账号、广告、统计或云同步。
 
@@ -71,7 +71,8 @@
 
 - **日期差** —— 公历天数与工作日差；工作日口径只排除周六日，不含法定节假日
 - **日期推算** —— 按年 / 月 / 日前后推算；月末自动夹取到目标月份最后一天
-- **时长计算** —— 时长加减与两时刻差；支持进到日 / 累计小时口径，两时刻差按 24 小时制
+- **时间计算** —— 时长加减；支持连续公式、进到日 / 累计小时口径
+- **时差计算** —— 两时刻差，按 24 小时制；结束早于开始时自动按次日计算
 - **年龄计算** —— 周岁 / 虚岁 / 天数，并给出下次生日倒计时
 - 日期选择使用系统日历，数量与时分秒使用内置键盘
 
@@ -87,7 +88,7 @@
 ### 界面与交互
 
 - 两标签胶囊导航；子页统一整宽标题栏，返回键固定在左侧
-- 换算首页 3/4/5/6 列自适应网格，共 19 个固定顺序入口
+- 换算首页 3/4/5/6 列自适应网格，共 20 个固定顺序入口；时间计算位于第一行靠前位置
 - 大屏与折叠屏：900dp 内容上限；内屏展开全宽重排，展开/折叠保留输入状态；计算器竖屏 600dp、横屏左右分栏
 - 小米口径配色：`#FF6900` 强调色、浅色 `#F3F3F3` 背景、深色模式纯黑
 - 长按显示区弹出复制 / 大写菜单；长按历史条目进入多选
@@ -145,7 +146,7 @@ FnthinkCalculator/
 │   └── features/
 │       ├── calculator/               # 控制器、页面、显示/键盘/历史
 │       ├── converter/                # 单位、汇率、进制、换算首页
-│       ├── multifunction/            # 时间四页、个税、房贷、BMI、称呼、比例、大写
+│       ├── multifunction/            # 时间五个工具、个税、房贷、BMI、称呼、比例、大写
 │       └── settings/                 # 百分数算法、角度、语音、震动、主题
 ├── android/                          # Android 工程、签名读取、自适应图标
 ├── assets/
@@ -253,11 +254,11 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 221 例全绿 |
+| `flutter test` | 222 例全绿 |
 | 测试文件 | 42 个 |
 | integration smoke | 1 条（模拟器） |
 | Dart 源码 | 69 个文件 / 约 1.43 万行 |
-| 测试代码 | 约 4,599 行 |
+| 测试代码 | 约 4,608 行 |
 | `flutter analyze` | 无问题 |
 | release APK | 纯 arm64-v8a / 19.7MB / 非 debug 签名 |
 
@@ -266,9 +267,9 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - **数学核心** —— 有理数、词法、解析、求值、格式化、引擎边界
 - **计算器** —— 控制器、科学函数、历史持久化、页面交互、无障碍、golden、一万条随机按键 fuzz
 - **换算** —— 单位数据规模、页面联动、汇率缓存/降级、进制转换
-- **工具** —— 时间四页、个税、房贷控制器、BMI、称呼、比例、大写
+- **工具** —— 时间五个工具、个税、房贷控制器、BMI、称呼、比例、大写
 - **语音** —— 片段映射、资源数量与大小（<1MB）
-- **UI 标准守卫** —— 两标签、19 入口固定顺序、104 个单位/109 币种规模、系统输入框白名单、深色纯黑、不冒充数据来源、内置键盘圆径一致性、大屏/折叠屏断点与无溢出
+- **UI 标准守卫** —— 两标签、20 入口固定顺序、104 个单位/109 币种规模、系统输入框白名单、深色纯黑、不冒充数据来源、内置键盘圆径一致性、大屏/折叠屏断点与无溢出
 - **计算链闸门** —— 计算器/换算/汇率/时长的连续公式、重复等号、结果后续算与中间态
 - **模拟器冒烟** —— `integration_test/app_smoke_test.dart`：冷启动、计算、换算页联动
 
@@ -283,7 +284,7 @@ bash tool/smoke_emulator.sh
 
 GitHub Actions：
 
-- `ci.yml`：push/PR 执行格式、analyze、221 项测试
+- `ci.yml`：push/PR 执行格式、analyze、222 项测试
 - `smoke.yml`：tag/manual/每周二执行模拟器 integration smoke
 - `release-check.yml`：tag 校验 `vX.Y.Z` 与 `pubspec` 版本、产物命名契约并跑完整测试
 - 签名 release APK 仍只在本地生成，CI 不接触 keystore、不上传 APK

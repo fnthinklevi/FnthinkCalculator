@@ -45,7 +45,7 @@ void main() {
     expect(source.contains('多功能标签'), isFalse);
   });
 
-  testWidgets('换算首页固定 19 个入口且顺序符合标准', (tester) async {
+  testWidgets('换算首页固定 20 个入口且顺序符合标准', (tester) async {
     tester.view.physicalSize = const Size(1080, 4200);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.resetPhysicalSize);
@@ -59,6 +59,7 @@ void main() {
 
     const order = <String>[
       'converter-category-currency',
+      'tool-time-calculation',
       'converter-category-length',
       'converter-category-weight',
       'converter-category-area',
@@ -74,10 +75,11 @@ void main() {
       'tool-bmi',
       'tool-date-diff',
       'tool-date-add',
-      'tool-duration',
+      'tool-time-difference',
       'tool-age',
       'tool-ratio',
     ];
+    expect(order, hasLength(20));
     final rects = <String, Rect>{};
     for (final key in order) {
       final finder = find.byKey(Key(key));

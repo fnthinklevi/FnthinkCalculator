@@ -33,15 +33,28 @@ class DateAddPage extends StatelessWidget {
   }
 }
 
-class DurationPage extends StatelessWidget {
-  const DurationPage({super.key});
+class TimeCalculationPage extends StatelessWidget {
+  const TimeCalculationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return _TimeToolPage(
-      pageKey: const Key('duration-page'),
-      title: '时长计算',
-      child: const DurationView(),
+      pageKey: const Key('time-calculation-page'),
+      title: '时间计算',
+      child: const TimeCalculationView(),
+    );
+  }
+}
+
+class TimeDifferencePage extends StatelessWidget {
+  const TimeDifferencePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _TimeToolPage(
+      pageKey: const Key('time-difference-page'),
+      title: '时差计算',
+      child: const TimeDifferenceView(),
     );
   }
 }

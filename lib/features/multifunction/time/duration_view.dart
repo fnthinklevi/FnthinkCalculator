@@ -11,38 +11,11 @@ import 'time_widgets.dart';
 
 enum _TimeSegment { hours, minutes, seconds }
 
-class DurationView extends StatefulWidget {
-  const DurationView({super.key});
+class TimeCalculationView extends StatelessWidget {
+  const TimeCalculationView({super.key});
 
   @override
-  State<DurationView> createState() => _DurationViewState();
-}
-
-class _DurationViewState extends State<DurationView> {
-  int _mode = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: SegmentedTabs(
-            labels: const ['时长加减', '两时刻差'],
-            index: _mode,
-            onChanged: (index) => setState(() => _mode = index),
-            keyPrefix: 'duration-sub',
-          ),
-        ),
-        Expanded(
-          child: IndexedStack(
-            index: _mode,
-            children: const [_DurationArithmeticView(), _TimeDifferenceView()],
-          ),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => const _DurationArithmeticView();
 }
 
 class _DurationArithmeticView extends StatefulWidget {
@@ -698,6 +671,13 @@ class _TallEqualsKey extends StatelessWidget {
       ),
     );
   }
+}
+
+class TimeDifferenceView extends StatelessWidget {
+  const TimeDifferenceView({super.key});
+
+  @override
+  Widget build(BuildContext context) => const _TimeDifferenceView();
 }
 
 class _TimeDifferenceView extends StatefulWidget {
