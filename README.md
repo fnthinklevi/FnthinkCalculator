@@ -223,7 +223,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - Gradle 从 `android/key.properties` 读取签名配置，`storeFile` 指向仓库外的 keystore
 - `android/key.properties`、`*.jks`、`*.keystore` 已加入 `.gitignore`，**禁止提交或上传**
 - 缺少 `key.properties` 时回退 debug 签名，仅用于本机开发；发布包必须通过纯净检查
-- 当前构建：`1.0.0+1`，纯 arm64-v8a，约 19.7MB，SHA-256 `d822cad62abb6f38c2b60cf803bb8f9f48776ce195694a9240c78535dfef0296`
+- 当前构建：`1.0.0+1`，纯 arm64-v8a，约 19.7MB；每次构建的大小与 SHA-256 见 [doc/update.md](doc/update.md)
 
 纯净检查通过时输出 `PURITY CHECK PASSED`，并打印 APK 大小与 SHA-256。
 

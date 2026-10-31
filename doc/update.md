@@ -22,7 +22,7 @@
 
 - 平台：Android，纯 arm64-v8a。
 - APK：`build/app/outputs/flutter-apk/app-release.apk`，19.7MB。
-- SHA-256：`d822cad62abb6f38c2b60cf803bb8f9f48776ce195694a9240c78535dfef0296`
+- SHA-256：`3e931529e0830b73051a9a4910fbc2bdb774d421095a1deab78b0b54b71800cf`
 - 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
 - 测试：208 项全绿；`tool/check_apk_purity.sh` 通过。
 
@@ -84,6 +84,12 @@
 - 工具：`tool/make_icons.py` 可复现生成。
 - 验证：`flutter analyze` 无问题；208 项测试全绿；签名纯 arm64 包 19.7MB、SHA-256 `d822cad62abb6f38c2b60cf803bb8f9f48776ce195694a9240c78535dfef0296`、`PURITY CHECK PASSED`；真机 2410DPN6CC 安装并启动正常。
 - 备注：若桌面仍显示旧图标，为启动器图标缓存；APK 内已确认是新图标，重启桌面或手机后刷新。
+
+### 2026-10-31 时长键盘去重
+
+- 提交：`a8cf830`
+- 修复：时长计算键盘同时存在顶部退格键与左下角「撤回」键，两者调用同一删除逻辑；移除左下角重复键，保留顶部标准位置，0 键恢复为跨 3 列。
+- 验证：`flutter analyze` 无问题；208 项测试全绿（新增「只有一个退格键」断言）；签名纯 arm64 包 19.7MB、SHA-256 `3e931529e0830b73051a9a4910fbc2bdb774d421095a1deab78b0b54b71800cf`、`PURITY CHECK PASSED`；真机 2410DPN6CC 覆盖安装成功（lastUpdateTime 2026-10-31 12:03:45）。
 
 ---
 
