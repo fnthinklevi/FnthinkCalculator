@@ -21,7 +21,7 @@
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
 | 设计参考 | 小米计算器 17.3.9 的布局、配色与交互；唯一标准见 [xiaomi-reference.md](xiaomi-reference.md)；不使用小米商标、图标、字体等素材 |
 
-当前状态：T0–T15、T12.1、T15.1 与 R1–R4 已完成（2026-10-30，T14 `9552af9`、T12.1 `d25b57e`、T15 `160e1c1`、T15.1 `6f8e2da`）；两标签壳、整宽子页标题栏、16 个换算入口、三行汇率与 109 币种、单位全表、进制/BMI/称呼/个税（31 省社保基数）/比例、房贷清单、时间计算、系统中文 TTS 均已落地；计算器/换算用内置键盘，表单页用系统数字键盘；206 项测试与 UI 标准守卫全绿。
+当前状态：T0–T17、T12.1、T15.1 与 R1–R4 已完成（2026-10-30，T14 `9552af9`、T12.1 `d25b57e`、T16 `1e71501`、T17 `bf60d5c`）；两标签壳、整宽子页标题栏、19 个换算入口、三行汇率与 109 币种、单位全表、进制/BMI/称呼/个税（31 省社保基数）/比例、房贷清单、时间四页、Edge 离线语音包均已落地；计算器/换算用内置键盘，表单页用系统数字键盘；208 项测试与 UI 标准守卫全绿；release 纯 arm64 约 20.0MB、真实 keystore 签名。
 
 ## 2. 技术栈
 
@@ -105,7 +105,7 @@ APK 路径：
 
 ```text
 build/app/outputs/flutter-apk/app-debug.apk       # 调试（多 ABI）
-build/app/outputs/flutter-apk/app-release.apk     # release，仅 arm64-v8a（约 19.6MB）
+build/app/outputs/flutter-apk/app-release.apk     # release，仅 arm64-v8a（约 20.0MB）
 ```
 
 release 构建（必须走脚本）：
@@ -127,7 +127,7 @@ tool/build_release_arm64.sh
 tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 ```
 
-检查项：仅 `lib/arm64-v8a`；无 armeabi-v7a/x86/x86_64；无密钥、TTS 音频/模型、诊断入口、测试资源；`apksigner` 证书非 `CN=Android Debug`。通过输出 `PURITY CHECK PASSED`、APK 大小与 SHA-256。
+检查项：仅 `lib/arm64-v8a`；无 armeabi-v7a/x86/x86_64；无密钥、TTS 模型/裸 WAV、诊断入口、测试资源；允许内置 `assets/voice/*.mp3`；`apksigner` 证书非 `CN=Android Debug`。通过输出 `PURITY CHECK PASSED`、APK 大小与 SHA-256。
 
 > 换签名后，已安装的 debug 签名包不能直接覆盖；安装前需卸载旧包（会清除应用数据），需明确确认。
 
