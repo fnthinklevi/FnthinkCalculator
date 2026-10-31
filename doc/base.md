@@ -111,6 +111,13 @@ build/app/outputs/flutter-apk/app-release.apk     # release，仅 arm64-v8a（�
 release 构建（必须走脚本）：
 
 ```bash
+tool/release.sh --preflight   # 版本/签名/工作区/tag 预检
+tool/release.sh               # 格式→analyze→全量测试→构建→归档
+```
+
+单次打包与纯净检查：
+
+```bash
 tool/build_release_arm64.sh
 ```
 
@@ -161,7 +168,8 @@ FnthinkCalculator/
 │   ├── base.md                  # 本文档
 │   ├── xiaomi-reference.md      # 小米 17.3.9 UI/交互/验收标准
 │   ├── roadmap.md               # 任务、状态、闸门/冒烟/提交记录
-│   └── update.md                # 版本变更记录（每次发版/交付新增一条）
+│   ├── update.md                # 版本变更记录（每次发版/交付新增一条）
+│   └── release.md               # 标准发版流程与授权边界
 ├── lib/
 │   ├── main.dart                # 加载 prefs，创建应用级控制器
 │   ├── app/                     # app、app_scope、settings_controller、settings_repository、shell
@@ -182,6 +190,7 @@ FnthinkCalculator/
 │   ├── features/                # 计算/换算/多功能/持久化/历史仓库
 │   ├── widgets/                 # 数字键盘/规则
 │   └── golden/                  # 亮/暗布局 golden
+├── tool/release.sh              # 发版闸门：格式/测试/构建/归档
 ├── tool/make_icons.py           # 图标生成脚本
 ├── pubspec.yaml
 └── analysis_options.yaml
@@ -426,6 +435,7 @@ adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 ## 10. 文档维护
 
 - 每个任务完成后更新 [roadmap.md](roadmap.md)：状态、实现方式、闸门/冒烟结果、提交号。
+- 发版严格按 [release.md](release.md) 执行：版本准备 → `tool/release.sh` 闸门 → 真机冒烟 → 文档 → tag → 授权后推送。
 - 每次发版或交付安装包时在 [update.md](update.md) 新增版本记录：用户可见改动、构建信息、验证结果、提交号。
 - 技术事实变化时同步更新本文档；被推翻的旧结论保留原句并标注。
 - 文档不写真实域名、密钥、签名信息；签名与发布信息后续单独管理。

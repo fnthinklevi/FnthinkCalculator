@@ -28,6 +28,7 @@
 - [质量保障](#质量保障)
 - [数据与隐私](#数据与隐私)
 - [已知限制](#已知限制)
+- [发版流程](#发版流程)
 - [版本与变更](#版本与变更)
 
 ---
@@ -152,9 +153,11 @@ FnthinkCalculator/
 │   ├── base.md                       # 技术基线
 │   ├── xiaomi-reference.md           # 小米 17.3.9 UI/交互/验收标准
 │   ├── roadmap.md                    # 任务状态与闸门记录
-│   └── update.md                     # 版本变更记录
+│   ├── update.md                     # 版本变更记录
+│   └── release.md                    # 标准发版流程
 ├── test/                             # 40 个测试文件
 ├── tool/
+│   ├── release.sh                    # 发版闸门：格式/测试/构建/归档
 │   ├── build_release_arm64.sh        # 签名 release 打包 + 纯净检查
 │   ├── check_apk_purity.sh           # ABI/密钥/模型/测试资源检查
 │   ├── generate_voice_clips.py       # 构建期生成离线语音
@@ -206,7 +209,14 @@ python tool/generate_voice_clips.py
 
 ## 构建与签名
 
-发布包统一走脚本：
+发版统一走闸门脚本（格式、analyze、全量测试、签名纯 arm64 构建、纯净检查与产物归档）：
+
+```bash
+bash tool/release.sh --preflight
+bash tool/release.sh
+```
+
+单次构建可单独执行：
 
 ```bash
 bash tool/build_release_arm64.sh
@@ -284,6 +294,14 @@ bash tool/build_release_arm64.sh   # 打包 + 纯净检查
 - 语音为固定中文短音，不支持自定义音色或朗读任意文本
 - 计算器与换算页使用内置键盘；个税、房贷、BMI、比例等表单页按小米口径使用系统数字键盘
 - 界面复刻小米计算器 17.3.9 的布局与交互，但不包含其商标、图标、字体等素材
+
+---
+
+## 发版流程
+
+标准流程见 [doc/release.md](doc/release.md)：版本准备 → `bash tool/release.sh` 闸门 → 真机/折叠屏冒烟 → 更新 `update.md`/`base.md`/README → 提交 → 打 `vX.Y.Z` tag → 获得授权后推送。
+
+`tool/release.sh` 只做格式、静态检查、全量测试、签名纯 arm64 构建、纯净检查与产物归档；安装、提交、打 tag、push 与 Release 均需人工确认。
 
 ---
 
