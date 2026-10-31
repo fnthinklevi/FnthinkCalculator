@@ -112,7 +112,7 @@ class SettingsPage extends StatelessWidget {
                       _InfoRow(
                         title: '版本',
                         trailing: Text(
-                          '0.2.0',
+                          '0.2.01',
                           style: TextStyle(
                             fontSize: 15,
                             color: CalcColors.secondaryText(context),
