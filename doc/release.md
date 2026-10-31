@@ -27,6 +27,7 @@
 - 每次产生新 APK，BUILD 必须递增；不能复用已发布的 BUILD。
 - `settings_page.dart` 的「版本」显示必须与版本名一致；`tool/release.sh --preflight` 会检查。
 - 一个版本名只打一个 tag（`vX.Y.Z`）；同一版本号不重复发版。补构建请提升 BUILD 并确认是否属于同一次发布。
+- 对外 APK 固定命名为 `FnthinkCalculator_<版本名>.apk`（如 `FnthinkCalculator_0.1.1.apk`），不带 `v` 前缀、构建号或 ABI；构建号写入 `update.md`。
 - 已推送的 tag 不移动、不删除、不覆盖。
 
 ## 3. 发版流程
@@ -68,8 +69,8 @@ bash tool/release.sh
 产物：
 
 ```text
-build/release/FnthinkCalculator-v<版本>+<构建号>-arm64.apk
-build/release/FnthinkCalculator-v<版本>+<构建号>-SHA256SUMS.txt
+build/release/FnthinkCalculator_<版本名>.apk
+build/release/FnthinkCalculator_<版本名>.apk.sha256
 ```
 
 #### 启动模拟器
@@ -90,7 +91,7 @@ adb -s emulator-<端口> shell getprop sys.boot_completed   # 输出 1 表示已
 #### 安装与版本确认
 
 ```bash
-adb -s emulator-<端口> install -r build/release/FnthinkCalculator-v<版本>+<构建号>-arm64.apk
+adb -s emulator-<端口> install -r build/release/FnthinkCalculator_<版本名>.apk
 adb -s emulator-<端口> shell dumpsys package com.fnthink.FnthinkCalculator | grep -E "versionName|versionCode"
 ```
 
@@ -135,7 +136,7 @@ adb -s emulator-<端口> emu kill
 3. `README.md`：版本徽章、当前版本、测试读数；行为或界面变化时同步功能说明
 4. `doc/xiaomi-reference.md`：只有 UI/交互标准变化时才更新
 
-提交前确认：文档里的 SHA 与 `SHA256SUMS` 一致；测试例数与闸门输出一致；版本名与 `pubspec.yaml` 一致。
+提交前确认：文档里的 SHA 与 `.apk.sha256` 一致；测试例数与闸门输出一致；版本名与 `pubspec.yaml` 一致；安装包文件名为 `FnthinkCalculator_<版本名>.apk`。
 
 ```bash
 git status
@@ -191,7 +192,8 @@ git push <remote> v<版本名>
 | 模拟器启动失败 | 换可用 AVD 或修复模拟器环境；禁止改用真机绕过 |
 | 安装签名冲突 | 在模拟器卸载后重装（数据可丢弃）；真机需用户单独授权，标准流程不涉及 |
 | 冒烟失败 | 修复 + 提升 BUILD，回到步骤 2；不 tag、不推送 |
-| 文档与产物不一致 | 以 `SHA256SUMS`/构建输出为准修正文档；tag 前必须干净 |
+| 文档与产物不一致 | 以 `.apk.sha256`/构建输出为准修正文档；tag 前必须干净 |
+| 安装包文件名不符合规范 | 按 `FnthinkCalculator_<版本名>.apk` 重命名并重新生成 `.sha256`，GitHub Release 只上传该文件 |
 
 ## 5. 禁止事项
 
@@ -215,9 +217,9 @@ bash tool/release.sh
 emulator -avd <AVD_NAME> -no-snapshot -no-boot-anim
 adb -s emulator-<端口> wait-for-device
 adb -s emulator-<端口> shell getprop sys.boot_completed
-adb -s emulator-<端口> install -r build/release/FnthinkCalculator-v<版本>+<构建号>-arm64.apk
+adb -s emulator-<端口> install -r build/release/FnthinkCalculator_<版本名>.apk
 adb -s emulator-<端口> shell am start -W -n com.fnthink.FnthinkCalculator/.MainActivity
-adb -s emulator-<端口> exec-out screencap -p > build/release/smoke-v<版本>+<构建号>.png
+adb -s emulator-<端口> exec-out screencap -p > build/release/smoke-<版本名>.png
 adb -s emulator-<端口> emu kill
 
 # 文档提交后（tag 前再确认一次）

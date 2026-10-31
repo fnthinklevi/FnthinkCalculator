@@ -102,13 +102,13 @@ fi
 say "5/5 归档产物"
 ARTIFACT_DIR="build/release"
 mkdir -p "$ARTIFACT_DIR"
-ARTIFACT="$ARTIFACT_DIR/FnthinkCalculator-v${VERSION_NAME}+${BUILD_NUMBER}-arm64.apk"
+ARTIFACT="$ARTIFACT_DIR/FnthinkCalculator_${VERSION_NAME}.apk"
 cp build/app/outputs/flutter-apk/app-release.apk "$ARTIFACT"
 ARTIFACT_SHA="$(sha256sum "$ARTIFACT" | awk '{print $1}')"
 if [ "$ARTIFACT_SHA" != "$SHA" ]; then
   die "复制后的 APK SHA-256 与构建输出不一致"
 fi
-printf '%s  %s\n' "$SHA" "$(basename "$ARTIFACT")" > "$ARTIFACT_DIR/FnthinkCalculator-v${VERSION_NAME}+${BUILD_NUMBER}-SHA256SUMS.txt"
+printf '%s  %s\n' "$SHA" "$(basename "$ARTIFACT")" > "${ARTIFACT}.sha256"
 
 cat <<EOF
 
@@ -117,6 +117,7 @@ cat <<EOF
 测试: ${TEST_COUNT} 例
 APK : ${ARTIFACT}
 SHA : ${SHA}
+校验: ${ARTIFACT}.sha256
 
 接下来（见 doc/release.md，均需人工确认）：
 1. 模拟器冒烟: 启动 AVD 后 adb -s emulator-<端口> install -r "${ARTIFACT}"（全部 adb 命令带 -s）

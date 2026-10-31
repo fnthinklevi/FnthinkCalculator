@@ -21,7 +21,7 @@
 当前构建：
 
 - 平台：Android，纯 arm64-v8a。
-- APK：`build/release/FnthinkCalculator-v0.1.1+3-arm64.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.7MB。
+- APK：`build/release/FnthinkCalculator_0.1.1.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.7MB。
 - SHA-256：`6803e2d5d989fc4fd184ba86351947815cda79a5f522e19d522ee022dbf7efc7`
 - 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
 - 测试：212 项全绿；`tool/check_apk_purity.sh` 通过。
