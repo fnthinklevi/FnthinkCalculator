@@ -71,6 +71,33 @@ void main() {
     expect(controller.mainText, '6');
   });
 
+  test('连续公式按左到右求值', () {
+    final controller = CalculatorController();
+    controller.inputDigit('1');
+    controller.inputOperator('+');
+    controller.inputDigit('2');
+    controller.inputOperator('+');
+    controller.inputDigit('3');
+    controller.evaluate();
+    expect(controller.expression, '1+2+3');
+    expect(controller.mainText, '6');
+    expect(controller.history, hasLength(1));
+    expect(controller.history.first.expression, '1+2+3');
+  });
+
+  test('重复等号不重复写入历史', () {
+    final controller = CalculatorController();
+    controller.inputDigit('1');
+    controller.inputOperator('+');
+    controller.inputDigit('2');
+    controller.evaluate();
+    expect(controller.history, hasLength(1));
+
+    controller.evaluate();
+    expect(controller.mainText, '3');
+    expect(controller.history, hasLength(1));
+  });
+
   test('结果后输入数字会开始新算式', () {
     final controller = CalculatorController();
     controller.inputDigit('1');

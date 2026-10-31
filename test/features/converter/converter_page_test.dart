@@ -75,6 +75,38 @@ void main() {
     expect(find.byType(TextField), findsNothing);
   });
 
+  testWidgets('单位换算支持连续公式与结果后继续', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(UnitData.length));
+
+    await tapKey(tester, 'numeric-key-clear');
+    for (final key in [
+      'numeric-key-1',
+      'numeric-key-2',
+      'numeric-key-plus',
+      'numeric-key-1',
+      'numeric-key-2',
+      'numeric-key-plus',
+      'numeric-key-1',
+      'numeric-key-3',
+      'numeric-key-equals',
+    ]) {
+      await tapKey(tester, key);
+    }
+    expect(inputText(tester), '37');
+    expect(resultText(tester), '3,700');
+
+    for (final key in [
+      'numeric-key-plus',
+      'numeric-key-3',
+      'numeric-key-equals',
+    ]) {
+      await tapKey(tester, key);
+    }
+    expect(inputText(tester), '40');
+    expect(resultText(tester), '4,000');
+  });
+
   testWidgets('单位选择器可切换目标单位', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness(UnitData.length));

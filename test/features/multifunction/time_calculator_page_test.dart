@@ -173,6 +173,19 @@ void main() {
 
     await tapKey(tester, 'duration-carry-1');
     expect(valueOf(tester, 'duration-calc-display'), '37:02:00');
+
+    // 结果后继续累计：37:02 + 0:59 = 38:01
+    await tapKey(tester, 'duration-key-add');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-5');
+    await tapKey(tester, 'duration-key-9');
+    await tapKey(tester, 'duration-key-equals');
+    expect(
+      valueOf(tester, 'duration-calc-expression'),
+      '37:02:00 + 00:59:00 =',
+    );
+    expect(valueOf(tester, 'duration-calc-display'), '38:01:00');
   });
 
   testWidgets('时长键盘首行顺序与跨格布局', (tester) async {

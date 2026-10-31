@@ -429,7 +429,7 @@ class CalculatorController extends ChangeNotifier {
   }
 
   void evaluate() {
-    if (_expression.isEmpty) return;
+    if (_expression.isEmpty || _mode == CalculatorMode.result) return;
     final prepared = CalculatorEngine.autoCloseParentheses(_expression);
     final outcome = _engine.evaluate(
       prepared,

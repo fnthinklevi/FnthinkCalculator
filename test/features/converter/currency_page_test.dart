@@ -93,6 +93,42 @@ void main() {
     expect(textOf(tester, 'currency-value-2'), '25');
   });
 
+  testWidgets('汇率输入支持连续公式与结果后继续', (tester) async {
+    configureSurface(tester);
+    final repository = ExchangeRateRepository(loader: () async => fixture());
+    await tester.pumpWidget(harness(repository));
+    await tester.pumpAndSettle();
+
+    await tapKey(tester, 'numeric-key-clear');
+    for (final key in [
+      'numeric-key-1',
+      'numeric-key-2',
+      'numeric-key-plus',
+      'numeric-key-1',
+      'numeric-key-2',
+      'numeric-key-plus',
+      'numeric-key-1',
+      'numeric-key-3',
+      'numeric-key-equals',
+    ]) {
+      await tapKey(tester, key);
+    }
+    expect(textOf(tester, 'currency-value-0'), '37');
+    expect(textOf(tester, 'currency-value-1'), '4.625');
+    expect(textOf(tester, 'currency-value-2'), '9.25');
+
+    for (final key in [
+      'numeric-key-plus',
+      'numeric-key-3',
+      'numeric-key-equals',
+    ]) {
+      await tapKey(tester, key);
+    }
+    expect(textOf(tester, 'currency-value-0'), '40');
+    expect(textOf(tester, 'currency-value-1'), '5');
+    expect(textOf(tester, 'currency-value-2'), '10');
+  });
+
   testWidgets('点第二行激活输入，首键替换原值', (tester) async {
     configureSurface(tester);
     final repository = ExchangeRateRepository(loader: () async => fixture());

@@ -147,6 +147,9 @@ class ConverterController extends ChangeNotifier {
     error = null;
     final text = input.trim();
     if (text.isEmpty) return;
+    if (const {'+', '−', '×', '÷', '-'}.contains(text[text.length - 1])) {
+      return;
+    }
 
     BigRational? value;
     try {
