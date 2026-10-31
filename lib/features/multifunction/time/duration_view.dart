@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -435,161 +437,246 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
       );
     }
 
-    Widget row(List<Widget> keys) {
-      final children = <Widget>[];
-      for (var index = 0; index < keys.length; index++) {
-        children.add(Expanded(child: keys[index]));
-        if (index != keys.length - 1) {
-          children.add(const SizedBox(width: CalcSpacing.keyGap));
-        }
-      }
-      return Expanded(child: Row(children: children));
-    }
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-      child: Column(
-        children: [
-          row([
-            key(
-              id: 'duration-key-clear',
-              label: 'C',
-              semantic: '清空',
-              operator: true,
-              onTap: _clearPressed,
-            ),
-            key(
-              id: 'duration-key-backspace',
-              semantic: '退格',
-              icon: Icons.backspace_outlined,
-              operator: true,
-              onTap: _backspacePressed,
-            ),
-            key(
-              id: 'duration-key-00',
-              label: '00',
-              semantic: '双零',
-              onTap: _appendDoubleZero,
-            ),
-            key(
-              id: 'duration-key-sign',
-              label: '±',
-              semantic: '正负号',
-              operator: true,
-              onTap: _signPressed,
-            ),
-          ]),
-          const SizedBox(height: CalcSpacing.keyGap),
-          row([
-            key(
-              id: 'duration-key-7',
-              label: '7',
-              semantic: '7',
-              onTap: () => _appendDigit('7'),
-            ),
-            key(
-              id: 'duration-key-8',
-              label: '8',
-              semantic: '8',
-              onTap: () => _appendDigit('8'),
-            ),
-            key(
-              id: 'duration-key-9',
-              label: '9',
-              semantic: '9',
-              onTap: () => _appendDigit('9'),
-            ),
-            key(
-              id: 'duration-key-add',
-              label: '+',
-              semantic: '加',
-              operator: true,
-              onTap: () => _operatorPressed('+'),
-            ),
-          ]),
-          const SizedBox(height: CalcSpacing.keyGap),
-          row([
-            key(
-              id: 'duration-key-4',
-              label: '4',
-              semantic: '4',
-              onTap: () => _appendDigit('4'),
-            ),
-            key(
-              id: 'duration-key-5',
-              label: '5',
-              semantic: '5',
-              onTap: () => _appendDigit('5'),
-            ),
-            key(
-              id: 'duration-key-6',
-              label: '6',
-              semantic: '6',
-              onTap: () => _appendDigit('6'),
-            ),
-            key(
-              id: 'duration-key-subtract',
-              label: '−',
-              semantic: '减',
-              operator: true,
-              onTap: () => _operatorPressed('−'),
-            ),
-          ]),
-          const SizedBox(height: CalcSpacing.keyGap),
-          row([
-            key(
-              id: 'duration-key-1',
-              label: '1',
-              semantic: '1',
-              onTap: () => _appendDigit('1'),
-            ),
-            key(
-              id: 'duration-key-2',
-              label: '2',
-              semantic: '2',
-              onTap: () => _appendDigit('2'),
-            ),
-            key(
-              id: 'duration-key-3',
-              label: '3',
-              semantic: '3',
-              onTap: () => _appendDigit('3'),
-            ),
-            key(
-              id: 'duration-key-equals',
-              label: '=',
-              semantic: '等于',
-              equals: true,
-              onTap: _equalsPressed,
-            ),
-          ]),
-          const SizedBox(height: CalcSpacing.keyGap),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: key(
-                    id: 'duration-key-colon',
-                    label: ':',
-                    semantic: '冒号',
-                    operator: true,
-                    onTap: _colonPressed,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const gap = CalcSpacing.keyGap;
+          final diameter = math
+              .min(
+                (constraints.maxWidth - gap * 3) / 4,
+                (constraints.maxHeight - gap * 4) / 5,
+              )
+              .clamp(32.0, 82.0);
+
+          Widget place({
+            required Widget child,
+            required int col,
+            required int row,
+            int colSpan = 1,
+            int rowSpan = 1,
+          }) {
+            return Positioned(
+              left: col * (diameter + gap),
+              top: row * (diameter + gap),
+              width: diameter * colSpan + gap * (colSpan - 1),
+              height: diameter * rowSpan + gap * (rowSpan - 1),
+              child: child,
+            );
+          }
+
+          return Center(
+            child: SizedBox(
+              width: diameter * 4 + gap * 3,
+              height: diameter * 5 + gap * 4,
+              child: Stack(
+                children: [
+                  place(
+                    col: 0,
+                    row: 0,
+                    child: key(
+                      id: 'duration-key-clear',
+                      label: 'C',
+                      semantic: '清空',
+                      operator: true,
+                      onTap: _clearPressed,
+                    ),
                   ),
-                ),
-                const SizedBox(width: CalcSpacing.keyGap),
-                Expanded(
-                  flex: 3,
-                  child: key(
-                    id: 'duration-key-0',
-                    label: '0',
-                    semantic: '0',
-                    onTap: () => _appendDigit('0'),
+                  place(
+                    col: 1,
+                    row: 0,
+                    child: key(
+                      id: 'duration-key-00',
+                      label: '00',
+                      semantic: '双零',
+                      onTap: _appendDoubleZero,
+                    ),
                   ),
-                ),
-              ],
+                  place(
+                    col: 2,
+                    row: 0,
+                    child: key(
+                      id: 'duration-key-sign',
+                      label: '±',
+                      semantic: '正负号',
+                      operator: true,
+                      onTap: _signPressed,
+                    ),
+                  ),
+                  place(
+                    col: 3,
+                    row: 0,
+                    child: key(
+                      id: 'duration-key-backspace',
+                      semantic: '退格',
+                      icon: Icons.backspace_outlined,
+                      operator: true,
+                      onTap: _backspacePressed,
+                    ),
+                  ),
+                  for (var index = 0; index < 3; index++)
+                    place(
+                      col: index,
+                      row: 1,
+                      child: key(
+                        id: 'duration-key-${7 + index}',
+                        label: '${7 + index}',
+                        semantic: '${7 + index}',
+                        onTap: () => _appendDigit('${7 + index}'),
+                      ),
+                    ),
+                  place(
+                    col: 3,
+                    row: 1,
+                    child: key(
+                      id: 'duration-key-add',
+                      label: '+',
+                      semantic: '加',
+                      operator: true,
+                      onTap: () => _operatorPressed('+'),
+                    ),
+                  ),
+                  for (var index = 0; index < 3; index++)
+                    place(
+                      col: index,
+                      row: 2,
+                      child: key(
+                        id: 'duration-key-${4 + index}',
+                        label: '${4 + index}',
+                        semantic: '${4 + index}',
+                        onTap: () => _appendDigit('${4 + index}'),
+                      ),
+                    ),
+                  place(
+                    col: 3,
+                    row: 2,
+                    child: key(
+                      id: 'duration-key-subtract',
+                      label: '−',
+                      semantic: '减',
+                      operator: true,
+                      onTap: () => _operatorPressed('−'),
+                    ),
+                  ),
+                  for (var index = 0; index < 3; index++)
+                    place(
+                      col: index,
+                      row: 3,
+                      child: key(
+                        id: 'duration-key-${1 + index}',
+                        label: '${1 + index}',
+                        semantic: '${1 + index}',
+                        onTap: () => _appendDigit('${1 + index}'),
+                      ),
+                    ),
+                  place(
+                    col: 3,
+                    row: 3,
+                    rowSpan: 2,
+                    child: _TallEqualsKey(
+                      diameter: diameter,
+                      onPressed: () => press(_equalsPressed),
+                    ),
+                  ),
+                  place(
+                    col: 0,
+                    row: 4,
+                    colSpan: 2,
+                    child: _WideZeroKey(
+                      diameter: diameter,
+                      onPressed: () => press(() => _appendDigit('0')),
+                    ),
+                  ),
+                  place(
+                    col: 2,
+                    row: 4,
+                    child: key(
+                      id: 'duration-key-colon',
+                      label: ':',
+                      semantic: '冒号',
+                      operator: true,
+                      onTap: _colonPressed,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _WideZeroKey extends StatelessWidget {
+  const _WideZeroKey({required this.diameter, required this.onPressed});
+
+  final double diameter;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '0',
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: const Key('duration-key-0'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: Container(
+          decoration: BoxDecoration(
+            color: CalcColors.keyBackground(context),
+            borderRadius: BorderRadius.circular(diameter / 2),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '0',
+            style: TextStyle(
+              fontSize: CalcText.key,
+              height: 1,
+              color: Theme.of(context).colorScheme.onSurface,
+              fontFeatures: CalcText.tabular,
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TallEqualsKey extends StatelessWidget {
+  const _TallEqualsKey({required this.diameter, required this.onPressed});
+
+  final double diameter;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '等于',
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: const Key('duration-key-equals'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: Container(
+          decoration: BoxDecoration(
+            color: CalcColors.orange,
+            borderRadius: BorderRadius.circular(diameter / 2),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '=',
+            style: TextStyle(
+              fontSize: CalcText.key,
+              height: 1,
+              color: Colors.white,
+              fontFeatures: CalcText.tabular,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:fnthink_calculator/core/utils/date_calc.dart';
 import 'package:fnthink_calculator/features/multifunction/time/time_tool_pages.dart';
 import 'package:fnthink_calculator/features/multifunction/time/time_widgets.dart';
 import 'package:fnthink_calculator/theme/app_theme.dart';
+import 'package:fnthink_calculator/theme/tokens.dart';
 
 Widget harness(Widget page) {
   return MaterialApp(
@@ -134,6 +135,39 @@ void main() {
     await tapKey(tester, 'duration-key-backspace');
     expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
     expect(valueOf(tester, 'duration-calc-expression'), '32:00:00 +');
+  });
+
+  testWidgets('时长键盘首行顺序与跨格布局', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const DurationPage()));
+
+    final firstRow = [
+      tester.getCenter(find.byKey(const Key('duration-key-clear'))),
+      tester.getCenter(find.byKey(const Key('duration-key-00'))),
+      tester.getCenter(find.byKey(const Key('duration-key-sign'))),
+      tester.getCenter(find.byKey(const Key('duration-key-backspace'))),
+    ];
+    for (var index = 1; index < firstRow.length; index++) {
+      expect(
+        firstRow[index].dx,
+        greaterThan(firstRow[index - 1].dx),
+        reason: '第一行顺序应为 C / 00 / ± / ⌫',
+      );
+    }
+
+    final gap = CalcSpacing.keyGap;
+    final seven = tester.getSize(find.byKey(const Key('duration-key-7')));
+    final zero = tester.getSize(find.byKey(const Key('duration-key-0')));
+    final colon = tester.getSize(find.byKey(const Key('duration-key-colon')));
+    final equals = tester.getSize(find.byKey(const Key('duration-key-equals')));
+
+    expect(zero.width, closeTo(seven.width * 2 + gap, 0.6));
+    expect(zero.height, closeTo(seven.height, 0.6));
+    expect(colon.width, closeTo(seven.width, 0.6));
+    expect(colon.height, closeTo(seven.height, 0.6));
+    expect(equals.width, closeTo(seven.width, 0.6));
+    expect(equals.height, closeTo(seven.height * 2 + gap, 0.6));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('分段点击修改与冒号输入自动进位', (tester) async {
