@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_scope.dart';
+import '../../core/voice/voice_clips.dart';
+import '../../core/voice/voice_service.dart';
 import 'calculator_controller.dart';
 import 'widgets/calc_display.dart';
 import 'widgets/calc_keypad.dart';
@@ -18,12 +20,16 @@ class CalculatorPage extends StatefulWidget {
 class _CalculatorPageState extends State<CalculatorPage> {
   late final CalculatorController _controller;
   late final bool _ownsController;
+  final VoiceService _voice = VoiceService();
+  late CalculatorMode _lastMode;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? CalculatorController();
     _ownsController = widget.controller == null;
+    _lastMode = _controller.mode;
+    _controller.addListener(_onControllerChanged);
   }
 
   @override
@@ -36,10 +42,37 @@ class _CalculatorPageState extends State<CalculatorPage> {
 
   @override
   void dispose() {
+    _controller.removeListener(_onControllerChanged);
+    _voice.dispose();
     if (_ownsController) {
       _controller.dispose();
     }
     super.dispose();
+  }
+
+  bool get _voiceEnabled => AppScope.maybeOf(context)?.voice ?? false;
+
+  void _onControllerChanged() {
+    final mode = _controller.mode;
+    if (mode != _lastMode && _voiceEnabled) {
+      if (mode == CalculatorMode.result) {
+        _voice.speak(
+          VoiceClips.forResult(
+            _controller.mainText,
+            approximate: _controller.mainApproximate,
+          ),
+        );
+      } else if (mode == CalculatorMode.error) {
+        _voice.speak(const ['error']);
+      }
+    }
+    _lastMode = mode;
+  }
+
+  void _onAnnounce(String semantic) {
+    if (!_voiceEnabled) return;
+    final clips = VoiceClips.forSemantic(semantic);
+    if (clips.isNotEmpty) _voice.speak(clips);
   }
 
   Future<void> _copy() async {
@@ -136,6 +169,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
                     controller: _controller,
                     clearLabel: _controller.clearLabel,
                     onClearLongPress: _confirmClearHistory,
+                    onAnnounce: _onAnnounce,
                   );
 
                   if (landscape) {

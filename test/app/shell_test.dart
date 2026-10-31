@@ -85,11 +85,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.haptics, isFalse);
 
+    await tester.drag(find.byType(Scrollable).last, const Offset(0, 400));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('settings-angle-switch')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('settings-angle-switch')));
     await tester.pumpAndSettle();
     expect(settings.angleUnit, AngleUnit.radians);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-voice')),
+      260,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.ensureVisible(find.text('语音播报'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('语音播报'));
+    await tester.pumpAndSettle();
+    expect(settings.voice, isTrue);
   });
 
   testWidgets('设置页可切换百分数算法并即时演示', (tester) async {

@@ -13,12 +13,14 @@ class SettingsController extends ChangeNotifier {
   SettingsController({
     ThemeMode? themeMode,
     bool? haptics,
+    bool? voice,
     AngleUnit? angleUnit,
     PercentMode? percentMode,
     SettingsRepository? repository,
   }) : this._(
          themeMode ?? repository?.loadThemeMode() ?? ThemeMode.system,
          haptics ?? repository?.loadHaptics() ?? true,
+         voice ?? repository?.loadVoice() ?? false,
          angleUnit ?? repository?.loadAngleUnit() ?? AngleUnit.degrees,
          percentMode ?? repository?.loadPercentMode() ?? PercentMode.value,
          repository,
@@ -27,6 +29,7 @@ class SettingsController extends ChangeNotifier {
   SettingsController._(
     this._themeMode,
     this._haptics,
+    this._voice,
     this._angleUnit,
     this._percentMode,
     this._repository,
@@ -35,11 +38,13 @@ class SettingsController extends ChangeNotifier {
   final SettingsRepository? _repository;
   ThemeMode _themeMode;
   bool _haptics;
+  bool _voice;
   AngleUnit _angleUnit;
   PercentMode _percentMode;
 
   ThemeMode get themeMode => _themeMode;
   bool get haptics => _haptics;
+  bool get voice => _voice;
   AngleUnit get angleUnit => _angleUnit;
   PercentMode get percentMode => _percentMode;
 
@@ -54,6 +59,13 @@ class SettingsController extends ChangeNotifier {
     if (_haptics == value) return;
     _haptics = value;
     unawaited(_repository?.saveHaptics(value));
+    notifyListeners();
+  }
+
+  set voice(bool value) {
+    if (_voice == value) return;
+    _voice = value;
+    unawaited(_repository?.saveVoice(value));
     notifyListeners();
   }
 

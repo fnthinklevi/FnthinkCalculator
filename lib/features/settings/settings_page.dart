@@ -61,6 +61,16 @@ class SettingsPage extends StatelessWidget {
                             : AngleUnit.radians,
                       ),
                       SwitchListTile(
+                        key: const Key('settings-voice'),
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('语音播报'),
+                        subtitle: const Text('按键与结果离线播报（内置短音频）'),
+                        value: settings.voice,
+                        activeThumbColor: Colors.white,
+                        activeTrackColor: CalcColors.blue,
+                        onChanged: (value) => settings.voice = value,
+                      ),
+                      SwitchListTile(
                         key: const Key('settings-haptics'),
                         contentPadding: EdgeInsets.zero,
                         title: const Text('按键震动'),

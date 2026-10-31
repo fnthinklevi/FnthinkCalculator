@@ -15,11 +15,13 @@ class CalcKeypad extends StatelessWidget {
     required this.controller,
     required this.clearLabel,
     required this.onClearLongPress,
+    this.onAnnounce,
   });
 
   final CalculatorController controller;
   final String clearLabel;
   final VoidCallback onClearLongPress;
+  final ValueChanged<String>? onAnnounce;
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +30,13 @@ class CalcKeypad extends StatelessWidget {
             controller: controller,
             clearLabel: clearLabel,
             onClearLongPress: onClearLongPress,
+            onAnnounce: onAnnounce,
           )
         : _StandardKeypad(
             controller: controller,
             clearLabel: clearLabel,
             onClearLongPress: onClearLongPress,
+            onAnnounce: onAnnounce,
           );
   }
 }
@@ -101,11 +105,13 @@ class _StandardKeypad extends StatelessWidget {
     required this.controller,
     required this.clearLabel,
     required this.onClearLongPress,
+    this.onAnnounce,
   });
 
   final CalculatorController controller;
   final String clearLabel;
   final VoidCallback onClearLongPress;
+  final ValueChanged<String>? onAnnounce;
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +143,10 @@ class _StandardKeypad extends StatelessWidget {
         isOperator: operator,
         isEquals: equals,
         fontSize: fontSize,
-        onPressed: () => press(onPressed ?? () {}),
+        onPressed: () => press(() {
+          (onPressed ?? () {})();
+          onAnnounce?.call(semantic);
+        }),
         onLongPress: onLongPress == null
             ? null
             : () {
@@ -309,11 +318,13 @@ class _ScientificKeypad extends StatelessWidget {
     required this.controller,
     required this.clearLabel,
     required this.onClearLongPress,
+    this.onAnnounce,
   });
 
   final CalculatorController controller;
   final String clearLabel;
   final VoidCallback onClearLongPress;
+  final ValueChanged<String>? onAnnounce;
 
   @override
   Widget build(BuildContext context) {
@@ -357,7 +368,10 @@ class _ScientificKeypad extends StatelessWidget {
         selected: selected,
         muted: muted,
         fontSize: fontSize,
-        onPressed: () => press(onPressed ?? () {}),
+        onPressed: () => press(() {
+          (onPressed ?? () {})();
+          onAnnounce?.call(semantic);
+        }),
         onLongPress: onLongPress == null
             ? null
             : () {
