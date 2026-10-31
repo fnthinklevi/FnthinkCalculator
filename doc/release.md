@@ -64,7 +64,24 @@ bash tool/release.sh
 
 通过后记录脚本输出的三项读数：**版本、测试例数、SHA-256**。闸门通过后不要再改源码；改了就必须重新跑。
 
+### 步骤 3.1：GitHub CI/CD 闸门
+
+仓库内的 GitHub Actions 是同一批契约的云端复核，不替代本地签名构建：
+
+- `ci.yml`：push main / PR —— format、analyze、全部 `flutter test`（含计算链/键盘/响应式守卫）。
+- `smoke.yml`：tag `v*`、手动、每周二 —— Android 模拟器跑 `integration_test/app_smoke_test.dart`。
+- `release-check.yml`：tag `v*` / 手动 —— 校验 tag 与 `pubspec` 版本一致、产物命名契约，并跑 format/analyze/tests。
+- 签名 release APK 仍由本地 `tool/release.sh` 生成；CI 不接触 keystore、不上传 APK。
+
 ### 步骤 4：模拟器冒烟
+
+先跑自动化冒烟（需先按下方步骤启动模拟器）：
+
+```bash
+EMULATOR_SERIAL=emulator-5554 bash tool/smoke_emulator.sh
+```
+
+脚本运行 `integration_test/app_smoke_test.dart`，覆盖冷启动、计算 `1+2=3` 与换算页联动。它跑在 debug 构建上；发布 APK 仍需按下方步骤安装后做手工冒烟。
 
 产物：
 
@@ -163,6 +180,8 @@ git rev-list -n 1 v<版本名>
 
 tag 必须指向最终文档提交（即上面的 HEAD），不是构建前的中间提交。
 
+推送 tag 后，等待 GitHub Actions 的 `Release Check` 与 `Emulator Smoke` 均绿；任一红都不得发布 Release。
+
 ### 步骤 7：推送（需明确授权）
 
 ```bash
@@ -213,10 +232,13 @@ git push <remote> v<版本名>
 bash tool/release.sh --preflight
 bash tool/release.sh
 
-# 模拟器冒烟（端口以 adb devices 为准；每条都必须带 -s）
+# 模拟器自动化冒烟（端口以 adb devices 为准；每条都必须带 -s）
 emulator -avd <AVD_NAME> -no-snapshot -no-boot-anim
 adb -s emulator-<端口> wait-for-device
 adb -s emulator-<端口> shell getprop sys.boot_completed
+EMULATOR_SERIAL=emulator-<端口> bash tool/smoke_emulator.sh
+
+# 发布 APK 手工冒烟
 adb -s emulator-<端口> install -r build/release/FnthinkCalculator_<版本名>.apk
 adb -s emulator-<端口> shell am start -W -n com.fnthink.FnthinkCalculator/.MainActivity
 adb -s emulator-<端口> exec-out screencap -p > build/release/smoke-<版本名>.png
@@ -239,3 +261,6 @@ git push <remote> v<版本名>
 - 打包脚本：[tool/build_release_arm64.sh](../tool/build_release_arm64.sh)
 - 纯净检查：[tool/check_apk_purity.sh](../tool/check_apk_purity.sh)
 - 发版闸门：[tool/release.sh](../tool/release.sh)
+- 模拟器冒烟：[tool/smoke_emulator.sh](../tool/smoke_emulator.sh)
+- 设备级 smoke：[integration_test/app_smoke_test.dart](../integration_test/app_smoke_test.dart)
+- CI 工作流：[.github/workflows](../.github/workflows)

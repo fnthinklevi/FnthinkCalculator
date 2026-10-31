@@ -11,7 +11,8 @@
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
 [![Version](https://badgen.net/badge/Version/0.1.1%2B3/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/212%20passed/green)](#质量保障)
+[![Tests](https://badgen.net/badge/Tests/221%20passed/green)](#质量保障)
+[![CI](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
 </div>
@@ -106,6 +107,7 @@
 | 计算核心 | 自研有理数、词法、解析、AST、求值、格式化与引擎 |
 | 原生侧 | Android Kotlin（Flutter 默认 `FlutterActivity`，无自建原生服务） |
 | 大屏适配 | 900dp 内容上限 + `LayoutBuilder` 断点；换算网格 3–6 列；折叠屏展开保持状态 |
+| CI/CD | GitHub Actions：`ci.yml`、`smoke.yml`、`release-check.yml`；签名包仍本地构建 |
 | 构建 | Gradle 9.8.2 + AGP 9.4.1（内置 Kotlin）+ JDK 21 |
 | Android SDK | minSdk 28 / compileSdk 37 / targetSdk 37 |
 | 测试 | `flutter_test`：单元、widget、golden、无障碍、fuzz、UI 标准守卫 |
@@ -155,13 +157,16 @@ FnthinkCalculator/
 │   ├── roadmap.md                    # 任务状态与闸门记录
 │   ├── update.md                     # 版本变更记录
 │   └── release.md                    # 标准发版流程
-├── test/                             # 40 个测试文件
+├── integration_test/                 # 设备级 integration smoke
+├── test/                             # 42 个测试文件
 ├── tool/
 │   ├── release.sh                    # 发版闸门：格式/测试/构建/归档
+│   ├── smoke_emulator.sh             # 模拟器 integration 冒烟
 │   ├── build_release_arm64.sh        # 签名 release 打包 + 纯净检查
 │   ├── check_apk_purity.sh           # ABI/密钥/模型/测试资源检查
 │   ├── generate_voice_clips.py       # 构建期生成离线语音
 │   └── make_icons.py                 # 生成启动图标与自适应图标
+├── .github/workflows/                # CI / Emulator Smoke / Release Check
 ├── pubspec.yaml                      # version: 0.1.1+3
 └── README.md
 ```
@@ -235,6 +240,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - Gradle 从 `android/key.properties` 读取签名配置，`storeFile` 指向仓库外的 keystore
 - `android/key.properties`、`*.jks`、`*.keystore` 已加入 `.gitignore`，**禁止提交或上传**
 - 缺少 `key.properties` 时回退 debug 签名，仅用于本机开发；发布包必须通过纯净检查
+- `tool/build_release_arm64.sh` 通过 `--android-project-arg arm64Only=true` 启用 arm64-only；debug/integration 不启用，保留 x86_64 供模拟器冒烟
 - 当前构建：`0.1.1+3`，纯 arm64-v8a，约 19.7MB；每次构建的大小与 SHA-256 见 [doc/update.md](doc/update.md)
 
 纯净检查通过时输出 `PURITY CHECK PASSED`，并打印 APK 大小与 SHA-256。
@@ -247,10 +253,11 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 212 例全绿 |
-| 测试文件 | 40 个 |
+| `flutter test` | 221 例全绿 |
+| 测试文件 | 42 个 |
+| integration smoke | 1 条（模拟器） |
 | Dart 源码 | 69 个文件 / 约 1.43 万行 |
-| 测试代码 | 约 4,369 行 |
+| 测试代码 | 约 4,599 行 |
 | `flutter analyze` | 无问题 |
 | release APK | 纯 arm64-v8a / 19.7MB / 非 debug 签名 |
 
@@ -262,15 +269,26 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - **工具** —— 时间四页、个税、房贷控制器、BMI、称呼、比例、大写
 - **语音** —— 片段映射、资源数量与大小（<1MB）
 - **UI 标准守卫** —— 两标签、19 入口固定顺序、104 个单位/109 币种规模、系统输入框白名单、深色纯黑、不冒充数据来源、内置键盘圆径一致性、大屏/折叠屏断点与无溢出
+- **计算链闸门** —— 计算器/换算/汇率/时长的连续公式、重复等号、结果后续算与中间态
+- **模拟器冒烟** —— `integration_test/app_smoke_test.dart`：冷启动、计算、换算页联动
 
 发布前闸门：
 
 ```bash
 bash tool/release.sh --preflight
 bash tool/release.sh   # 格式 + analyze + 测试 + 构建 + 纯净检查 + 归档
+# 已启动模拟器时（EMULATOR_SERIAL 默认 emulator-5554）
+bash tool/smoke_emulator.sh
 ```
 
-本项目没有配置 CI；`tool/release.sh` 就是发布前的完整本地闸门，步骤见 [doc/release.md](doc/release.md)。
+GitHub Actions：
+
+- `ci.yml`：push/PR 执行格式、analyze、221 项测试
+- `smoke.yml`：tag/manual/每周二执行模拟器 integration smoke
+- `release-check.yml`：tag 校验 `vX.Y.Z` 与 `pubspec` 版本、产物命名契约并跑完整测试
+- 签名 release APK 仍只在本地生成，CI 不接触 keystore、不上传 APK
+
+步骤见 [doc/release.md](doc/release.md)。
 
 ---
 
@@ -298,9 +316,9 @@ bash tool/release.sh   # 格式 + analyze + 测试 + 构建 + 纯净检查 + 归
 
 ## 发版流程
 
-标准流程见 [doc/release.md](doc/release.md)：版本准备 → `bash tool/release.sh` 闸门 → 模拟器冒烟（所有 adb 命令带 `-s emulator-<端口>`）→ 更新 `update.md`/`base.md`/README → 提交 → 打 `vX.Y.Z` tag → 获得授权后推送。
+标准流程见 [doc/release.md](doc/release.md)：版本准备 → `bash tool/release.sh` 闸门 → 模拟器冒烟（`bash tool/smoke_emulator.sh`）→ 更新 `update.md`/`base.md`/README → 提交 → 推送后确认 CI 绿 → 打 `vX.Y.Z` tag → 获得授权后推送。
 
-`tool/release.sh` 只做格式、静态检查、全量测试、签名纯 arm64 构建、纯净检查与产物归档；安装、提交、打 tag、push 与 Release 均需人工确认。
+`tool/release.sh` 只做格式、静态检查、全量测试、签名纯 arm64 构建、纯净检查与产物归档；`tool/smoke_emulator.sh` 跑设备级冒烟。安装、提交、打 tag、push 与 Release 均需人工确认。
 
 ---
 

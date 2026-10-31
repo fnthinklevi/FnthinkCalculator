@@ -8,5 +8,5 @@ if [ ! -f android/key.properties ]; then
   exit 1
 fi
 
-flutter build apk --release --target-platform android-arm64
+flutter build apk --release --target-platform android-arm64 --android-project-arg arm64Only=true
 tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk

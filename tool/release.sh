@@ -120,8 +120,10 @@ SHA : ${SHA}
 校验: ${ARTIFACT}.sha256
 
 接下来（见 doc/release.md，均需人工确认）：
-1. 模拟器冒烟: 启动 AVD 后 adb -s emulator-<端口> install -r "${ARTIFACT}"（全部 adb 命令带 -s）
-2. 更新 doc/update.md、doc/base.md、README.md 的版本、SHA 与测试读数
-3. 提交文档与版本变更
-4. 冒烟通过后打 tag ${TAG}；push 与 GitHub Release 需明确授权
+1. 自动化冒烟: EMULATOR_SERIAL=emulator-<端口> bash tool/smoke_emulator.sh
+2. 安装归档 APK 做手工冒烟: adb -s emulator-<端口> install -r "${ARTIFACT}"（全部 adb 命令带 -s）
+3. 更新 doc/update.md、doc/base.md、README.md 的版本、SHA 与测试读数
+4. 提交；获得授权后 push main，确认 CI 绿
+5. 打 tag ${TAG}；推送后确认 Release Check / Emulator Smoke 绿
+6. GitHub Release 需明确授权
 EOF

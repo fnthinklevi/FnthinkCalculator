@@ -12,6 +12,7 @@ val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+val arm64Only = providers.gradleProperty("arm64Only").orNull == "true"
 
 android {
     namespace = "com.fnthink.FnthinkCalculator"
@@ -33,20 +34,24 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        ndk {
-            abiFilters += listOf("arm64-v8a")
+        if (arm64Only) {
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
         }
     }
 
     packaging {
         jniLibs {
-            excludes += listOf(
-                "lib/armeabi-v7a/**",
-                "lib/x86/**",
-                "lib/x86_64/**",
-                "lib/mips/**",
-                "lib/mips64/**",
-            )
+            if (arm64Only) {
+                excludes += listOf(
+                    "lib/armeabi-v7a/**",
+                    "lib/x86/**",
+                    "lib/x86_64/**",
+                    "lib/mips/**",
+                    "lib/mips64/**",
+                )
+            }
         }
     }
 

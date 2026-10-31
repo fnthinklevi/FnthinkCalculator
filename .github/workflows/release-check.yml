@@ -1,0 +1,36 @@
+name: Release Check
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: stable
+          cache: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Verify tag and release contract
+        run: |
+          version="$(awk '/^version:/{print $2}' pubspec.yaml)"
+          name="${version%%+*}"
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ] && [ "${GITHUB_REF_NAME:-}" != "v${name}" ]; then
+            echo "tag ${GITHUB_REF_NAME:-} does not match pubspec v${name}" >&2
+            exit 1
+          fi
+          grep -F 'FnthinkCalculator_${VERSION_NAME}.apk' tool/release.sh >/dev/null
+          echo "release contract ok: v${name}"
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test integration_test
+      - run: flutter analyze
+      - run: flutter test

@@ -21,7 +21,7 @@
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
 | 设计参考 | 小米计算器 17.3.9 的布局、配色与交互；唯一标准见 [xiaomi-reference.md](xiaomi-reference.md)；不使用小米商标、图标、字体等素材 |
 
-当前状态：T0–T17、T12.1、T15.1 与 R1–R4 已完成（2026-10-30，T14 `9552af9`、T12.1 `d25b57e`、T16 `1e71501`、T17 `bf60d5c`）；两标签壳、整宽子页标题栏、19 个换算入口、三行汇率与 109 币种、单位全表、进制/BMI/称呼/个税（31 省社保基数）/比例、房贷清单、时间四页、Edge 离线语音包均已落地；计算器/换算用内置键盘，表单页用系统数字键盘；212 项测试与 UI 标准守卫全绿。2026-10-31 应用更名为「幻念计算器」、重绘启动图标，修复时长键盘重复退格键，统一大写/进制键盘圆键尺寸，加入 900dp 大屏内容上限、3–6 列换算网格与折叠屏重排，并将版本订正为 0.1.0+2；随后按新发版流程提升到 0.1.1+3，完成 212 项测试、签名纯 arm64 构建与模拟器核心冒烟。release 0.1.1+3 纯 arm64、19.7MB（SHA-256 `6803e2d5d989fc4fd184ba86351947815cda79a5f522e19d522ee022dbf7efc7`）、真实 keystore 签名。
+当前状态：T0–T17、T12.1、T15.1 与 R1–R4 已完成（2026-10-30，T14 `9552af9`、T12.1 `d25b57e`、T16 `1e71501`、T17 `bf60d5c`）；两标签壳、整宽子页标题栏、19 个换算入口、三行汇率与 109 币种、单位全表、进制/BMI/称呼/个税（31 省社保基数）/比例、房贷清单、时间四页、Edge 离线语音包均已落地；计算器/换算用内置键盘，表单页用系统数字键盘；212 项测试与 UI 标准守卫全绿。2026-10-31 应用更名为「幻念计算器」、重绘启动图标，修复时长键盘重复退格键，统一大写/进制键盘圆键尺寸，加入 900dp 大屏内容上限、3–6 列换算网格与折叠屏重排，并将版本订正为 0.1.0+2；随后按新发版流程提升到 0.1.1+3，完成 212 项测试、签名纯 arm64 构建与模拟器核心冒烟。release 0.1.1+3 纯 arm64、19.7MB（SHA-256 `6803e2d5d989fc4fd184ba86351947815cda79a5f522e19d522ee022dbf7efc7`）、真实 keystore 签名。当前源码已增加计算链闸门、`integration_test` 模拟器冒烟与 GitHub CI 工作流，221 项测试全绿（待下一个版本发版）。
 
 ## 2. 技术栈
 
@@ -39,7 +39,7 @@
 | 本地存储 | `shared_preferences` ^2.5.3（已接入） |
 | 格式化 | `intl`（由 flutter_localizations 提供，直接使用待 T7/T8） |
 | 网络 | `http` 1.5.0（汇率接口，release 声明 INTERNET） |
-| 测试 | `flutter_test`、`integration_test`（后续需要时加入） |
+| 测试 | `flutter_test`（单元/widget/golden/守卫）+ `integration_test`（模拟器冒烟） |
 
 ### 2.1 Kotlin 编译决策
 
@@ -121,6 +121,8 @@ tool/release.sh               # 格式→analyze→全量测试→构建→归�
 tool/build_release_arm64.sh
 ```
 
+ABI 口径：`tool/build_release_arm64.sh` 传 `--android-project-arg arm64Only=true`，release 才启用 arm64 过滤与 packaging excludes；debug/integration 不传，保留 x86_64 供模拟器运行。release 纯净检查仍要求仅 arm64-v8a。
+
 签名：
 
 - Gradle 读取 `android/key.properties`（已 gitignore），`storeFile` 指向仓库外的 keystore。
@@ -183,14 +185,18 @@ FnthinkCalculator/
 │       ├── converter/           # 7 类单位、汇率币种/仓库/控制器/页面、首页与详情页
 │       ├── multifunction/       # 多功能首页、大写数字、time/ 四个时间子页、mortgage/ 房贷
 │       └── settings/            # 设置页
+├── integration_test/            # 设备级 integration smoke
 ├── test/
 │   ├── app/                     # 壳与设置仓库
 │   ├── core/math/               # 引擎/格式化/有理数
 │   ├── core/utils/              # 人民币大写、日期、时长
 │   ├── features/                # 计算/换算/多功能/持久化/历史仓库
+│   ├── guards/                  # UI/键盘/响应式/计算链守卫
 │   ├── widgets/                 # 数字键盘/规则
 │   └── golden/                  # 亮/暗布局 golden
+├── .github/workflows/           # ci.yml / smoke.yml / release-check.yml
 ├── tool/release.sh              # 发版闸门：格式/测试/构建/归档
+├── tool/smoke_emulator.sh       # 模拟器 integration 冒烟
 ├── tool/make_icons.py           # 图标生成脚本
 ├── pubspec.yaml
 └── analysis_options.yaml
@@ -237,7 +243,7 @@ test/
 ├── utils/
 └── widget/
 
-integration_test/                # 后续需要时加入
+integration_test/                # 设备级 integration smoke
 ```
 
 ## 6. 核心实现约束
@@ -435,7 +441,8 @@ adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 ## 10. 文档维护
 
 - 每个任务完成后更新 [roadmap.md](roadmap.md)：状态、实现方式、闸门/冒烟结果、提交号。
-- 发版严格按 [release.md](release.md) 执行：版本准备 → `tool/release.sh` 闸门 → 模拟器冒烟（所有 adb 命令带 `-s emulator-<端口>`）→ 文档 → tag → 授权后推送。
+- 发版严格按 [release.md](release.md) 执行：版本准备 → `tool/release.sh` 闸门 → `tool/smoke_emulator.sh` 模拟器冒烟（所有 adb 命令带 `-s emulator-<端口>`）→ 文档 → tag → 授权后推送。
+- GitHub Actions：`ci.yml`（push/PR 格式/analyze/221 tests）、`smoke.yml`（tag/manual/每周模拟器 integration smoke）、`release-check.yml`（tag 版本与产物命名契约 + 全量测试）；签名包仍只在本地生成。
 - 每次发版或交付安装包时在 [update.md](update.md) 新增版本记录：用户可见改动、构建信息、验证结果、提交号。
 - 技术事实变化时同步更新本文档；被推翻的旧结论保留原句并标注。
 - 文档不写真实域名、密钥、签名信息；签名与发布信息后续单独管理。
