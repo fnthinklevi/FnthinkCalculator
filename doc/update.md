@@ -16,9 +16,32 @@
 
 ---
 
-## 0.1.1+3（开发中，未正式发布）
+## 0.2.0+4（2026-10-31 发布，tag `v0.2.0`）
 
 当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator_0.2.0.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.7MB。
+- SHA-256：`76baa08f615114a0e5c76cc0f3ce8d65fc366a42f0b55fa887b8f53c73b15fd2`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：225 项全绿；`tool/check_apk_purity.sh` 通过。
+
+### 2026-10-31 发布 0.2.0+4
+
+- 提交：`b1af9fc`（版本准备）
+- 版本：`0.1.1+3 → 0.2.0+4`；设置页版本显示同步为 `0.2.0`。
+- 新增/改进：时间计算与时差计算拆为两个独立页，时间计算入口位于换算首页首行靠前位置（共 20 个入口）；时间键盘第一行改为 `C / 00 / ± / ⌫`，0 跨两格、冒号单格、等号跨第 4–5 行；新增首启隐私弹窗、完整隐私政策页与设置页底部入口，删除“数据保存”条目。
+- 修复：时长连续公式与结果后续算；计算器重复等号重复写历史；单位换算中间运算符误报“算式格式不正确”。
+- 工程：新增计算链闸门、模拟器 integration smoke、GitHub `ci.yml` / `smoke.yml` / `release-check.yml`；debug 保留 x86_64，release 保持纯 arm64。
+- 闸门：格式检查、`flutter analyze`、225 项测试通过；签名纯 arm64 19.7MB；SHA-256 `76baa08f615114a0e5c76cc0f3ce8d65fc366a42f0b55fa887b8f53c73b15fd2`；`PURITY CHECK PASSED`。
+- 模拟器：`ci_api34_pixel6`（API 34 / x86_64）integration smoke 通过；发行 APK 安装成功，`versionName=0.2.0`、`versionCode=4`；首启隐私弹窗显示，同意后重启不再弹；模拟器已关闭，真机未安装。
+- 未覆盖：语音实际声音、离线汇率缓存、完整个税/房贷结果、系统软键盘（AVD 硬件键盘）、折叠铰链；完整人工冒烟清单未逐项重跑。
+
+---
+
+## 0.1.1+3（2026-10-31 已发布，tag `v0.1.1`）
+
+历史构建：
 
 - 平台：Android，纯 arm64-v8a。
 - APK：`build/release/FnthinkCalculator_0.1.1.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.7MB。
@@ -34,7 +57,7 @@
 - 闸门：格式检查、`flutter analyze`、212 项测试通过；签名纯 arm64 19.7MB；SHA-256 `6803e2d5d989fc4fd184ba86351947815cda79a5f522e19d522ee022dbf7efc7`；`PURITY CHECK PASSED`。
 - 模拟器核心冒烟：AVD `ci_api34_pixel6`（API 34 / x86_64 / 1080×2400 / 420dpi）；arm64 包安装成功，`versionName=0.1.1`、`versionCode=3`；冷启动、`1+2=3`、换算联动、汇率联网、大写/进制、时长退格去重、日期差、历史、深色、横屏分栏、1000×800 平板 6 列与 900dp 上限通过；logcat 无 FATAL/ANR。
 - 未覆盖：语音实际声音、离线汇率缓存、完整个税/房贷结果、系统软键盘（AVD 硬件键盘模式）、其余时间页与折叠铰链。真机未安装。
-- 备注：模拟器已关闭；真机仍为 `0.1.0+2`。`v0.1.1` tag 尚未创建或推送。
+- 备注：模拟器已关闭；真机仍为 `0.1.0+2`。`v0.1.1` tag 已创建并推送。
 
 ---
 
