@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/mortgage_calc.dart' show formatMoneyCents;
+import '../../../core/utils/social_insurance.dart';
 import '../../../core/utils/tax_calc.dart';
 import '../../../theme/tokens.dart';
 import '../../../widgets/anchored_picker.dart';
@@ -42,6 +43,9 @@ class _TaxPageState extends State<TaxPage> {
   final Set<String> _selected = {};
   String? _error;
   final _installmentsKey = GlobalKey();
+  final _locationKey = GlobalKey();
+  String? _provinceName;
+  String? _autoInsurance;
 
   @override
   void dispose() {
@@ -151,20 +155,34 @@ class _TaxPageState extends State<TaxPage> {
     );
   }
 
-  void _showLocation() {
-    showDialog<void>(
+  Future<void> _pickProvince() async {
+    final selected = await showAnchoredPicker<ProvinceSocialBase>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('所在地'),
-        content: const Text('本版本按全国统一税率计算，不接入城市社保与公积金基数。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('知道了'),
+      anchorKey: _locationKey,
+      items: [
+        for (final province in provinceSocialBases)
+          AnchoredPickerItem(
+            id: province.name,
+            title: province.name,
+            subtitle: province.rangeLabel,
+            value: province,
           ),
-        ],
-      ),
+      ],
+      selected: provinceByName(_provinceName),
+      keyPrefix: 'tax-province',
+      width: 260,
+      maxHeight: 420,
     );
+    if (selected == null || !mounted) return;
+    final estimateText = (estimatePersonalInsuranceCents(selected) / 100)
+        .toStringAsFixed(2);
+    setState(() {
+      _provinceName = selected.name;
+      if (_insurance.text.isEmpty || _insurance.text == _autoInsurance) {
+        _insurance.text = estimateText;
+        _autoInsurance = estimateText;
+      }
+    });
   }
 
   void _calculate() {
@@ -253,10 +271,10 @@ class _TaxPageState extends State<TaxPage> {
                     ),
                     _SettingRow(
                       key: const Key('tax-location'),
-                      picker: false,
+                      anchorKey: _locationKey,
                       label: '所在地',
-                      value: '全国统一税率',
-                      onTap: _showLocation,
+                      value: _provinceName ?? '去选择',
+                      onTap: _pickProvince,
                     ),
                     _SettingRow(
                       key: const Key('tax-deduction'),
@@ -272,6 +290,19 @@ class _TaxPageState extends State<TaxPage> {
                       label: '五险一金（元）',
                       controller: _insurance,
                       placeholder: '选填，合计金额',
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2, bottom: 4),
+                      child: Text(
+                        _provinceName == null
+                            ? '选择所在地后，可按当地 2025 平均工资估算五险一金'
+                            : '按 2025 ${_provinceName!} 平均工资 ${provinceByName(_provinceName)!.averageYuan.toStringAsFixed(0)} 元、${provinceByName(_provinceName)!.rangeLabel}、个人费率 10.5% 估算，不含公积金',
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: CalcColors.secondaryText(context),
+                        ),
+                      ),
                     ),
                   ],
                   if (_error != null)

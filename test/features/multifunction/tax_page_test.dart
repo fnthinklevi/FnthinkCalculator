@@ -85,8 +85,20 @@ void main() {
 
     await tapKey(tester, 'tax-location');
     await tester.pumpAndSettle();
-    expect(find.text('全国统一税率'), findsWidgets);
-    await tester.tap(find.text('知道了'));
+    await tester.tap(find.byKey(const Key('tax-province-北京')));
     await tester.pumpAndSettle();
+    expect(find.text('北京'), findsWidgets);
+    expect(
+      tester
+          .widget<TextField>(
+            find.descendant(
+              of: find.byKey(const Key('tax-insurance')),
+              matching: find.byType(TextField),
+            ),
+          )
+          .controller!
+          .text,
+      '1253.39',
+    );
   });
 }

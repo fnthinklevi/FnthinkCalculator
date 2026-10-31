@@ -126,12 +126,16 @@ Future<T?> showAnchoredPicker<T>({
                                   ),
                                   if (item.subtitle != null) ...[
                                     const SizedBox(width: 6),
-                                    Text(
-                                      item.subtitle!,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: CalcColors.secondaryText(
-                                          context,
+                                    Flexible(
+                                      child: Text(
+                                        item.subtitle!,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: CalcColors.secondaryText(
+                                            context,
+                                          ),
                                         ),
                                       ),
                                     ),
