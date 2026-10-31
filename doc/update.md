@@ -10,19 +10,19 @@
 ## 版本规则
 
 - 正式版本：`MAJOR.MINOR.PATCH+BUILD`，如 `1.0.1+2`。
-- 内部构建：在当前版本下按日期/批次记录，例如 `1.0.0+1 · 2026-10-31`。
+- 内部构建：在当前版本下按日期/批次记录，例如 `0.1.0+2 · 2026-10-31`。
 - 同一版本多次构建时，记录最新构建的 APK 大小、SHA-256 与签名状态。
 - 只写用户可感知的变化；纯重构、文档更新可归入“维护”小节。
 
 ---
 
-## 1.0.0+1（开发中，未正式发布）
+## 0.1.0+2（开发中，未正式发布）
 
 当前构建：
 
 - 平台：Android，纯 arm64-v8a。
 - APK：`build/app/outputs/flutter-apk/app-release.apk`，19.7MB。
-- SHA-256：`3e931529e0830b73051a9a4910fbc2bdb774d421095a1deab78b0b54b71800cf`
+- SHA-256：`945f9a0d4b0466ea530519e5bf439b4d0be8750318b2438e4eee41e0b3f4b9d1`
 - 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
 - 测试：208 项全绿；`tool/check_apk_purity.sh` 通过。
 
@@ -96,7 +96,14 @@
 - 提交：`4491673`
 - 维护：`cupertino_icons` 由 1.0.9 升级到 2.0.0（`pubspec.yaml` 约束 `^2.0.0`）；当前代码未直接使用 `CupertinoIcons`，无用户可见变化。
 - 验证：`flutter analyze` 无问题；208 项测试全绿。
-- 备注：本次仅更新依赖，未重新打包；最新构建仍为上方 19.7MB / SHA-256 `3e931529e0830b73051a9a4910fbc2bdb774d421095a1deab78b0b54b71800cf` 的包。
+- 备注：本次仅更新依赖，未重新打包；随后由版本号订正批次重新构建。
+
+### 2026-10-31 版本号订正
+
+- 提交：`3df9b59`
+- 版本：`pubspec.yaml` 由 `1.0.0+1` 订正为 `0.1.0+2`；设置页版本显示同步为 `0.1.0`。
+- 构建：签名纯 arm64 APK 19.7MB、SHA-256 `945f9a0d4b0466ea530519e5bf439b4d0be8750318b2438e4eee41e0b3f4b9d1`、`PURITY CHECK PASSED`；`versionName=0.1.0`、`versionCode=2`；真机 2410DPN6CC 覆盖安装成功（lastUpdateTime 2026-10-31 12:15:54）。
+- 验证：`flutter analyze` 无问题；208 项测试全绿。
 
 ---
 
