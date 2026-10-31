@@ -17,11 +17,11 @@ void main() {
     expect(find.byKey(const Key('tool-mortgage')), findsOneWidget);
     expect(find.byKey(const Key('tool-uppercase')), findsOneWidget);
     await tester.scrollUntilVisible(
-      find.byKey(const Key('tool-time')),
+      find.byKey(const Key('tool-ratio')),
       240,
       scrollable: find.byType(Scrollable).last,
     );
-    expect(find.byKey(const Key('tool-time')), findsOneWidget);
+    expect(find.byKey(const Key('tool-ratio')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('tab-calculator')));
     await tester.pumpAndSettle();

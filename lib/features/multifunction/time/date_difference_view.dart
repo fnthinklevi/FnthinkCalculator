@@ -49,7 +49,7 @@ class _DateDifferenceViewState extends State<DateDifferenceView> {
     final workdays = workdaysBetween(from, to, includeStart: _includeStart);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
       children: [
         DateField(
           key: const Key('date-diff-start'),
@@ -78,7 +78,7 @@ class _DateDifferenceViewState extends State<DateDifferenceView> {
                   const Expanded(
                     child: Text(
                       '结束日期早于起始日期，已按反向计算。',
-                      style: TextStyle(fontSize: 13),
+                      style: TextStyle(fontSize: 15),
                     ),
                   ),
                   TextButton(

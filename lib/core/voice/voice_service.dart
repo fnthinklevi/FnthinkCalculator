@@ -1,38 +1,45 @@
-import 'package:flutter/services.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class VoiceService {
-  static const _channel = MethodChannel('com.fnthink.FnthinkCalculator/tts');
-  bool? _available;
+  AudioPlayer? _player;
+  int _generation = 0;
 
-  Future<bool> isAvailable() async {
+  Future<void> speak(List<String> clips) async {
+    if (clips.isEmpty) return;
+    final player = _player ??= AudioPlayer();
+    final generation = ++_generation;
     try {
-      _available = await _channel.invokeMethod<bool>('isAvailable') ?? false;
+      await player.stop();
+      for (final clip in clips) {
+        if (generation != _generation) return;
+        final completed = player.onPlayerComplete.first;
+        await player.play(AssetSource('voice/$clip.mp3'));
+        await Future.any<void>([
+          completed,
+          Future<void>.delayed(const Duration(seconds: 2)),
+        ]);
+      }
     } on Object {
-      _available = false;
-    }
-    return _available!;
-  }
-
-  Future<void> speakText(String text) async {
-    if (text.isEmpty) return;
-    if (_available == null && !await isAvailable()) return;
-    if (_available != true) return;
-    try {
-      await _channel.invokeMethod<bool>('speak', {'text': text});
-    } on Object {
-      // System TTS is an optional enhancement; never break calculation.
+      // Voice is an optional enhancement; never break calculation on audio errors.
     }
   }
 
   Future<void> stop() async {
+    _generation++;
     try {
-      await _channel.invokeMethod<bool>('stop');
+      await _player?.stop();
     } on Object {
-      // Ignore platform TTS failures.
+      // Ignore platform audio failures.
     }
   }
 
   Future<void> dispose() async {
-    await stop();
+    _generation++;
+    try {
+      await _player?.dispose();
+    } on Object {
+      // Ignore platform audio failures.
+    }
+    _player = null;
   }
 }

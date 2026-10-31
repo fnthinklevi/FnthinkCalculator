@@ -45,7 +45,7 @@ void main() {
     expect(source.contains('多功能标签'), isFalse);
   });
 
-  testWidgets('换算首页固定 16 个入口且顺序符合标准', (tester) async {
+  testWidgets('换算首页固定 19 个入口且顺序符合标准', (tester) async {
     tester.view.physicalSize = const Size(1080, 4200);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.resetPhysicalSize);
@@ -72,7 +72,10 @@ void main() {
       'converter-category-temperature',
       'converter-category-speed',
       'tool-bmi',
-      'tool-time',
+      'tool-date-diff',
+      'tool-date-add',
+      'tool-duration',
+      'tool-age',
       'tool-ratio',
     ];
     final rects = <String, Rect>{};

@@ -64,7 +64,7 @@ class _DateAddViewState extends State<DateAddView> {
     final result = valid ? _resultDate(amount) : null;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
       children: [
         DateField(
           key: const Key('date-add-base'),
@@ -91,7 +91,7 @@ class _DateAddViewState extends State<DateAddView> {
             children: [
               Row(
                 children: [
-                  Text('数量', style: TextStyle(fontSize: 13, color: secondary)),
+                  Text('数量', style: TextStyle(fontSize: 15, color: secondary)),
                   const Spacer(),
                   InkWell(
                     key: const Key('date-add-amount-field'),
@@ -116,7 +116,7 @@ class _DateAddViewState extends State<DateAddView> {
                           const SizedBox(width: 6),
                           Text(
                             _unitLabels[_unitIndex],
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(fontSize: 17),
                           ),
                           const SizedBox(width: 4),
                           Icon(
@@ -147,7 +147,7 @@ class _DateAddViewState extends State<DateAddView> {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     '请输入 0–9999 的整数',
-                    style: TextStyle(fontSize: 13, color: CalcColors.error),
+                    style: TextStyle(fontSize: 14, color: CalcColors.error),
                   ),
                 ),
             ],

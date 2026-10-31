@@ -37,7 +37,7 @@ class _AgeViewState extends State<AgeView> {
     final until = daysUntilNextBirthday(_birth, _reference);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
       children: [
         DateField(
           key: const Key('age-birth'),
@@ -57,7 +57,7 @@ class _AgeViewState extends State<AgeView> {
             padding: const EdgeInsets.only(top: 12),
             child: Text(
               '出生日期不能晚于参考日期。',
-              style: TextStyle(fontSize: 13, color: CalcColors.error),
+              style: TextStyle(fontSize: 14, color: CalcColors.error),
             ),
           )
         else ...[

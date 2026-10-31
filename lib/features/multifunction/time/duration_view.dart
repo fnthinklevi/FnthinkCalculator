@@ -311,13 +311,13 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
             children: [
               Text(
                 _showResult ? '结果' : '输入',
-                style: TextStyle(fontSize: 13, color: secondary),
+                style: TextStyle(fontSize: 15, color: secondary),
               ),
               const Spacer(),
               Text(
                 '共 ${formatCount(_totalSeconds)} 秒',
                 key: const Key('duration-calc-total-seconds'),
-                style: TextStyle(fontSize: 12, color: secondary),
+                style: TextStyle(fontSize: 15, color: secondary),
               ),
             ],
           ),
@@ -328,7 +328,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.right,
-            style: TextStyle(fontSize: 13, color: secondary),
+            style: TextStyle(fontSize: 15, color: secondary),
           ),
           const SizedBox(height: 2),
           SizedBox(
@@ -340,7 +340,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                 _displayText,
                 key: const Key('duration-calc-display'),
                 style: TextStyle(
-                  fontSize: 42,
+                  fontSize: 44,
                   fontWeight: FontWeight.w600,
                   fontFeatures: CalcText.tabular,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -389,7 +389,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     color: active ? Colors.white70 : secondary,
                   ),
                 ),
@@ -398,7 +398,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                   value,
                   key: Key('duration-segment-${segment.name}-value'),
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 20,
                     fontWeight: FontWeight.w600,
                     fontFeatures: CalcText.tabular,
                     color: active
@@ -648,7 +648,7 @@ class _TimeDifferenceViewState extends State<_TimeDifferenceView> {
     final totalSeconds = diffMinutes * 60;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
       children: [
         _TimeField(
           key: const Key('time-diff-start'),
@@ -722,7 +722,7 @@ class _TimeField extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Text(label, style: TextStyle(fontSize: 13, color: secondary)),
+              Text(label, style: TextStyle(fontSize: 15, color: secondary)),
               const Spacer(),
               Text(
                 value,

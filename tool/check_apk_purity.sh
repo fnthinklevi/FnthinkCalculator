@@ -28,7 +28,7 @@ check_absent() {
 }
 
 check_absent "no non-arm64 native libraries" '^lib/(x86|x86_64|armeabi|armeabi-v7a|mips|mips64)/'
-check_absent "no bundled TTS audio/models" '(^|/)(voice/|.*\.wav$|.*\.onnx$|.*\.tflite$)'
+check_absent "no bundled TTS models or raw audio" '(^|/)(.*\.onnx$|.*\.tflite$|.*\.wav$)'
 check_absent "no signing material" '(^|/)(key\.properties|.*\.jks|.*\.keystore|.*\.p12|.*\.pem)(/|$)'
 check_absent "no diagnostic entry" '(^|/)diag_main(\.dart)?(/|$)'
 check_absent "no test assets" '(^|/)(test|integration_test)/'

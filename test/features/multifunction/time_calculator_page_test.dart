@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fnthink_calculator/core/utils/date_calc.dart';
-import 'package:fnthink_calculator/features/multifunction/time/time_calculator_page.dart';
+import 'package:fnthink_calculator/features/multifunction/time/time_tool_pages.dart';
 import 'package:fnthink_calculator/features/multifunction/time/time_widgets.dart';
 import 'package:fnthink_calculator/theme/app_theme.dart';
 
-Widget harness() {
+Widget harness(Widget page) {
   return MaterialApp(
     locale: const Locale('zh', 'CN'),
     supportedLocales: const [Locale('zh', 'CN')],
     localizationsDelegates: GlobalMaterialLocalizations.delegates,
     theme: buildAppTheme(Brightness.light),
-    home: const TimeCalculatorPage(),
+    home: page,
   );
 }
 
@@ -37,8 +37,8 @@ Future<void> tapKey(WidgetTester tester, String key) async {
 void main() {
   testWidgets('日期差默认同一天并支持包含起始日', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness());
-    expect(find.text('时间计算'), findsOneWidget);
+    await tester.pumpWidget(harness(const DateDifferencePage()));
+    expect(find.text('日期差'), findsOneWidget);
     expect(valueOf(tester, 'date-diff-parts'), '0 天');
     expect(valueOf(tester, 'date-diff-total-days'), '0 天');
 
@@ -48,8 +48,7 @@ void main() {
 
   testWidgets('日期推算默认加一天并支持预设', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness());
-    await tapKey(tester, 'time-tab-1');
+    await tester.pumpWidget(harness(const DateAddPage()));
 
     final today = dateOnly(DateTime.now());
     expect(
@@ -66,8 +65,7 @@ void main() {
 
   testWidgets('时分秒键盘、冒号、60进制与进位开关', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness());
-    await tapKey(tester, 'time-tab-2');
+    await tester.pumpWidget(harness(const DurationPage()));
     expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
     expect(valueOf(tester, 'duration-calc-total-seconds'), '共 0 秒');
 
@@ -118,8 +116,7 @@ void main() {
 
   testWidgets('时长键盘左下角撤回逐次删除', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness());
-    await tapKey(tester, 'time-tab-2');
+    await tester.pumpWidget(harness(const DurationPage()));
     await tapKey(tester, 'duration-key-3');
     await tapKey(tester, 'duration-key-2');
     await tapKey(tester, 'duration-key-add');
@@ -137,8 +134,7 @@ void main() {
 
   testWidgets('分段点击修改与冒号输入自动进位', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness());
-    await tapKey(tester, 'time-tab-2');
+    await tester.pumpWidget(harness(const DurationPage()));
 
     await tapKey(tester, 'duration-key-9');
     await tapKey(tester, 'duration-key-6');
@@ -175,8 +171,7 @@ void main() {
 
   testWidgets('日期推算数量使用内置键盘', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness());
-    await tapKey(tester, 'time-tab-1');
+    await tester.pumpWidget(harness(const DateAddPage()));
     await tapKey(tester, 'date-add-amount-field');
     await tester.pumpAndSettle();
 
@@ -200,8 +195,7 @@ void main() {
 
   testWidgets('年龄默认 20 周岁', (tester) async {
     configureSurface(tester);
-    await tester.pumpWidget(harness());
-    await tapKey(tester, 'time-tab-3');
+    await tester.pumpWidget(harness(const AgePage()));
     expect(valueOf(tester, 'age-years'), '20 岁');
     expect(valueOf(tester, 'age-nominal'), '21 岁');
     expect(find.byKey(const Key('age-days')), findsOneWidget);

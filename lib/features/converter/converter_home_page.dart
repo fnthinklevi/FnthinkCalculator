@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/tokens.dart';
 import '../multifunction/mortgage/mortgage_page.dart';
-import '../multifunction/time/time_calculator_page.dart';
+import '../multifunction/time/time_tool_pages.dart';
 import '../multifunction/uppercase_page.dart';
 import 'converter_page.dart';
 import 'radix_page.dart';
@@ -98,10 +98,28 @@ class ConverterHomePage extends StatelessWidget {
         onTap: () => _push(context, const BmiPage()),
       ),
       _GridEntry(
-        keyId: 'tool-time',
-        icon: Icons.event_note_outlined,
-        label: '时间计算',
-        onTap: () => _push(context, const TimeCalculatorPage()),
+        keyId: 'tool-date-diff',
+        icon: Icons.date_range_outlined,
+        label: '日期差',
+        onTap: () => _push(context, const DateDifferencePage()),
+      ),
+      _GridEntry(
+        keyId: 'tool-date-add',
+        icon: Icons.event_available_outlined,
+        label: '日期推算',
+        onTap: () => _push(context, const DateAddPage()),
+      ),
+      _GridEntry(
+        keyId: 'tool-duration',
+        icon: Icons.timer_outlined,
+        label: '时长计算',
+        onTap: () => _push(context, const DurationPage()),
+      ),
+      _GridEntry(
+        keyId: 'tool-age',
+        icon: Icons.cake_outlined,
+        label: '年龄计算',
+        onTap: () => _push(context, const AgePage()),
       ),
       _GridEntry(
         keyId: 'tool-ratio',
