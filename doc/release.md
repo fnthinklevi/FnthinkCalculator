@@ -1,14 +1,15 @@
 # 幻念计算器 · 标准发版流程
 
-> 适用范围：所有对外安装包（真机、平板、折叠屏、分发给他人）的构建与发布。
-> 一句话：**先提交版本准备 → 跑 `tool/release.sh` → 真机冒烟 → 更新记录 → 再打 tag**；脚本不代替安装、提交、打 tag 或 push。
+> 适用范围：所有对外安装包（手机、平板、折叠屏尺寸，分发给他人）的构建与发布。
+> 一句话：**先提交版本准备 → 跑 `tool/release.sh` → 模拟器冒烟 → 更新记录 → 再打 tag**；脚本不代替安装、提交、打 tag 或 push。
 
 ## 1. 角色与授权
 
-- **开发者（AI/维护者）**：准备版本、跑闸门、构建、整理产物、更新文档、提交本地改动。
-- **发布负责人（用户）**：决定版本号、确认安装/卸载、确认真机冒烟结果、授权 push/tag/GitHub Release。
+- **开发者（AI/维护者）**：准备版本、跑闸门、构建、启动模拟器、安装并冒烟、整理产物、更新文档、提交本地改动。
+- **发布负责人（用户）**：决定版本号、确认最终发版、授权 push/tag/GitHub Release。
+- 模拟器冒烟由开发者执行，但不影响用户设备；所有针对设备的 adb 命令必须带 `-s emulator-<端口>`。
 - 以下动作每次都需要明确授权，不能沿用上一次：
-  - 安装/卸载真机或模拟器
+  - 安装/卸载真机或任何用户设备（标准流程不使用真机）
   - `git push`、推送 tag、创建 GitHub Release
   - 上传 APK 到任何外部平台
   - 部署服务器或修改发布配置
@@ -62,7 +63,7 @@ bash tool/release.sh
 
 通过后记录脚本输出的三项读数：**版本、测试例数、SHA-256**。闸门通过后不要再改源码；改了就必须重新跑。
 
-### 步骤 4：真机冒烟
+### 步骤 4：模拟器冒烟
 
 产物：
 
@@ -71,13 +72,33 @@ build/release/FnthinkCalculator-v<版本>+<构建号>-arm64.apk
 build/release/FnthinkCalculator-v<版本>+<构建号>-SHA256SUMS.txt
 ```
 
-安装（串号必须明确；不要对未确认的设备执行）：
+#### 启动模拟器
+
+在独立终端启动 AVD（示例 AVD：`ci_api34_pixel6`，API 34 / 1080×2400 / 420dpi）：
 
 ```bash
-adb -s <serial> install -r build/release/FnthinkCalculator-v<版本>+<构建号>-arm64.apk
+emulator -list-avds
+emulator -avd <AVD_NAME> -no-snapshot -no-boot-anim
+adb -s emulator-<端口> wait-for-device
+adb -s emulator-<端口> shell getprop sys.boot_completed   # 输出 1 表示已启动
 ```
 
-冒烟清单（至少一遍亮色 + 一遍深色）：
+- 先用 `adb devices` 确认模拟器端口；之后所有针对设备的 adb 命令都必须带 `-s emulator-<端口>`。
+- 命令行启动被后台回收时，用系统方式分离启动，例如 Windows Git Bash：`cmd //c start "" emulator -avd <AVD_NAME>`；不要改用真机。
+- 标准流程只使用模拟器，不安装到真机。
+
+#### 安装与版本确认
+
+```bash
+adb -s emulator-<端口> install -r build/release/FnthinkCalculator-v<版本>+<构建号>-arm64.apk
+adb -s emulator-<端口> shell dumpsys package com.fnthink.FnthinkCalculator | grep -E "versionName|versionCode"
+```
+
+- 模拟器签名冲突时，可在模拟器卸载后重装（模拟器数据可丢弃）：
+  `adb -s emulator-<端口> uninstall com.fnthink.FnthinkCalculator`
+- 真机安装不属于标准流程；如确需真机验证，由用户单独确认并提供串号。
+
+#### 冒烟清单（至少一遍亮色 + 一遍深色）
 
 - [ ] 冷启动进入计算页，无崩溃、无布局溢出
 - [ ] 标准/科学切换；四则、百分号、括号、退格、长按清空历史
@@ -88,8 +109,18 @@ adb -s <serial> install -r build/release/FnthinkCalculator-v<版本>+<构建号>
 - [ ] 汇率：联网刷新；断网使用缓存并显示来源/更新时间
 - [ ] 单位换算、进制、大写数字、称呼、BMI、比例、时间四页各做一次输入/结果
 - [ ] 个税、房贷表单：系统数字键盘、校验、结果页、返回
-- [ ] 旋转屏幕；折叠屏展开/折叠（有设备时）；平板宽度下列数/键盘不裁剪
-- [ ] 升级安装（同签名）保留历史与设置；签名不一致时先停止，不要擅自卸载
+- [ ] 旋转屏幕；大屏/折叠适配以 responsive 测试为准；如使用平板/折叠 AVD 或 `wm size` 变更，检查 900dp 上限、网格列数与键盘不裁剪
+- [ ] 同签名覆盖安装保留历史与设置；签名冲突只在模拟器卸载重装
+
+可选取证：关键页面截图保存到 `build/release/smoke/`，命令同样必须带 `-s emulator-<端口>`。
+
+#### 关闭模拟器
+
+```bash
+adb -s emulator-<端口> emu kill
+```
+
+冒烟结束必须关闭模拟器；失败也要先关闭并记录，再修复重跑。
 
 任何一项失败：停止发版，修复后提升 BUILD，回到步骤 2。
 
@@ -99,7 +130,7 @@ adb -s <serial> install -r build/release/FnthinkCalculator-v<版本>+<构建号>
 
 1. `doc/update.md`
    - 顶部「当前构建」：版本、APK 大小、SHA-256、测试例数、签名状态
-   - 本批次新增一条：提交号、用户可见改动、验证结果、构建/安装信息、已知限制
+   - 本批次新增一条：提交号、用户可见改动、验证结果、构建/模拟器冒烟信息（AVD、API、分辨率）、已知限制
 2. `doc/base.md`：当前版本、当前构建 SHA、测试例数、状态描述
 3. `README.md`：版本徽章、当前版本、测试读数；行为或界面变化时同步功能说明
 4. `doc/xiaomi-reference.md`：只有 UI/交互标准变化时才更新
@@ -157,7 +188,8 @@ git push <remote> v<版本名>
 | 纯净检查失败 | 查非 arm64 `.so`、密钥/模型/裸音频/测试资源；修复后重跑，禁止分发 |
 | 证书是 debug | 检查 `android/key.properties` 与仓库外 keystore；修好后重跑 |
 | tag 已存在 | 说明该版本已发布；提升版本号，不要重复打 tag |
-| 安装签名冲突 | 停止；卸载会清数据，必须单独授权；优先先在测试设备验证 |
+| 模拟器启动失败 | 换可用 AVD 或修复模拟器环境；禁止改用真机绕过 |
+| 安装签名冲突 | 在模拟器卸载后重装（数据可丢弃）；真机需用户单独授权，标准流程不涉及 |
 | 冒烟失败 | 修复 + 提升 BUILD，回到步骤 2；不 tag、不推送 |
 | 文档与产物不一致 | 以 `SHA256SUMS`/构建输出为准修正文档；tag 前必须干净 |
 
@@ -166,7 +198,9 @@ git push <remote> v<版本名>
 - 禁止把 keystore、`android/key.properties`、签名口令写入仓库、日志、文档或聊天记录。
 - 禁止跳过 `tool/release.sh` 直接用 debug 签名包对外分发。
 - 禁止在闸门通过后修改源码却沿用旧 SHA / 旧测试读数。
-- 禁止未经确认安装到真机、卸载用户数据、push、打 tag、发布 Release 或部署。
+- 禁止用真机替代标准模拟器冒烟；真机安装/卸载必须由用户单独授权。
+- 禁止对设备执行裸 adb 命令：除 `adb devices` 外，必须带 `-s emulator-<端口>`。
+- 禁止未经确认 push、打 tag、发布 Release 或部署。
 - 禁止提交 APK、AAB、`build/`、`.jks`、`.keystore`。
 - 禁止对已发布 tag 执行 force push 或重打。
 
@@ -177,8 +211,14 @@ git push <remote> v<版本名>
 bash tool/release.sh --preflight
 bash tool/release.sh
 
-# 真机冒烟（串号按实际替换）
-adb -s <serial> install -r build/release/FnthinkCalculator-v<版本>+<构建号>-arm64.apk
+# 模拟器冒烟（端口以 adb devices 为准；每条都必须带 -s）
+emulator -avd <AVD_NAME> -no-snapshot -no-boot-anim
+adb -s emulator-<端口> wait-for-device
+adb -s emulator-<端口> shell getprop sys.boot_completed
+adb -s emulator-<端口> install -r build/release/FnthinkCalculator-v<版本>+<构建号>-arm64.apk
+adb -s emulator-<端口> shell am start -W -n com.fnthink.FnthinkCalculator/.MainActivity
+adb -s emulator-<端口> exec-out screencap -p > build/release/smoke-v<版本>+<构建号>.png
+adb -s emulator-<端口> emu kill
 
 # 文档提交后（tag 前再确认一次）
 git status

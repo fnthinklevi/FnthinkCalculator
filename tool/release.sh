@@ -119,7 +119,7 @@ APK : ${ARTIFACT}
 SHA : ${SHA}
 
 接下来（见 doc/release.md，均需人工确认）：
-1. 真机/折叠屏冒烟: adb -s <serial> install -r "${ARTIFACT}"
+1. 模拟器冒烟: 启动 AVD 后 adb -s emulator-<端口> install -r "${ARTIFACT}"（全部 adb 命令带 -s）
 2. 更新 doc/update.md、doc/base.md、README.md 的版本、SHA 与测试读数
 3. 提交文档与版本变更
 4. 冒烟通过后打 tag ${TAG}；push 与 GitHub Release 需明确授权

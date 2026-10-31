@@ -298,7 +298,7 @@ bash tool/release.sh   # 格式 + analyze + 测试 + 构建 + 纯净检查 + 归
 
 ## 发版流程
 
-标准流程见 [doc/release.md](doc/release.md)：版本准备 → `bash tool/release.sh` 闸门 → 真机/折叠屏冒烟 → 更新 `update.md`/`base.md`/README → 提交 → 打 `vX.Y.Z` tag → 获得授权后推送。
+标准流程见 [doc/release.md](doc/release.md)：版本准备 → `bash tool/release.sh` 闸门 → 模拟器冒烟（所有 adb 命令带 `-s emulator-<端口>`）→ 更新 `update.md`/`base.md`/README → 提交 → 打 `vX.Y.Z` tag → 获得授权后推送。
 
 `tool/release.sh` 只做格式、静态检查、全量测试、签名纯 arm64 构建、纯净检查与产物归档；安装、提交、打 tag、push 与 Release 均需人工确认。
 

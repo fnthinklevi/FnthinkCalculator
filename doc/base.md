@@ -435,7 +435,7 @@ adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 ## 10. 文档维护
 
 - 每个任务完成后更新 [roadmap.md](roadmap.md)：状态、实现方式、闸门/冒烟结果、提交号。
-- 发版严格按 [release.md](release.md) 执行：版本准备 → `tool/release.sh` 闸门 → 真机冒烟 → 文档 → tag → 授权后推送。
+- 发版严格按 [release.md](release.md) 执行：版本准备 → `tool/release.sh` 闸门 → 模拟器冒烟（所有 adb 命令带 `-s emulator-<端口>`）→ 文档 → tag → 授权后推送。
 - 每次发版或交付安装包时在 [update.md](update.md) 新增版本记录：用户可见改动、构建信息、验证结果、提交号。
 - 技术事实变化时同步更新本文档；被推翻的旧结论保留原句并标注。
 - 文档不写真实域名、密钥、签名信息；签名与发布信息后续单独管理。
