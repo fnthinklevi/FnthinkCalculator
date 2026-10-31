@@ -187,6 +187,7 @@ class _RadixPageState extends State<RadixPage> {
                     ),
                   ),
                   Expanded(
+                    flex: 3,
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: _RadixKeypad(base: _activeBase, onKey: _onKey),

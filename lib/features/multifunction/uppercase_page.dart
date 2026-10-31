@@ -138,6 +138,7 @@ class _UppercasePageState extends State<UppercasePage> {
                     ),
                   ),
                   Expanded(
+                    flex: 2,
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: _UppercaseKeypad(onKey: _onKey),
