@@ -1,4 +1,4 @@
-# 幻念多功能计算器 · 版本变更记录
+# 幻念计算器 · 版本变更记录
 
 > 用途：记录每个版本/构建批次对用户可见的改动、验证结果与提交号。
 > 维护规则：
@@ -21,8 +21,8 @@
 当前构建：
 
 - 平台：Android，纯 arm64-v8a。
-- APK：`build/app/outputs/flutter-apk/app-release.apk`，约 20.0MB。
-- SHA-256：`c666f96f95e3378f62e7962c97f6f51686fcef0f10c81dbfe7e88381df41e214`
+- APK：`build/app/outputs/flutter-apk/app-release.apk`，19.7MB。
+- SHA-256：`d822cad62abb6f38c2b60cf803bb8f9f48776ce195694a9240c78535dfef0296`
 - 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
 - 测试：208 项全绿；`tool/check_apk_purity.sh` 通过。
 

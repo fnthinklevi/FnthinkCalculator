@@ -25,7 +25,7 @@ class FnthinkCalculatorApp extends StatelessWidget {
         listenable: settings,
         builder: (context, _) {
           return MaterialApp(
-            title: '幻念多功能计算器',
+            title: '幻念计算器',
             debugShowCheckedModeBanner: false,
             theme: buildAppTheme(Brightness.light),
             darkTheme: buildAppTheme(Brightness.dark),

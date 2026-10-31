@@ -1,4 +1,4 @@
-# 幻念多功能计算器
+# 幻念计算器
 
 Flutter Android 计算器，UI 与交互参考小米计算器。首版包含标准计算、科学计算、7 类单位换算和新增的时间计算（日期差、日期推算、时长加减、年龄计算）。
 
@@ -21,7 +21,7 @@ APK 输出：`build/app/outputs/flutter-apk/app-debug.apk`
 ## 工程信息
 
 - 包名：`com.fnthink.FnthinkCalculator`
-- 软件名：幻念多功能计算器
+- 软件名：幻念计算器
 - compileSdk / targetSdk：37
 - minSdk：28
 - 构建：Gradle 9.8.2、AGP 9.4.1、AGP 内置 Kotlin、Java/Kotlin 目标 21
