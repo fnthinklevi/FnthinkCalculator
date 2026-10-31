@@ -10,15 +10,37 @@
 ## 版本规则
 
 - 正式版本：`MAJOR.MINOR.PATCH+BUILD`，如 `1.0.1+2`。
-- 内部构建：在当前版本下按日期/批次记录，例如 `0.1.0+2 · 2026-10-31`。
+- 内部构建：在当前版本下按日期/批次记录，例如 `0.1.1+3 · 2026-10-31`。
 - 同一版本多次构建时，记录最新构建的 APK 大小、SHA-256 与签名状态。
 - 只写用户可感知的变化；纯重构、文档更新可归入“维护”小节。
 
 ---
 
-## 0.1.0+2（开发中，未正式发布）
+## 0.1.1+3（开发中，未正式发布）
 
 当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator-v0.1.1+3-arm64.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.7MB。
+- SHA-256：`6803e2d5d989fc4fd184ba86351947815cda79a5f522e19d522ee022dbf7efc7`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：212 项全绿；`tool/check_apk_purity.sh` 通过。
+
+### 2026-10-31 发布 0.1.1+3
+
+- 提交：`5150ae3`（版本准备）
+- 版本：`0.1.0+2 → 0.1.1+3`；设置页版本显示同步为 `0.1.1`。应用功能与 0.1.0+2 一致，本批次为发版流程与格式整理后的重新构建。
+- 维护：新增 [release.md](release.md) 标准发版流程与 `tool/release.sh`，标准冒烟改为 Android 模拟器（`58d1d15`、`b332540`、`9ccc4be`、`e4cf737`）。
+- 闸门：格式检查、`flutter analyze`、212 项测试通过；签名纯 arm64 19.7MB；SHA-256 `6803e2d5d989fc4fd184ba86351947815cda79a5f522e19d522ee022dbf7efc7`；`PURITY CHECK PASSED`。
+- 模拟器核心冒烟：AVD `ci_api34_pixel6`（API 34 / x86_64 / 1080×2400 / 420dpi）；arm64 包安装成功，`versionName=0.1.1`、`versionCode=3`；冷启动、`1+2=3`、换算联动、汇率联网、大写/进制、时长退格去重、日期差、历史、深色、横屏分栏、1000×800 平板 6 列与 900dp 上限通过；logcat 无 FATAL/ANR。
+- 未覆盖：语音实际声音、离线汇率缓存、完整个税/房贷结果、系统软键盘（AVD 硬件键盘模式）、其余时间页与折叠铰链。真机未安装。
+- 备注：模拟器已关闭；真机仍为 `0.1.0+2`。`v0.1.1` tag 尚未创建或推送。
+
+---
+
+## 0.1.0+2（2026-10-31 已发布，tag `v0.1.0`）
+
+历史构建：
 
 - 平台：Android，纯 arm64-v8a。
 - APK：`build/app/outputs/flutter-apk/app-release.apk`，19.7MB。

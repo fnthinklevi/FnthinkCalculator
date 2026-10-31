@@ -10,7 +10,7 @@
 [![AGP](https://badgen.net/badge/AGP/9.4.1/3DDC84?icon=android)](https://developer.android.com/build/releases/gradle-plugin)
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
-[![Version](https://badgen.net/badge/Version/0.1.0%2B2/007AFF?icon=android)](#版本与变更)
+[![Version](https://badgen.net/badge/Version/0.1.1%2B3/007AFF?icon=android)](#版本与变更)
 [![Tests](https://badgen.net/badge/Tests/212%20passed/green)](#质量保障)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
@@ -162,7 +162,7 @@ FnthinkCalculator/
 │   ├── check_apk_purity.sh           # ABI/密钥/模型/测试资源检查
 │   ├── generate_voice_clips.py       # 构建期生成离线语音
 │   └── make_icons.py                 # 生成启动图标与自适应图标
-├── pubspec.yaml                      # version: 0.1.0+2
+├── pubspec.yaml                      # version: 0.1.1+3
 └── README.md
 ```
 
@@ -235,7 +235,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - Gradle 从 `android/key.properties` 读取签名配置，`storeFile` 指向仓库外的 keystore
 - `android/key.properties`、`*.jks`、`*.keystore` 已加入 `.gitignore`，**禁止提交或上传**
 - 缺少 `key.properties` 时回退 debug 签名，仅用于本机开发；发布包必须通过纯净检查
-- 当前构建：`0.1.0+2`，纯 arm64-v8a，约 19.7MB；每次构建的大小与 SHA-256 见 [doc/update.md](doc/update.md)
+- 当前构建：`0.1.1+3`，纯 arm64-v8a，约 19.7MB；每次构建的大小与 SHA-256 见 [doc/update.md](doc/update.md)
 
 纯净检查通过时输出 `PURITY CHECK PASSED`，并打印 APK 大小与 SHA-256。
 
@@ -306,7 +306,7 @@ bash tool/release.sh   # 格式 + analyze + 测试 + 构建 + 纯净检查 + 归
 
 ## 版本与变更
 
-- 当前版本：`0.1.0+2`
+- 当前版本：`0.1.1+3`
 - 版本变更记录：[doc/update.md](doc/update.md)
 - 技术基线：[doc/base.md](doc/base.md)
 - UI/交互标准：[doc/xiaomi-reference.md](doc/xiaomi-reference.md)
