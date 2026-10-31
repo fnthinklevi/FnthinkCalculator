@@ -10,6 +10,7 @@
 | 软件名 | 幻念计算器 |
 | 包名 / applicationId / namespace | `com.fnthink.FnthinkCalculator` |
 | 当前版本 | `0.2.0+4` |
+| 版本规则 | `A.B.CC+BUILD`，补丁位两位；下一版本 `0.2.01+5`（`0.2.0+4` 为规则前历史版本，tag 不移动） |
 | 平台 | Android（首版）；Flutter 代码保持跨平台 |
 | 语言 | 简体中文 |
 | 最低系统 | Android 8.0（API 28） |

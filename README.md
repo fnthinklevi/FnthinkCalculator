@@ -327,6 +327,7 @@ GitHub Actions：
 
 ## 版本与变更
 
+- 版本规则：`A.B.CC+构建号`，补丁位固定两位；当前已发布 `0.2.0+4` 为历史例外，下一版本为 `0.2.01+5`
 - 当前版本：`0.2.0+4`
 - 版本变更记录：[doc/update.md](doc/update.md)
 - 技术基线：[doc/base.md](doc/base.md)

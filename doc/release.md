@@ -16,18 +16,19 @@
 
 ## 2. 版本规则
 
-版本号只在 `pubspec.yaml` 的 `version: MAJOR.MINOR.PATCH+BUILD` 中提升：
+版本号只在 `pubspec.yaml` 的 `version: A.B.CC+BUILD` 中提升；**`CC` 永远两位，不足补 0**：
 
 | 改动 | 版本 | 例子 |
 |---|---|---|
-| 修 bug / 文档 / 无行为变化 | PATCH + BUILD | `0.1.0+2 → 0.1.1+3` |
-| 新增用户可见功能 | MINOR + BUILD | `0.1.1+3 → 0.2.0+4` |
-| 破坏性变更 / 数据迁移 | MAJOR + BUILD | `0.2.0+4 → 1.0.0+5` |
+| 修 bug / 文档 / 无行为变化 | PATCH + BUILD | `0.2.00+4 → 0.2.01+5` |
+| 新增用户可见功能 | MINOR + BUILD | `0.2.01+5 → 0.3.00+6` |
+| 破坏性变更 / 数据迁移 | MAJOR + BUILD | `0.3.00+6 → 1.0.00+7` |
 
+- 版本名中的补丁位固定两位（`00`–`99`），不得写 `0.2.1` 或 `0.2.0`；当前已发布的 `0.2.0+4` 是规则生效前的历史版本，不再移动 tag，下一版本从 `0.2.01+5` 开始。
 - 每次产生新 APK，BUILD 必须递增；不能复用已发布的 BUILD。
 - `settings_page.dart` 的「版本」显示必须与版本名一致；`tool/release.sh --preflight` 会检查。
-- 一个版本名只打一个 tag（`vX.Y.Z`）；同一版本号不重复发版。补构建请提升 BUILD 并确认是否属于同一次发布。
-- 对外 APK 固定命名为 `FnthinkCalculator_<版本名>.apk`（如 `FnthinkCalculator_0.1.1.apk`），不带 `v` 前缀、构建号或 ABI；构建号写入 `update.md`。
+- 一个版本名只打一个 tag（`vA.B.CC`，如 `v0.2.01`）；同一版本号不重复发版。补构建请提升 BUILD 并确认是否属于同一次发布。
+- 对外 APK 固定命名为 `FnthinkCalculator_<版本名>.apk`（如 `FnthinkCalculator_0.2.01.apk`），不带 `v` 前缀、构建号或 ABI；构建号写入 `update.md`。
 - 已推送的 tag 不移动、不删除、不覆盖。
 
 ## 3. 发版流程

@@ -34,8 +34,8 @@ say() {
 }
 
 VERSION_LINE="$(awk '/^version:/{print $2; exit}' pubspec.yaml)"
-if [[ ! "$VERSION_LINE" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$ ]]; then
-  die "pubspec version 必须是 X.Y.Z+N，当前: ${VERSION_LINE:-<空>}"
+if [[ ! "$VERSION_LINE" =~ ^[0-9]+\.[0-9]+\.[0-9]{2}\+[0-9]+$ ]]; then
+  die "pubspec version 必须是 A.B.CC+BUILD（补丁位两位，如 0.2.01+5），当前: ${VERSION_LINE:-<空>}"
 fi
 VERSION_NAME="${VERSION_LINE%%+*}"
 BUILD_NUMBER="${VERSION_LINE##*+}"
