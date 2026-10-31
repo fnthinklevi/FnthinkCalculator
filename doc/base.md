@@ -160,7 +160,8 @@ FnthinkCalculator/
 ├── doc/
 │   ├── base.md                  # 本文档
 │   ├── xiaomi-reference.md      # 小米 17.3.9 UI/交互/验收标准
-│   └── roadmap.md               # 任务、状态、闸门/冒烟/提交记录
+│   ├── roadmap.md               # 任务、状态、闸门/冒烟/提交记录
+│   └── update.md                # 版本变更记录（每次发版/交付新增一条）
 ├── lib/
 │   ├── main.dart                # 加载 prefs，创建应用级控制器
 │   ├── app/                     # app、app_scope、settings_controller、settings_repository、shell
@@ -425,5 +426,6 @@ adb -s emulator-5556 shell am start -W -n com.fnthink.FnthinkCalculator/.MainAct
 ## 10. 文档维护
 
 - 每个任务完成后更新 [roadmap.md](roadmap.md)：状态、实现方式、闸门/冒烟结果、提交号。
+- 每次发版或交付安装包时在 [update.md](update.md) 新增版本记录：用户可见改动、构建信息、验证结果、提交号。
 - 技术事实变化时同步更新本文档；被推翻的旧结论保留原句并标注。
 - 文档不写真实域名、密钥、签名信息；签名与发布信息后续单独管理。
