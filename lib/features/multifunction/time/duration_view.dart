@@ -32,7 +32,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
   int? _result;
   bool _showResult = false;
   bool _negative = false;
-  bool _carryToDays = true;
+  bool _carryToDays = false;
 
   _TimeSegment _active = _TimeSegment.hours;
   String _buffer = '';
@@ -86,6 +86,11 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
   };
 
   String get _activeValueText => _activeValue.toString();
+
+  int get _chipHours => _showResult ? _result!.abs() ~/ 3600 : _hours;
+  int get _chipMinutes =>
+      _showResult ? (_result!.abs() % 3600) ~/ 60 : _minutes;
+  int get _chipSeconds => _showResult ? _result!.abs() % 60 : _seconds;
 
   void _setActiveValue(int value) {
     switch (_active) {
@@ -292,6 +297,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
   Widget _displayCard(BuildContext context) {
     final secondary = CalcColors.secondaryText(context);
     return Container(
+      key: const Key('duration-calc-card'),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: CalcColors.keyBackground(context),
@@ -308,7 +314,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
               ),
               const Spacer(),
               Text(
-                '共 ${formatCount(_totalSeconds)} 秒',
+                '共 ${formatDurationAccumulated(_totalSeconds)}',
                 key: const Key('duration-calc-total-seconds'),
                 style: TextStyle(fontSize: 15, color: secondary),
               ),
@@ -341,25 +347,23 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
               ),
             ),
           ),
-          if (!_showResult) ...[
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                _segmentChip(_TimeSegment.hours, '时', _hours.toString()),
-                const SizedBox(width: 6),
-                _segmentChip(_TimeSegment.minutes, '分', twoDigits(_minutes)),
-                const SizedBox(width: 6),
-                _segmentChip(_TimeSegment.seconds, '秒', twoDigits(_seconds)),
-              ],
-            ),
-          ],
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              _segmentChip(_TimeSegment.hours, '时', _chipHours.toString()),
+              const SizedBox(width: 6),
+              _segmentChip(_TimeSegment.minutes, '分', twoDigits(_chipMinutes)),
+              const SizedBox(width: 6),
+              _segmentChip(_TimeSegment.seconds, '秒', twoDigits(_chipSeconds)),
+            ],
+          ),
         ],
       ),
     );
   }
 
   Widget _segmentChip(_TimeSegment segment, String label, String value) {
-    final active = _active == segment;
+    final active = !_showResult && _active == segment;
     final secondary = CalcColors.secondaryText(context);
     return Expanded(
       child: Material(

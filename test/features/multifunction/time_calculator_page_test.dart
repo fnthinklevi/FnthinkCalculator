@@ -68,7 +68,7 @@ void main() {
     configureSurface(tester);
     await tester.pumpWidget(harness(const TimeCalculationPage()));
     expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
-    expect(valueOf(tester, 'duration-calc-total-seconds'), '共 0 秒');
+    expect(valueOf(tester, 'duration-calc-total-seconds'), '共 00:00:00');
 
     await tapKey(tester, 'duration-key-1');
     await tapKey(tester, 'duration-key-colon');
@@ -83,7 +83,7 @@ void main() {
     expect(valueOf(tester, 'duration-calc-display'), '00:45:00');
     await tapKey(tester, 'duration-key-equals');
     expect(valueOf(tester, 'duration-calc-display'), '02:15:00');
-    expect(valueOf(tester, 'duration-calc-total-seconds'), '共 8,100 秒');
+    expect(valueOf(tester, 'duration-calc-total-seconds'), '共 02:15:00');
 
     await tapKey(tester, 'duration-key-clear');
     await tapKey(tester, 'duration-key-1');
@@ -104,12 +104,13 @@ void main() {
     await tapKey(tester, 'duration-key-add');
     await tapKey(tester, 'duration-key-1');
     await tapKey(tester, 'duration-key-equals');
-    expect(valueOf(tester, 'duration-calc-display'), '1天 01:00:00');
-
-    await tapKey(tester, 'duration-carry-1');
     expect(valueOf(tester, 'duration-calc-display'), '25:00:00');
+    expect(valueOf(tester, 'duration-calc-total-seconds'), '共 25:00:00');
+
     await tapKey(tester, 'duration-carry-0');
     expect(valueOf(tester, 'duration-calc-display'), '1天 01:00:00');
+    await tapKey(tester, 'duration-carry-1');
+    expect(valueOf(tester, 'duration-calc-display'), '25:00:00');
   });
 
   testWidgets('时差计算为独立页', (tester) async {
@@ -176,8 +177,10 @@ void main() {
       valueOf(tester, 'duration-calc-expression'),
       '12:00:00 + 12:01:00 + 13:01:00 =',
     );
-    expect(valueOf(tester, 'duration-calc-display'), '1天 13:02:00');
+    expect(valueOf(tester, 'duration-calc-display'), '37:02:00');
 
+    await tapKey(tester, 'duration-carry-0');
+    expect(valueOf(tester, 'duration-calc-display'), '1天 13:02:00');
     await tapKey(tester, 'duration-carry-1');
     expect(valueOf(tester, 'duration-calc-display'), '37:02:00');
 
@@ -226,6 +229,35 @@ void main() {
     expect(equals.width, closeTo(seven.width, 0.6));
     expect(equals.height, closeTo(seven.height * 2 + gap, 0.6));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('输入态与结果态卡片高度和按键尺寸保持一致', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
+
+    final card = find.byKey(const Key('duration-calc-card'));
+    expect(find.byKey(const Key('duration-segment-hours')), findsOneWidget);
+    final inputCardSize = tester.getSize(card);
+    final inputKeySize = tester.getSize(
+      find.byKey(const Key('duration-key-7')),
+    );
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-add');
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-equals');
+
+    expect(valueOf(tester, 'duration-calc-display'), '03:00:00');
+    expect(find.byKey(const Key('duration-segment-hours')), findsOneWidget);
+    expect(valueOf(tester, 'duration-segment-hours-value'), '3');
+    expect(valueOf(tester, 'duration-segment-minutes-value'), '00');
+    expect(valueOf(tester, 'duration-segment-seconds-value'), '00');
+    expect(tester.getSize(card).height, closeTo(inputCardSize.height, 0.5));
+    final resultKeySize = tester.getSize(
+      find.byKey(const Key('duration-key-7')),
+    );
+    expect(resultKeySize.width, closeTo(inputKeySize.width, 0.5));
+    expect(resultKeySize.height, closeTo(inputKeySize.height, 0.5));
   });
 
   testWidgets('分段点击修改与冒号输入自动进位', (tester) async {
