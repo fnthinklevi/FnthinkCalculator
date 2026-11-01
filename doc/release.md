@@ -69,7 +69,7 @@ bash tool/release.sh
 
 仓库内的 GitHub Actions 是同一批契约的云端复核，不替代本地签名构建：
 
-- `ci.yml`：push main / PR —— format、analyze、全部 `flutter test`（含计算链/键盘/响应式守卫）。
+- `ci.yml`：push main / PR —— format、analyze、全部 `flutter test`（含计算链/键盘/响应式守卫）。2 项 golden 依赖 Windows 像素基线，测试内按宿主平台跳过；CI（Linux）校验其余用例，发版机（Windows）仍全量执行。
 - `smoke.yml`：tag `v*`、手动、每周二 —— Android 模拟器跑 `integration_test/app_smoke_test.dart`。
 - `release-check.yml`：tag `v*` / 手动 —— 校验 tag 与 `pubspec` 版本一致、产物命名契约，并跑 format/analyze/tests。
 - 签名 release APK 仍由本地 `tool/release.sh` 生成；CI 不接触 keystore、不上传 APK。

@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fnthink_calculator/app/app.dart';
 import 'package:fnthink_calculator/app/settings_controller.dart';
 import 'package:fnthink_calculator/features/calculator/calculator_controller.dart';
+
+// Golden baselines are rasterized for Windows; other hosts (CI uses Linux)
+// render different pixels and cannot compare against them.
+final bool goldenSkip = !Platform.isWindows;
 
 void configureSurface(WidgetTester tester) {
   tester.view.physicalSize = const Size(1080, 2400);
@@ -33,7 +39,7 @@ void main() {
       find.byType(Scaffold).first,
       matchesGoldenFile('goldens/calculator_light.png'),
     );
-  });
+  }, skip: goldenSkip);
 
   testWidgets('深色计算器布局', (tester) async {
     configureSurface(tester);
@@ -48,5 +54,5 @@ void main() {
       find.byType(Scaffold).first,
       matchesGoldenFile('goldens/calculator_dark.png'),
     );
-  });
+  }, skip: goldenSkip);
 }

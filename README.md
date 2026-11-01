@@ -285,7 +285,7 @@ bash tool/smoke_emulator.sh
 
 GitHub Actions：
 
-- `ci.yml`：push/PR 执行格式、analyze、226 项测试
+- `ci.yml`：push/PR 执行格式、analyze、226 项测试（2 项 golden 仅在本机 Windows 校验）
 - `smoke.yml`：tag/manual/每周二执行模拟器 integration smoke
 - `release-check.yml`：tag 校验 `vX.Y.Z` 与 `pubspec` 版本、产物命名契约并跑完整测试
 - 签名 release APK 仍只在本地生成，CI 不接触 keystore、不上传 APK
