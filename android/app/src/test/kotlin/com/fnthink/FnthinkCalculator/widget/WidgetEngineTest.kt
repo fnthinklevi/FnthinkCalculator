@@ -98,6 +98,51 @@ class WidgetEngineTest {
     }
 
     @Test
+    fun timeMultiplyAndDivide() {
+        assertEquals(
+            "02:00:00",
+            time(listOf("1", ":", "0", "0", "×", "2", "=")).displayValue,
+        )
+        assertEquals(
+            "00:15:00",
+            time(listOf("1", ":", "0", "0", "÷", "4", "=")).displayValue,
+        )
+        assertEquals(
+            "02:00:00",
+            time(listOf("1", ":", "0", "0", "+", "0", ":", "3", "0", "×", "2", "="))
+                .displayValue,
+        )
+        assertEquals(
+            "01:30:00",
+            time(listOf("1", ":", "0", "0", "×", "1", ":", "5", "=")).displayValue,
+        )
+    }
+
+    @Test
+    fun timeDivideByZeroShowsError() {
+        assertEquals(
+            "错误",
+            time(listOf("1", ":", "0", "0", "÷", "0", "=")).displayValue,
+        )
+    }
+
+    @Test
+    fun timeDivideRoundsHalfUp() {
+        assertEquals(
+            "00:00:01",
+            time(listOf("0", ":", "0", ":", "2", "÷", "3", "=")).displayValue,
+        )
+    }
+
+    @Test
+    fun timeResultCanContinueMultiply() {
+        val first = time(listOf("1", ":", "0", "0", "×", "2", "="))
+        assertEquals("02:00:00", first.displayValue)
+        val second = first.onKey("×").onKey("3").onKey("=")
+        assertEquals("06:00:00", second.displayValue)
+    }
+
+    @Test
     fun timeBackspace() {
         val state = time(listOf("3", "2", "BS"))
         assertEquals("03:00:00", state.displayValue)

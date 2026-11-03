@@ -39,33 +39,37 @@ class WidgetStateStore(context: Context) {
 
     fun loadTime(widgetId: Int): TimeState {
         val parts = prefs.getString(timeKey(widgetId), null)?.split(SEP) ?: return TimeState()
-        if (parts.size != 10) return TimeState()
+        if (parts.size != 12) return TimeState()
         return TimeState(
-            values = parts[0].split(",").mapNotNull { it.toIntOrNull() },
+            operands = parts[0].split(",").filter { it.isNotEmpty() },
             operators = parts[1].split(",").filter { it.isNotEmpty() },
             hours = parts[2].toIntOrNull() ?: 0,
             minutes = parts[3].toIntOrNull() ?: 0,
             seconds = parts[4].toIntOrNull() ?: 0,
             active = parts[5].toIntOrNull() ?: 0,
             buffer = parts[6],
-            negative = parts[7] == "1",
-            result = parts[8].toIntOrNull(),
-            evaluated = parts[9] == "1",
+            scalarBuffer = parts[7],
+            negative = parts[8] == "1",
+            result = parts[9].toIntOrNull(),
+            evaluated = parts[10] == "1",
+            error = parts[11] == "1",
         )
     }
 
     fun saveTime(widgetId: Int, state: TimeState) {
         val raw = listOf(
-            state.values.joinToString(","),
+            state.operands.joinToString(","),
             state.operators.joinToString(","),
             state.hours.toString(),
             state.minutes.toString(),
             state.seconds.toString(),
             state.active.toString(),
             state.buffer,
+            state.scalarBuffer,
             if (state.negative) "1" else "0",
             state.result?.toString() ?: "",
             if (state.evaluated) "1" else "0",
+            if (state.error) "1" else "0",
         ).joinToString(SEP)
         prefs.edit().putString(timeKey(widgetId), raw).apply()
     }

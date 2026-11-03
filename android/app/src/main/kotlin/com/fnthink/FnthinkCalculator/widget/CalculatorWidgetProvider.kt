@@ -30,7 +30,7 @@ private val TIME_KEYS = listOf(
     key("7", "7"), key("8", "8"), key("9", "9"), key(":", ":", true),
     key("4", "4"), key("5", "5"), key("6", "6"), key("+", "+", true),
     key("1", "1"), key("2", "2"), key("3", "3"), key("−", "−", true),
-    key("00", "00"), key("0", "0"), key("±", "SIGN", true), key("=", "=", true),
+    key("0", "0"), key("×", "×", true), key("÷", "÷", true), key("=", "=", true),
 )
 
 private val SCIENTIFIC_FUNCTION_PAGES = listOf(
@@ -166,19 +166,29 @@ abstract class BaseCalculatorWidgetProvider : AppWidgetProvider() {
             R.id.widget_back,
             keyIntent(context, widgetId, SLOT_BACK, "BS"),
         )
-        if (mode == WidgetMode.SCIENTIFIC) {
-            views.setViewVisibility(R.id.widget_page, View.VISIBLE)
-            views.setTextViewText(R.id.widget_page, "f${page + 1}")
-            views.setContentDescription(
-                R.id.widget_page,
-                "函数页 ${page + 1}/3，点击切换",
-            )
-            views.setOnClickPendingIntent(
-                R.id.widget_page,
-                keyIntent(context, widgetId, SLOT_PAGE, "PAGE"),
-            )
-        } else {
-            views.setViewVisibility(R.id.widget_page, View.GONE)
+        when (mode) {
+            WidgetMode.SCIENTIFIC -> {
+                views.setViewVisibility(R.id.widget_page, View.VISIBLE)
+                views.setTextViewText(R.id.widget_page, "f${page + 1}")
+                views.setContentDescription(
+                    R.id.widget_page,
+                    "函数页 ${page + 1}/3，点击切换",
+                )
+                views.setOnClickPendingIntent(
+                    R.id.widget_page,
+                    keyIntent(context, widgetId, SLOT_PAGE, "PAGE"),
+                )
+            }
+            WidgetMode.TIME -> {
+                views.setViewVisibility(R.id.widget_page, View.VISIBLE)
+                views.setTextViewText(R.id.widget_page, "±")
+                views.setContentDescription(R.id.widget_page, "正负号")
+                views.setOnClickPendingIntent(
+                    R.id.widget_page,
+                    keyIntent(context, widgetId, SLOT_PAGE, "SIGN"),
+                )
+            }
+            WidgetMode.STANDARD -> views.setViewVisibility(R.id.widget_page, View.GONE)
         }
         return views
     }

@@ -78,5 +78,11 @@ void main() {
         reason: '缺少 $file',
       );
     }
+
+    final provider = File(
+      'android/app/src/main/kotlin/com/fnthink/FnthinkCalculator/widget/CalculatorWidgetProvider.kt',
+    ).readAsStringSync();
+    expect(provider, contains('key("×", "×"'), reason: '时间键盘缺少乘');
+    expect(provider, contains('key("÷", "÷"'), reason: '时间键盘缺少除');
   });
 }

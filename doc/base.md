@@ -396,7 +396,7 @@ integration_test/                # 设备级 integration smoke
 - 三类 AppWidget：标准计算器、时间计算（均支持 3×3 / 4×4 自适应）、科学计算器（固定 4×4）。
 - 原生 RemoteViews 实现，不依赖 Flutter 引擎；provider 位于 `android/app/src/main/kotlin/com/fnthink/FnthinkCalculator/widget/`，布局 `res/layout/widget_calculator.xml`，配置 `res/xml/widget_*_info.xml`。
 - 标准/科学求值：`WidgetMath` 用 BigDecimal 做四则与乘方，函数用 double 并按 12 位有效数字收敛；科学组件通过 `f` 键在基本/科学两页键盘间切换。
-- 时间计算：`WidgetTime` 维护 values/operators/当前段，支持 `HH:MM:SS`、冒号切段、±、连续加减与 60 进制归一化。
+- 时间计算：`WidgetTime` 维护 operands/operators/当前段，支持 `HH:MM:SS`、冒号切段、±、连续加减，以及时间 ×/÷ 倍数（乘除优先于加减、倍数支持小数、除零报错、结果四舍五入到秒）。
 - 状态按 widgetId 存在 `fnthink_widget_state` SharedPreferences；点击通过带 `widget_id`/`key` 的广播回 provider 后刷新 RemoteViews。
 - 科学函数角度单位读取 Flutter 设置（`flutter.settings.angleUnit.v1`），默认角度制。
 - 颜色走 `values/colors.xml` 与 `values-night/colors.xml`，随系统深色模式切换。
