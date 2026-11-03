@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="assets/icon/app_icon_512.png" width="128" alt="幻念计算器">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/icon/app_icon_dark_512.png">
+  <img src="assets/icon/app_icon_512.png" width="128" alt="幻念计算器">
+</picture>
 
 # 幻念计算器
 
@@ -95,6 +98,7 @@
 - 计算器/换算内置键盘与表单系统键盘的边界由 UI 标准守卫锁定
 - 首次启动显示不可跳过的隐私弹窗；同意状态持久化，设置页底部可随时查看完整《隐私政策》
 - 桌面快捷方式：长按应用图标可直达「时间计算 / 日期计算 / 汇率换算」；快捷方式图标提供深色模式变体，随系统主题自动切换
+- 启动图标同样提供深色模式变体（`mipmap-night`），由系统夜间模式自动切换，无需应用内设置
 
 ---
 
@@ -115,7 +119,7 @@
 | Android SDK | minSdk 28 / compileSdk 37 / targetSdk 37 |
 | 测试 | `flutter_test`：单元、widget、golden、无障碍、fuzz、UI 标准守卫 |
 | 打包 | 纯 arm64-v8a release APK，本地 keystore 签名 + 纯净度检查 |
-| 图标生成 | `tool/make_icons.py`（Pillow，白底圆角 + 符号 + 橙色等号键） |
+| 图标生成 | `tool/make_icons.py`（Pillow，日夜两套：白底/深灰底圆角 + 符号 + 橙色等号键） |
 | 语音生成 | `tool/generate_voice_clips.py`（edge-tts + imageio-ffmpeg，`zh-CN-XiaoxiaoNeural`） |
 | 界面语言 | 简体中文（Material 组件 `zh_CN` 本地化） |
 | CI | 无；静态检查、测试、打包与纯净检查均在本地执行 |

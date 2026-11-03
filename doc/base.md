@@ -22,7 +22,7 @@
 | 广告 / 统计 | 无广告、无统计、无多余权限 |
 | 设计参考 | 小米计算器 17.3.9 的布局、配色与交互；唯一标准见 [xiaomi-reference.md](xiaomi-reference.md)；不使用小米商标、图标、字体等素材 |
 
-当前状态：T0–T17、T12.1、T15.1 与 R1–R4 已完成（2026-10-30，T14 `9552af9`、T12.1 `d25b57e`、T16 `1e71501`、T17 `bf60d5c`）；两标签壳、整宽子页标题栏、20 个换算入口、三行汇率与 109 币种、单位全表、进制/BMI/称呼/个税（31 省社保基数）/比例、房贷清单、时间五个独立页、Edge 离线语音包均已落地；计算器/换算用内置键盘，表单页用系统数字键盘；212 项测试与 UI 标准守卫全绿。2026-10-31 应用更名为「幻念计算器」、重绘启动图标，修复时长键盘重复退格键，统一大写/进制键盘圆键尺寸，加入 900dp 大屏内容上限、3–6 列换算网格与折叠屏重排，并将版本订正为 0.1.0+2；随后按新发版流程提升到 0.1.1+3，完成 212 项测试、签名纯 arm64 构建与模拟器核心冒烟。release 0.1.1+3 纯 arm64、19.7MB（SHA-256 `6803e2d5d989fc4fd184ba86351947815cda79a5f522e19d522ee022dbf7efc7`）、真实 keystore 签名。当前源码已增加计算链闸门、`integration_test` 模拟器冒烟与 GitHub CI 工作流，拆分时间计算/时差计算，并加入首启隐私弹窗/设置页底部隐私政策。release 0.2.01+5 纯 arm64、19.7MB（SHA-256 `a30ce9cf295d6f9992827b9f1845b5a060241044888c2f10b99c0a9aee2dc748`）、真实 keystore 签名，225 项测试与模拟器 smoke 通过。release 0.2.02+6 修复时间计算输入/结果两态布局跳动，总时长改为 `HH:MM:SS`、默认累计小时；纯 arm64、19.7MB（SHA-256 `c959642accbc8efb230d3a5194d4b1359866500a8f63f28162569f85407a6309`）、真实 keystore 签名，226 项测试与模拟器 smoke 通过。release 0.2.03+7 新增时间/日期/汇率桌面快捷方式（含深色模式图标），统一换算类数值右对齐、修复顶部标签选中态配色，称呼词表扩充至 380 条；纯 arm64、19.8MB（SHA-256 `5a5749b10cdf35ba336df4f2744764ed1a50cf1db59811d540bf2110a8704610`）、真实 keystore 签名，240 项测试与模拟器 smoke 通过。
+当前状态：T0–T17、T12.1、T15.1 与 R1–R4 已完成（2026-10-30，T14 `9552af9`、T12.1 `d25b57e`、T16 `1e71501`、T17 `bf60d5c`）；两标签壳、整宽子页标题栏、20 个换算入口、三行汇率与 109 币种、单位全表、进制/BMI/称呼/个税（31 省社保基数）/比例、房贷清单、时间五个独立页、Edge 离线语音包均已落地；计算器/换算用内置键盘，表单页用系统数字键盘；212 项测试与 UI 标准守卫全绿。2026-10-31 应用更名为「幻念计算器」、重绘启动图标，修复时长键盘重复退格键，统一大写/进制键盘圆键尺寸，加入 900dp 大屏内容上限、3–6 列换算网格与折叠屏重排，并将版本订正为 0.1.0+2；随后按新发版流程提升到 0.1.1+3，完成 212 项测试、签名纯 arm64 构建与模拟器核心冒烟。release 0.1.1+3 纯 arm64、19.7MB（SHA-256 `6803e2d5d989fc4fd184ba86351947815cda79a5f522e19d522ee022dbf7efc7`）、真实 keystore 签名。当前源码已增加计算链闸门、`integration_test` 模拟器冒烟与 GitHub CI 工作流，拆分时间计算/时差计算，并加入首启隐私弹窗/设置页底部隐私政策。release 0.2.01+5 纯 arm64、19.7MB（SHA-256 `a30ce9cf295d6f9992827b9f1845b5a060241044888c2f10b99c0a9aee2dc748`）、真实 keystore 签名，225 项测试与模拟器 smoke 通过。release 0.2.02+6 修复时间计算输入/结果两态布局跳动，总时长改为 `HH:MM:SS`、默认累计小时；纯 arm64、19.7MB（SHA-256 `c959642accbc8efb230d3a5194d4b1359866500a8f63f28162569f85407a6309`）、真实 keystore 签名，226 项测试与模拟器 smoke 通过。release 0.2.03+7 新增时间/日期/汇率桌面快捷方式（含深色模式图标），统一换算类数值右对齐、修复顶部标签选中态配色，称呼词表扩充至 380 条；纯 arm64、19.8MB（SHA-256 `5a5749b10cdf35ba336df4f2744764ed1a50cf1db59811d540bf2110a8704610`）、真实 keystore 签名，240 项测试与模拟器 smoke 通过。2026-11-03 启动图标补齐深色模式：`values-night` / `mipmap-night` / 夜间自适应图标，系统浅色/深色自动切换；新增 3 项图标守卫，全量 243 项测试通过。
 
 ## 2. 技术栈
 
@@ -373,11 +373,12 @@ integration_test/                # 设备级 integration smoke
 
 ### 6.11 图标
 
-- 设计：橙色底、白色计算器机身、深色屏幕、灰色按键、橙色等号键；48px 下仍可辨认。
-- 源图：`assets/icon/app_icon_source.png`。
+- 设计：日间白色圆角底、黑色 + − ×、橙色等号键；夜间深灰底 `#1C1C1E`、浅色符号、柔橙 `#FFB27A` 等号键；随系统夜间模式自动切换。
+- 源图：`assets/icon/app_icon_source.png`、`app_icon_dark_source.png`。
 - 生成脚本：`tool/make_icons.py`。
-- 输出：mdpi～xxxhdpi 的 `ic_launcher.png`、`ic_launcher_round.png`、`ic_launcher_foreground.png`，以及 `mipmap-anydpi-v26` 自适应图标。
-- 自适应背景色：`#FD6500`。
+- 输出：mdpi～xxxhdpi 的日间 `mipmap-*` 与夜间 `mipmap-night-*`（`ic_launcher.png`、`ic_launcher_round.png`、`ic_launcher_foreground.png`）；自适应图标在 `mipmap-anydpi-v26` 与 `mipmap-night-anydpi-v26`。
+- 自适应背景色：日间 `#FFFFFF`、夜间 `#1C1C1E`（`values/` 与 `values-night/`）。
+- 守卫：`test/guards/launcher_icon_guard_test.dart` 校验日夜资源、背景色与内容差异。
 
 ### 6.12 称呼计算
 

@@ -1,6 +1,6 @@
 # 幻念计算器 · Roadmap
 
-> 最后更新：2026-10-30
+> 最后更新：2026-11-03
 > 执行规则：每个任务按“实现 → 闸门测试 → 冒烟测试 → 本地提交”顺序执行；上一任务全绿并提交后，才允许开始下一任务。
 > 技术基线见 [base.md](base.md)。
 
@@ -88,6 +88,7 @@ adb -s emulator-5554 emu kill
 | T15.1 | 标题栏与语音修复 | 已完成 | 子页标题栏整宽，返回键不再被标题覆盖；系统 TTS 尝试已由 T15/bf60d5c 回退为离线短音频 | 标题栏几何测试；真机截图定位 | `6f8e2da`、`bf60d5c` |
 | T16 | 签名与纯 arm64 包 | 已完成 | 本地 key.properties + 仓库外 keystore；Gradle 过滤非 arm64；打包/纯净检查脚本 | 签名成功；仅 arm64 .so；无密钥/模型/裸 WAV/测试残留；非 debug 证书；SHA-256 | `1e71501` |
 | T17 | 时间计算拆四页 | 已完成 | 日期差/日期推算/时长计算/年龄计算四个独立页与入口；统一 PageHeader/字号/边距 | 四个页面原功能测试；换算首页 19 入口守卫；深色适配 | `bf60d5c` |
+| T18 | 启动图标深色模式 | 已完成 | 日间白底 / 夜间深灰底两套图标；`values-night` 背景色、`mipmap-night-*` 前景与旧版图标、夜间自适应配置；系统夜间模式自动切换 | 3 项图标守卫；release 构建；模拟器 App info 日夜切换走查 | 本次提交 |
 | R1 | 视觉底座与计算器复刻 | 已完成 | 两标签胶囊、圆键键盘、显示区层级、长按菜单、历史页、设置页、百分数双口径 | 198 项测试含 history/settings/守卫；模拟器亮暗走查 | `4e8ca3a` |
 | R2 | 换算与汇率复刻 | 已完成 | 换算首页 15 入口；单位多行联动 + 锚定选择器；温度专用键盘；汇率三行 + 109 币种 + 来源行 | 单位/汇率/守卫测试；模拟器走查 | `4e8ca3a` |
 | R3 | 新工具（进制/BMI/称呼/个税） | 已完成 | 进制键禁用与 2/8/10/16；BMI 表单/刻度结果；称呼互查；个税月薪/年终奖 | 各工具单元 + widget 测试；模拟器走查 | `4e8ca3a` |
@@ -527,3 +528,22 @@ adb -s emulator-5554 emu kill
 - UI：内容边距 22，标签 15sp、结果 20/24sp，日期选择用系统日历，数量/时分秒用内置键盘；深色适配。
 - 闸门：`dart format`、`flutter analyze`、`flutter test` 208 项全绿；19 入口顺序守卫通过。
 - 提交：`bf60d5c`。
+
+### T18 启动图标深色模式
+
+- 日期：2026-11-03
+- 完成内容：
+  - 日间图标保持白底、深色 + − ×、橙色等号键；夜间为深灰底 `#1C1C1E`、浅色符号 `#F5F5F5`、柔橙 `#FFB27A` 等号键（等号横杠为深色）。
+  - Android 资源：新增 `values-night/ic_launcher_background.xml`、`mipmap-night-{mdpi..xxxhdpi}/` 三套 PNG、`mipmap-night-anydpi-v26` 自适应图标；保留日间原资源。
+  - 生成脚本 `tool/make_icons.py` 同时输出日/夜源图与各密度资源；README 顶部图标支持 `prefers-color-scheme`。
+  - 新增 `test/guards/launcher_icon_guard_test.dart`：校验日夜自适应配置、背景色、五档密度资源存在且内容不同、脚本包含夜间输出。
+- 闸门结果：
+  - `dart format`：0 changed。
+  - `flutter analyze`：No issues found。
+  - `flutter test`：243/243 通过。
+  - `flutter build apk --release`：成功，通用包 55.4MB。
+- 冒烟结果：
+  - `emulator-5560` 安装 release，App info 页浅色模式显示白底圆角图标；`cmd uimode night yes` 后显示深灰底浅色符号图标，系统自动切换。
+  - 无崩溃、无资源缺失。
+- 提交：`本次提交`
+- 备注：启动图标由系统夜间资源限定符自动切换；应用内主题切换不会改变桌面启动图标（Android 启动器按系统主题取图标）。未发布新版本。

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""生成启动图标：白色圆角底、黑色 + − ×、橙色等号键。
+"""生成启动图标：日间白底 / 夜间深灰底，黑色或浅色 + − ×、橙色等号键。
 
-输出 assets/icon/ 源图、Android 各密度 mipmap（含 adaptive foreground）
-与 mipmap-anydpi-v26 自适应图标配置。依赖 Pillow。
+输出 assets/icon/ 源图、Android 各密度 mipmap（含 adaptive foreground）、
+日间与夜间自适应图标配置。依赖 Pillow。
 """
 
 from pathlib import Path
@@ -14,10 +14,22 @@ SIZE = 1024
 SS = 2
 CANVAS = SIZE * SS
 
-BLACK = (26, 26, 26, 255)
-WHITE = (255, 255, 255, 255)
-ORANGE_TOP = (255, 148, 32)
-ORANGE_BOTTOM = (255, 92, 0)
+DAY = {
+    "symbol": (26, 26, 26, 255),
+    "background": (255, 255, 255, 255),
+    "background_hex": "#FFFFFF",
+    "orange_top": (255, 148, 32),
+    "orange_bottom": (255, 92, 0),
+    "bar": (255, 255, 255, 255),
+}
+NIGHT = {
+    "symbol": (245, 245, 245, 255),
+    "background": (28, 28, 30, 255),
+    "background_hex": "#1C1C1E",
+    "orange_top": (255, 199, 154),
+    "orange_bottom": (255, 178, 122),
+    "bar": (28, 28, 30, 255),
+}
 
 CX1 = 310
 CY1 = 305
@@ -41,29 +53,37 @@ def capsule(draw, x1, y1, x2, y2, width, fill):
     draw.rounded_rectangle([x1, y1, x2, y2], radius=width / 2, fill=fill)
 
 
-def draw_symbols():
+def draw_symbols(palette):
     layer = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
     k = SS
     arm = ARM * k
     stroke = STROKE * k
+    symbol_color = palette["symbol"]
 
     def plus(cx, cy):
         cx, cy = cx * k, cy * k
-        capsule(draw, cx - arm, cy - stroke / 2, cx + arm, cy + stroke / 2, stroke, BLACK)
-        capsule(draw, cx - stroke / 2, cy - arm, cx + stroke / 2, cy + arm, stroke, BLACK)
+        capsule(draw, cx - arm, cy - stroke / 2, cx + arm, cy + stroke / 2, stroke, symbol_color)
+        capsule(draw, cx - stroke / 2, cy - arm, cx + stroke / 2, cy + arm, stroke, symbol_color)
 
     def minus(cx, cy):
         cx, cy = cx * k, cy * k
-        capsule(draw, cx - arm, cy - stroke / 2, cx + arm, cy + stroke / 2, stroke, BLACK)
+        capsule(draw, cx - arm, cy - stroke / 2, cx + arm, cy + stroke / 2, stroke, symbol_color)
 
     def multiply(cx, cy):
         cx, cy = cx * k, cy * k
         off = MULT_OFFSET * k
         for dx, dy in ((1, 1), (1, -1)):
-            draw.line([(cx - off * dx, cy - off * dy), (cx + off * dx, cy + off * dy)], fill=BLACK, width=stroke)
+            draw.line(
+                [(cx - off * dx, cy - off * dy), (cx + off * dx, cy + off * dy)],
+                fill=symbol_color,
+                width=stroke,
+            )
             for x, y in ((cx - off * dx, cy - off * dy), (cx + off * dx, cy + off * dy)):
-                draw.ellipse([x - stroke / 2, y - stroke / 2, x + stroke / 2, y + stroke / 2], fill=BLACK)
+                draw.ellipse(
+                    [x - stroke / 2, y - stroke / 2, x + stroke / 2, y + stroke / 2],
+                    fill=symbol_color,
+                )
 
     def equals_key(cx, cy):
         cx, cy = cx * k, cy * k
@@ -71,12 +91,11 @@ def draw_symbols():
         box = [int(cx - half), int(cy - half), int(cx + half), int(cy + half)]
         gradient = Image.new("RGBA", (box[2] - box[0], box[3] - box[1]))
         pixels = gradient.load()
+        top = palette["orange_top"]
+        bottom = palette["orange_bottom"]
         for y in range(gradient.height):
             t = y / max(gradient.height - 1, 1)
-            color = tuple(
-                round(ORANGE_TOP[i] + (ORANGE_BOTTOM[i] - ORANGE_TOP[i]) * t)
-                for i in range(3)
-            ) + (255,)
+            color = tuple(round(top[i] + (bottom[i] - top[i]) * t) for i in range(3)) + (255,)
             for x in range(gradient.width):
                 pixels[x, y] = color
         mask = Image.new("L", gradient.size, 0)
@@ -95,7 +114,7 @@ def draw_symbols():
                 cx + BAR_HALF_W * k,
                 y0 + BAR_HALF_H * k,
                 BAR_HALF_H * 2 * k,
-                WHITE,
+                palette["bar"],
             )
 
     plus(CX1, CY1)
@@ -105,17 +124,17 @@ def draw_symbols():
     return layer.resize((SIZE, SIZE), Image.LANCZOS)
 
 
-def white_squircle():
+def squircle(fill):
     layer = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
     ImageDraw.Draw(layer).rounded_rectangle(
-        [0, 0, CANVAS - 1, CANVAS - 1], radius=LEGACY_RADIUS * SS, fill=WHITE
+        [0, 0, CANVAS - 1, CANVAS - 1], radius=LEGACY_RADIUS * SS, fill=fill
     )
     return layer.resize((SIZE, SIZE), Image.LANCZOS)
 
 
-def white_circle():
+def circle(fill):
     layer = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    ImageDraw.Draw(layer).ellipse([0, 0, CANVAS - 1, CANVAS - 1], fill=WHITE)
+    ImageDraw.Draw(layer).ellipse([0, 0, CANVAS - 1, CANVAS - 1], fill=fill)
     return layer.resize((SIZE, SIZE), Image.LANCZOS)
 
 
@@ -129,41 +148,53 @@ def scaled(symbols, scale):
 
 
 def write_adaptive_config(res):
-    adaptive = res / "mipmap-anydpi-v26"
-    adaptive.mkdir(parents=True, exist_ok=True)
     xml = """<?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/ic_launcher_background" />
     <foreground android:drawable="@mipmap/ic_launcher_foreground" />
 </adaptive-icon>
 """
-    (adaptive / "ic_launcher.xml").write_text(xml, encoding="utf-8")
-    (adaptive / "ic_launcher_round.xml").write_text(xml, encoding="utf-8")
-    (res / "values" / "ic_launcher_background.xml").write_text(
-        """<?xml version="1.0" encoding="utf-8"?>
+    for folder in ("mipmap-anydpi-v26", "mipmap-night-anydpi-v26"):
+        adaptive = res / folder
+        adaptive.mkdir(parents=True, exist_ok=True)
+        (adaptive / "ic_launcher.xml").write_text(xml, encoding="utf-8")
+        (adaptive / "ic_launcher_round.xml").write_text(xml, encoding="utf-8")
+
+
+def write_background_colors(res):
+    for folder, value in (
+        ("values", DAY["background_hex"]),
+        ("values-night", NIGHT["background_hex"]),
+    ):
+        directory = res / folder
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "ic_launcher_background.xml").write_text(
+            f"""<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ic_launcher_background">{value}</color>
 </resources>
 """,
-        encoding="utf-8",
-    )
+            encoding="utf-8",
+        )
 
 
-def main():
-    symbols = draw_symbols()
+def write_theme(res, icon_dir, palette, suffix, density_folder):
+    symbols = draw_symbols(palette)
     foreground = scaled(symbols, FOREGROUND_SCALE)
-    legacy = Image.alpha_composite(white_squircle(), symbols)
-    round_icon = Image.alpha_composite(white_circle(), symbols)
+    legacy = Image.alpha_composite(squircle(palette["background"]), symbols)
+    round_icon = Image.alpha_composite(circle(palette["background"]), symbols)
 
-    icon_dir = ROOT / "assets" / "icon"
-    legacy.save(icon_dir / "app_icon.png")
-    legacy.save(icon_dir / "app_icon_source.png")
-    legacy.resize((512, 512), Image.LANCZOS).save(icon_dir / "app_icon_512.png")
-    foreground.save(icon_dir / "app_icon_foreground.png")
+    legacy.save(icon_dir / f"app_icon{suffix}_source.png")
+    legacy.resize((512, 512), Image.LANCZOS).save(icon_dir / f"app_icon{suffix}_512.png")
+    if suffix == "":
+        legacy.save(icon_dir / "app_icon.png")
+        foreground.save(icon_dir / "app_icon_foreground.png")
+    else:
+        legacy.save(icon_dir / f"app_icon{suffix}.png")
+        foreground.save(icon_dir / f"app_icon_foreground{suffix}.png")
 
-    res = ROOT / "android" / "app" / "src" / "main" / "res"
     for name, size in DENSITIES.items():
-        folder = res / f"mipmap-{name}"
+        folder = res / density_folder(name)
         folder.mkdir(parents=True, exist_ok=True)
         legacy.resize((size, size), Image.LANCZOS).save(folder / "ic_launcher.png")
         round_icon.resize((size, size), Image.LANCZOS).save(folder / "ic_launcher_round.png")
@@ -171,8 +202,17 @@ def main():
         foreground.resize((fg_size, fg_size), Image.LANCZOS).save(
             folder / "ic_launcher_foreground.png"
         )
+
+
+def main():
+    icon_dir = ROOT / "assets" / "icon"
+    res = ROOT / "android" / "app" / "src" / "main" / "res"
+
+    write_theme(res, icon_dir, DAY, "", lambda name: f"mipmap-{name}")
+    write_theme(res, icon_dir, NIGHT, "_dark", lambda name: f"mipmap-night-{name}")
     write_adaptive_config(res)
-    print("icons generated")
+    write_background_colors(res)
+    print("icons generated: day + night")
 
 
 if __name__ == "__main__":
