@@ -6,4 +6,10 @@
     <string name="shortcut_date_long">打开日期计算</string>
     <string name="shortcut_currency_short">汇率换算</string>
     <string name="shortcut_currency_long">打开汇率换算</string>
+    <string name="widget_standard_label">标准计算器</string>
+    <string name="widget_standard_description">标准计算器小组件，支持 3×3 与 4×4 尺寸</string>
+    <string name="widget_time_label">时间计算</string>
+    <string name="widget_time_description">时长加减小组件，支持 3×3 与 4×4 尺寸</string>
+    <string name="widget_scientific_label">科学计算器</string>
+    <string name="widget_scientific_description">科学计算器小组件，固定 4×4 尺寸</string>
 </resources>

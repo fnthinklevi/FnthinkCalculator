@@ -387,6 +387,17 @@ integration_test/                # 设备级 integration smoke
 - 覆盖：直系四代（高祖/曾祖/祖/父与孙/曾孙/玄孙）、伯叔姑舅姨及其配偶、堂表兄弟姐妹及其配偶与子女、侄甥辈及其配偶、祖辈兄弟姐妹及其配偶、子女配偶与亲家、配偶的兄弟姐妹及其子女与配偶、配偶的伯叔姑舅姨（如 `夫父兄 → 伯公`）。
 - 未收录的路径返回 `null`，页面显示「暂时无法识别」。
 
+### 6.13 桌面小组件
+
+- 三类 AppWidget：标准计算器、时间计算（均支持 3×3 / 4×4 自适应）、科学计算器（固定 4×4）。
+- 原生 RemoteViews 实现，不依赖 Flutter 引擎；provider 位于 `android/app/src/main/kotlin/com/fnthink/FnthinkCalculator/widget/`，布局 `res/layout/widget_calculator.xml`，配置 `res/xml/widget_*_info.xml`。
+- 标准/科学求值：`WidgetMath` 用 BigDecimal 做四则与乘方，函数用 double 并按 12 位有效数字收敛；科学组件通过 `f` 键在基本/科学两页键盘间切换。
+- 时间计算：`WidgetTime` 维护 values/operators/当前段，支持 `HH:MM:SS`、冒号切段、±、连续加减与 60 进制归一化。
+- 状态按 widgetId 存在 `fnthink_widget_state` SharedPreferences；点击通过带 `widget_id`/`key` 的广播回 provider 后刷新 RemoteViews。
+- 科学函数角度单位读取 Flutter 设置（`flutter.settings.angleUnit.v1`），默认角度制。
+- 颜色走 `values/colors.xml` 与 `values-night/colors.xml`，随系统深色模式切换。
+- 测试：`android/app/src/test/.../WidgetEngineTest.kt`（8 项，`gradlew testDebugUnitTest`）；`test/guards/app_widget_guard_test.dart` 校验 Manifest、尺寸与布局契约。
+
 ## 7. 闸门、冒烟与提交
 
 ### 7.1 闸门测试
