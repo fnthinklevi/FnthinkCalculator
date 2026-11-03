@@ -17,6 +17,25 @@
 
 ---
 
+## 0.3.00+8（2026-11-03 发布，tag `v0.3.00`）
+
+当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator_0.3.00.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.9MB。
+- SHA-256：`99065704973f17981375da4b5555f6eb0b95cee6c04c03a1a7e00f68e6ce0238`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：263 项 Flutter 测试 + 12 项 Android 组件单元测试全绿；`tool/check_apk_purity.sh` 通过。
+
+### 2026-11-03 发布 0.3.00+8
+
+- 桌面小组件：标准计算器与时间计算支持 3×3 / 4×4 自适应，科学计算器固定 4×4；组件内直接计算，深色模式自动换色。
+- 时间计算：新增时间 ×/÷ 倍数（乘除优先于加减、倍数支持小数、除零/负倍数报错、结果四舍五入到秒），应用与桌面小组件同步。
+- 启动图标：新增深色模式变体（`values-night` / `mipmap-night`），随系统主题自动切换。
+- 闸门：格式检查、`flutter analyze`、263 项 Flutter 测试、12 项 Android 单元测试通过；签名纯 arm64 19.9MB；SHA-256 `99065704973f17981375da4b5555f6eb0b95cee6c04c03a1a7e00f68e6ce0238`；`PURITY CHECK PASSED`。
+- 模拟器：`ci_api34_pixel6`（API 34 / 1080×2400）integration smoke 通过；发行 APK 安装成功，`versionName=0.3.00`、`versionCode=8`；时间计算 `01:00:00 × 2 = 02:00:00` 走查通过；三类 widget provider 与三个桌面快捷方式注册确认；模拟器已关闭，真机未安装。
+- GitHub Release：`v0.3.00` 发布并上传 `FnthinkCalculator_0.3.00.apk`。
+
 ## 0.2.03+7（2026-11-03 发布，tag `v0.2.03`）
 
 当前构建：
