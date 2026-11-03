@@ -257,8 +257,7 @@ class _ValueRow extends StatelessWidget {
                 ),
               ),
             ),
-            const Spacer(),
-            Flexible(
+            Expanded(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerRight,

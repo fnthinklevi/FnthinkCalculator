@@ -313,6 +313,8 @@ integration_test/                # 设备级 integration smoke
 - 显示：字号 24–72sp 自适应，千分位，历史 2 行 + 历史弹层，预览行 `= ...`。
 - 科学：竖屏功能条 + 标准键盘；横屏完整科学面板；`2nd`、`DEG/RAD`。
 - 交互：按键缩放 + 触感；长按退格清当前，长按 C 清历史（确认），长按结果复制；错误态可一键恢复。
+- 换算类页面数值列统一右对齐：数值侧使用 `Expanded + FittedBox(alignment: centerRight)`，不要用 `Spacer + Flexible` 平分剩余宽度。
+- 顶部胶囊标签：选中文字用主文字色并加粗，未选中用次要文字色，两态不得同色。
 - 适配 360–430dp 手机、横屏、平板最大宽度、字体缩放 1.3、深色模式。
 
 ### 6.6 存储（T5 已实现）
@@ -376,6 +378,13 @@ integration_test/                # 设备级 integration smoke
 - 生成脚本：`tool/make_icons.py`。
 - 输出：mdpi～xxxhdpi 的 `ic_launcher.png`、`ic_launcher_round.png`、`ic_launcher_foreground.png`，以及 `mipmap-anydpi-v26` 自适应图标。
 - 自适应背景色：`#FD6500`。
+
+### 6.12 称呼计算
+
+- 实现文件：`lib/core/utils/kinship.dart`；页面在 `lib/features/multifunction/kinship/kinship_page.dart`。
+- 词表：夫/妻/父/母/子/女/兄/弟/姐/妹，最长 8 段；正向查 `_direct`，反向查 `_reciprocal`。
+- 覆盖：直系三代、伯叔姑舅姨及其配偶、堂表兄弟姐妹、侄甥辈、子女配偶与亲家、配偶的兄弟姐妹及其子女、配偶的伯叔姑舅姨（如 `夫父兄 → 伯公`）。
+- 未收录的路径返回 `null`，页面显示「暂时无法识别」。
 
 ## 7. 闸门、冒烟与提交
 

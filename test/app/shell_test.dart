@@ -28,6 +28,34 @@ void main() {
     expect(find.byKey(const Key('calculator-page')), findsOneWidget);
   });
 
+  testWidgets('顶部标签选中与未选中文字颜色区分', (tester) async {
+    await tester.pumpWidget(
+      FnthinkCalculatorApp(settings: SettingsController()),
+    );
+
+    Color tabColor(String label) {
+      final style = tester.widget<AnimatedDefaultTextStyle>(
+        find
+            .ancestor(
+              of: find.text(label),
+              matching: find.byType(AnimatedDefaultTextStyle),
+            )
+            .first,
+      );
+      return style.style.color!;
+    }
+
+    final selected = tabColor('计算');
+    final unselected = tabColor('换算');
+    expect(selected, isNot(unselected));
+
+    await tester.tap(find.byKey(const Key('tab-converter')));
+    await tester.pumpAndSettle();
+
+    expect(tabColor('换算'), selected);
+    expect(tabColor('计算'), unselected);
+  });
+
   testWidgets('菜单可以打开设置并切换深色模式', (tester) async {
     final settings = SettingsController();
     await tester.pumpWidget(FnthinkCalculatorApp(settings: settings));

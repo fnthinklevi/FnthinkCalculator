@@ -79,6 +79,13 @@ void main() {
     expect(textOf(tester, 'currency-status'), contains('汇率数据由 test 提供'));
     expect(textOf(tester, 'currency-status'), contains('2026年10月29日'));
     expect(find.byKey(const Key('currency-swap')), findsNothing);
+
+    final rightEdges = [
+      for (var index = 0; index < 3; index++)
+        tester.getTopRight(find.byKey(Key('currency-value-$index'))).dx,
+    ];
+    expect(rightEdges[1], closeTo(rightEdges[0], 0.5));
+    expect(rightEdges[2], closeTo(rightEdges[0], 0.5));
   });
 
   testWidgets('输入金额后三行联动', (tester) async {

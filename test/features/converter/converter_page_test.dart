@@ -55,6 +55,14 @@ void main() {
     await tester.pumpWidget(harness(UnitData.length));
     expect(find.byType(TextField), findsNothing);
     expect(resultText(tester), '100');
+    expect(
+      tester.getTopRight(find.byKey(const Key('converter-input'))).dx,
+      closeTo(
+        tester.getTopRight(find.byKey(const Key('converter-result'))).dx,
+        0.5,
+      ),
+      reason: '两行数值应共用同一右边界',
+    );
 
     await enterNumber(tester, '100');
     expect(inputText(tester), '100');

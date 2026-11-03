@@ -237,7 +237,9 @@ class _TabPill extends StatelessWidget {
                       fontWeight: index == selectedIndex
                           ? FontWeight.w500
                           : FontWeight.w400,
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: index == selectedIndex
+                          ? Theme.of(context).colorScheme.onSurface
+                          : CalcColors.secondaryText(context),
                     ),
                     child: Text(tabs[index]),
                   ),

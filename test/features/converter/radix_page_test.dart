@@ -41,6 +41,14 @@ void main() {
     }
     expect(textOf(tester, 'radix-value-0'), '255');
     expect(textOf(tester, 'radix-value-1'), '11111111');
+    expect(
+      tester.getTopRight(find.byKey(const Key('radix-value-1'))).dx,
+      closeTo(
+        tester.getTopRight(find.byKey(const Key('radix-value-0'))).dx,
+        0.5,
+      ),
+      reason: '两行数值应共用同一右边界',
+    );
   });
 
   testWidgets('二进制禁用非法数字，激活后首键替换', (tester) async {

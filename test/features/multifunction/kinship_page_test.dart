@@ -68,6 +68,22 @@ void main() {
     expect(textOf(tester, 'kinship-description'), '我');
   });
 
+  testWidgets('丈夫的爸爸的哥哥可识别并支持互查', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness());
+
+    await tapKey(tester, 'kinship-key-夫');
+    await tapKey(tester, 'kinship-key-父');
+    await tapKey(tester, 'kinship-key-兄');
+    expect(textOf(tester, 'kinship-preview'), '伯公');
+
+    await tapKey(tester, 'kinship-equals');
+    expect(textOf(tester, 'kinship-result'), '伯公');
+
+    await tapKey(tester, 'kinship-reverse');
+    expect(textOf(tester, 'kinship-result'), '侄媳');
+  });
+
   testWidgets('无法识别的路径显示提示', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(harness());
