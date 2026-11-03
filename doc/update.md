@@ -17,6 +17,27 @@
 
 ---
 
+## 0.2.03+7（2026-11-03 发布，tag `v0.2.03`）
+
+当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator_0.2.03.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.8MB。
+- SHA-256：`5a5749b10cdf35ba336df4f2744764ed1a50cf1db59811d540bf2110a8704610`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：240 项全绿；`tool/check_apk_purity.sh` 通过。
+
+### 2026-11-03 发布 0.2.03+7
+
+- 桌面快捷方式：长按应用图标可直达「时间计算 / 日期计算 / 汇率换算」，支持冷启动与热启动；快捷方式图标提供深色模式变体，随系统主题切换。
+- 数值对齐：长度/面积等换算页、汇率页、进制页的数值统一右对齐。
+- 顶部标签：选中态主色加粗、未选中态次要色，修复点击时两个标签同色。
+- 称呼计算：词表扩充至 380 条正向/互查路径，覆盖堂表亲及其配偶/子女、侄甥辈配偶、祖辈兄弟姐妹配偶、高祖/玄孙等。
+- 维护：golden 基线仅在 Windows 宿主校验，修复 CI/Release Check 长期失败的 2 项；actions 升级到 v5。
+- 闸门：格式检查、`flutter analyze`、240 项测试通过；签名纯 arm64 19.8MB；SHA-256 `5a5749b10cdf35ba336df4f2744764ed1a50cf1db59811d540bf2110a8704610`；`PURITY CHECK PASSED`。
+- 模拟器：`ci_api34_pixel6`（API 34 / 1080×2400）integration smoke 通过；发行 APK 安装成功，`versionName=0.2.03`、`versionCode=7`；快捷方式菜单与冷启动直达、换算右对齐、称呼 `夫父兄 → 伯公`、深色模式快捷方式图标走查通过；模拟器已关闭，真机未安装。
+- GitHub Release：`v0.2.03` 发布并上传 `FnthinkCalculator_0.2.03.apk`。
+
 ## 0.2.02+6（2026-11-01 发布，tag `v0.2.02`）
 
 当前构建：

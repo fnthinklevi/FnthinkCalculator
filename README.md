@@ -10,8 +10,8 @@
 [![AGP](https://badgen.net/badge/AGP/9.4.1/3DDC84?icon=android)](https://developer.android.com/build/releases/gradle-plugin)
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
-[![Version](https://badgen.net/badge/Version/0.2.02%2B6/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/226%20passed/green)](#质量保障)
+[![Version](https://badgen.net/badge/Version/0.2.03%2B7/007AFF?icon=android)](#版本与变更)
+[![Tests](https://badgen.net/badge/Tests/240%20passed/green)](#质量保障)
 [![CI](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
@@ -161,7 +161,7 @@ FnthinkCalculator/
 │   ├── update.md                     # 版本变更记录
 │   └── release.md                    # 标准发版流程
 ├── integration_test/                 # 设备级 integration smoke
-├── test/                             # 43 个测试文件
+├── test/                             # 46 个测试文件
 ├── tool/
 │   ├── release.sh                    # 发版闸门：格式/测试/构建/归档
 │   ├── smoke_emulator.sh             # 模拟器 integration 冒烟
@@ -170,7 +170,7 @@ FnthinkCalculator/
 │   ├── generate_voice_clips.py       # 构建期生成离线语音
 │   └── make_icons.py                 # 生成启动图标与自适应图标
 ├── .github/workflows/                # CI / Emulator Smoke / Release Check
-├── pubspec.yaml                      # version: 0.2.02+6
+├── pubspec.yaml                      # version: 0.2.03+7
 └── README.md
 ```
 
@@ -244,7 +244,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - `android/key.properties`、`*.jks`、`*.keystore` 已加入 `.gitignore`，**禁止提交或上传**
 - 缺少 `key.properties` 时回退 debug 签名，仅用于本机开发；发布包必须通过纯净检查
 - `tool/build_release_arm64.sh` 通过 `--android-project-arg arm64Only=true` 启用 arm64-only；debug/integration 不启用，保留 x86_64 供模拟器冒烟
-- 当前构建：`0.2.02+6`，纯 arm64-v8a，约 19.7MB；每次构建的大小与 SHA-256 见 [doc/update.md](doc/update.md)
+- 当前构建：`0.2.03+7`，纯 arm64-v8a，约 19.8MB；每次构建的大小与 SHA-256 见 [doc/update.md](doc/update.md)
 
 纯净检查通过时输出 `PURITY CHECK PASSED`，并打印 APK 大小与 SHA-256。
 
@@ -256,11 +256,11 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 226 例全绿 |
-| 测试文件 | 43 个 |
+| `flutter test` | 240 例全绿 |
+| 测试文件 | 46 个 |
 | integration smoke | 1 条（模拟器） |
-| Dart 源码 | 69 个文件 / 约 1.43 万行 |
-| 测试代码 | 约 4,671 行 |
+| Dart 源码 | 73 个文件 / 约 1.51 万行 |
+| 测试代码 | 约 5,054 行 |
 | `flutter analyze` | 无问题 |
 | release APK | 纯 arm64-v8a / 19.7MB / 非 debug 签名 |
 
@@ -286,7 +286,7 @@ bash tool/smoke_emulator.sh
 
 GitHub Actions：
 
-- `ci.yml`：push/PR 执行格式、analyze、226 项测试（2 项 golden 仅在本机 Windows 校验）
+- `ci.yml`：push/PR 执行格式、analyze、240 项测试（2 项 golden 仅在本机 Windows 校验）
 - `smoke.yml`：tag/manual/每周二执行模拟器 integration smoke
 - `release-check.yml`：tag 校验 `vX.Y.Z` 与 `pubspec` 版本、产物命名契约并跑完整测试
 - 签名 release APK 仍只在本地生成，CI 不接触 keystore、不上传 APK
@@ -328,9 +328,9 @@ GitHub Actions：
 
 ## 版本与变更
 
-- 版本规则：`A.B.CC+构建号`，补丁位固定两位；当前发布 `0.2.02+6`
+- 版本规则：`A.B.CC+构建号`，补丁位固定两位；当前发布 `0.2.03+7`
 - 历史版本：`0.2.0+4`（规则生效前的构建，tag `v0.2.0`）
-- 当前版本：`0.2.02+6`
+- 当前版本：`0.2.03+7`
 - 版本变更记录：[doc/update.md](doc/update.md)
 - 技术基线：[doc/base.md](doc/base.md)
 - UI/交互标准：[doc/xiaomi-reference.md](doc/xiaomi-reference.md)
