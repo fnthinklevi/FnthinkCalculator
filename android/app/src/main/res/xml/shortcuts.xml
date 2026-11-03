@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="time_calculation"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_time"
+        android:shortcutShortLabel="@string/shortcut_time_short"
+        android:shortcutLongLabel="@string/shortcut_time_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.fnthink.FnthinkCalculator"
+            android:targetClass="com.fnthink.FnthinkCalculator.MainActivity">
+            <extra
+                android:name="shortcut_type"
+                android:value="time_calculation" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="date_calculation"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_date"
+        android:shortcutShortLabel="@string/shortcut_date_short"
+        android:shortcutLongLabel="@string/shortcut_date_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.fnthink.FnthinkCalculator"
+            android:targetClass="com.fnthink.FnthinkCalculator.MainActivity">
+            <extra
+                android:name="shortcut_type"
+                android:value="date_calculation" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="currency"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_currency"
+        android:shortcutShortLabel="@string/shortcut_currency_short"
+        android:shortcutLongLabel="@string/shortcut_currency_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.fnthink.FnthinkCalculator"
+            android:targetClass="com.fnthink.FnthinkCalculator.MainActivity">
+            <extra
+                android:name="shortcut_type"
+                android:value="currency" />
+        </intent>
+    </shortcut>
+</shortcuts>

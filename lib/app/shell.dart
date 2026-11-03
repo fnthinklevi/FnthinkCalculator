@@ -8,6 +8,8 @@ import '../features/converter/converter_home_page.dart';
 import '../features/settings/settings_page.dart';
 import '../theme/tokens.dart';
 import 'app_scope.dart';
+import 'app_shortcuts.dart';
+import 'settings_controller.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, this.calculatorController});
@@ -23,6 +25,8 @@ class _AppShellState extends State<AppShell> {
   late final CalculatorController _controller;
   late final bool _ownsController;
   late final List<Widget> _pages;
+  SettingsController? _settings;
+  AppShortcut? _pendingShortcut;
 
   static const _tabs = ['计算', '换算'];
   static const _tabKeys = [Key('tab-calculator'), Key('tab-converter')];
@@ -36,14 +40,52 @@ class _AppShellState extends State<AppShell> {
       CalculatorPage(controller: _controller),
       const ConverterHomePage(),
     ];
+    AppShortcuts.listen(_handleShortcut);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _readInitialShortcut());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final settings = AppScope.of(context);
+    if (!identical(settings, _settings)) {
+      _settings?.removeListener(_onSettingsChanged);
+      _settings = settings;
+      settings.addListener(_onSettingsChanged);
+    }
   }
 
   @override
   void dispose() {
+    _settings?.removeListener(_onSettingsChanged);
+    AppShortcuts.stopListening();
     if (_ownsController) {
       _controller.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _readInitialShortcut() async {
+    final shortcut = await AppShortcuts.initialShortcut();
+    if (shortcut != null && mounted) {
+      _handleShortcut(shortcut);
+    }
+  }
+
+  void _handleShortcut(AppShortcut? shortcut) {
+    if (shortcut == null || !mounted) return;
+    if (_settings?.privacyAccepted != true) {
+      _pendingShortcut = shortcut;
+      return;
+    }
+    AppShortcuts.open(context, shortcut);
+  }
+
+  void _onSettingsChanged() {
+    final pending = _pendingShortcut;
+    if (pending == null || _settings?.privacyAccepted != true) return;
+    _pendingShortcut = null;
+    AppShortcuts.open(context, pending);
   }
 
   void _selectTab(int index) {

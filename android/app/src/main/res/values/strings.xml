@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_time_short">时间计算</string>
+    <string name="shortcut_time_long">打开时间计算</string>
+    <string name="shortcut_date_short">日期计算</string>
+    <string name="shortcut_date_long">打开日期计算</string>
+    <string name="shortcut_currency_short">汇率换算</string>
+    <string name="shortcut_currency_long">打开汇率换算</string>
+</resources>

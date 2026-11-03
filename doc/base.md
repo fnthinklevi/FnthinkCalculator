@@ -51,6 +51,14 @@
 - 字节码目标 21 已用 `javap -verbose` 验证，`major version: 65`。
 - `android.newDsl=false` 仍保留，因为 Flutter Gradle 插件仍在使用旧 variant API；AGP 会给出弃用警告，属于已知警告。
 
+### 2.2 桌面快捷方式
+
+- 静态快捷方式声明在 `android/app/src/main/res/xml/shortcuts.xml`，Manifest 的 `MainActivity` 挂 `android.app.shortcuts`；三项固定为 `time_calculation`、`date_calculation`、`currency`。
+- 每个快捷方式通过 `shortcut_type` extra 启动 `MainActivity`；`MainActivity` 用 `fnthink/app_shortcuts` 通道提供 `getInitialShortcut`，并在 `onNewIntent` 推送热启动事件。
+- Flutter 侧 `lib/app/app_shortcuts.dart` 负责 id 映射与页面路由；`AppShell` 在冷启动/热启动时打开对应页面，未同意隐私时暂存到同意后再打开，打开前回到导航栈首层避免叠页。
+- 图标：`res/drawable/ic_shortcut_*.xml` 为日间（`#FF6900`），`res/drawable-night/ic_shortcut_*.xml` 为深色模式（`#FFB27A`），由系统夜间资源限定符自动切换。
+- 守卫：`test/guards/app_shortcuts_guard_test.dart` 校验快捷方式 id、intent、`shortcut_type`、Manifest 挂载与日夜图标形状一致；`test/app/app_shortcuts_test.dart` 覆盖冷启动、热启动与隐私暂存路由。
+
 ## 3. 仓库与镜像
 
 ### 3.1 Gradle 发行包
