@@ -4,12 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../app/app_scope.dart';
+import '../../../core/math/rational.dart';
 import '../../../core/utils/duration_calc.dart';
+import '../../../core/utils/time_math.dart';
 import '../../../theme/tokens.dart';
 import '../../../widgets/calc_key.dart';
 import 'time_widgets.dart';
 
 enum _TimeSegment { hours, minutes, seconds }
+
+class _ExprToken {
+  _ExprToken.duration(BigRational seconds)
+    : operand = TimeDurationOperand(seconds),
+      displayText = null;
+
+  _ExprToken.scalar(BigRational value, this.displayText)
+    : operand = TimeScalarOperand(value);
+
+  final TimeOperand operand;
+  final String? displayText;
+
+  bool get isScalar => operand is TimeScalarOperand;
+  BigRational get seconds => (operand as TimeDurationOperand).seconds;
+  BigRational get scalar => (operand as TimeScalarOperand).value;
+}
 
 class TimeCalculationView extends StatelessWidget {
   const TimeCalculationView({super.key});
@@ -27,8 +45,8 @@ class _DurationArithmeticView extends StatefulWidget {
 }
 
 class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
-  final List<int> _values = [];
-  final List<String> _operators = [];
+  final List<_ExprToken> _operands = [];
+  final List<TimeOperator> _operators = [];
   int? _result;
   bool _showResult = false;
   bool _negative = false;
@@ -39,45 +57,91 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
   int _hours = 0;
   int _minutes = 0;
   int _seconds = 0;
+  String _scalarBuffer = '';
+  String? _error;
+
+  bool get _isScalarEntry =>
+      !_showResult &&
+      _error == null &&
+      _operators.isNotEmpty &&
+      (_operators.last == TimeOperator.multiply ||
+          _operators.last == TimeOperator.divide);
+
+  bool get _isCurrentEntryEmpty =>
+      _isScalarEntry ? _scalarBuffer.isEmpty : _buffer.isEmpty;
 
   int get _entrySeconds {
     final value = _hours * 3600 + _minutes * 60 + _seconds;
     return _negative ? -value : value;
   }
 
-  int get _displaySeconds => _showResult ? _result! : _entrySeconds;
-
   String get _displayText {
+    if (_error != null) return '—';
     if (_showResult && _carryToDays) {
       return formatDuration(_result!);
     }
-    return formatDurationAccumulated(_displaySeconds);
+    if (_showResult) {
+      return formatDurationAccumulated(_result!);
+    }
+    if (_isScalarEntry) {
+      return _scalarBuffer.isEmpty ? '0' : _scalarBuffer;
+    }
+    return formatDurationAccumulated(_entrySeconds);
   }
 
   String get _expressionText {
+    if (_error != null) {
+      return '${_expressionParts(includeCurrentEntry: false).join(' ')} =';
+    }
     if (_showResult) {
       return '${_expressionParts(includeCurrentEntry: false).join(' ')} =';
     }
-    if (_values.isEmpty) return '时 : 分 : 秒';
+    if (_operands.isEmpty) return '时 : 分 : 秒';
     return _expressionParts(includeCurrentEntry: true).join(' ');
   }
 
   List<String> _expressionParts({required bool includeCurrentEntry}) {
     final parts = <String>[];
-    for (var index = 0; index < _values.length; index++) {
-      parts.add(formatDurationAccumulated(_values[index]));
-      if (index < _operators.length) parts.add(_operators[index]);
+    for (var index = 0; index < _operands.length; index++) {
+      final token = _operands[index];
+      parts.add(
+        token.isScalar
+            ? token.displayText ?? '0'
+            : formatDurationAccumulated(token.seconds.toBigInt().toInt()),
+      );
+      if (index < _operators.length) {
+        parts.add(_operatorSymbol(_operators[index]));
+      }
     }
     if (includeCurrentEntry &&
         _operators.isNotEmpty &&
-        _values.length == _operators.length &&
-        _buffer.isNotEmpty) {
-      parts.add(formatDurationAccumulated(_entrySeconds));
+        _operands.length == _operators.length) {
+      if (_isScalarEntry) {
+        if (_scalarBuffer.isNotEmpty) parts.add(_scalarBuffer);
+      } else if (_buffer.isNotEmpty) {
+        parts.add(formatDurationAccumulated(_entrySeconds));
+      }
     }
     return parts;
   }
 
-  int get _totalSeconds => _showResult ? _result! : _entrySeconds;
+  String _operatorSymbol(TimeOperator operator) {
+    return switch (operator) {
+      TimeOperator.add => '+',
+      TimeOperator.subtract => '−',
+      TimeOperator.multiply => '×',
+      TimeOperator.divide => '÷',
+    };
+  }
+
+  String get _totalText {
+    if (_error != null) return '—';
+    if (_showResult) {
+      return '共 ${formatDurationAccumulated(_result!)}';
+    }
+    if (_isScalarEntry) return '倍数';
+    return '共 ${formatDurationAccumulated(_entrySeconds)}';
+  }
 
   int get _activeValue => switch (_active) {
     _TimeSegment.hours => _hours,
@@ -120,20 +184,26 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
     _active = _TimeSegment.hours;
     _buffer = '';
     _negative = false;
+    _scalarBuffer = '';
   }
 
   void _resetCalculation() {
     _resetEntry();
-    _values.clear();
+    _operands.clear();
     _operators.clear();
     _result = null;
     _showResult = false;
+    _error = null;
   }
 
   void _appendDigit(String digit) {
     setState(() {
-      if (_showResult) {
+      if (_error != null || _showResult) {
         _resetCalculation();
+      }
+      if (_isScalarEntry) {
+        _appendScalarDigit(digit);
+        return;
       }
       if (_buffer.isEmpty) {
         _buffer = '0';
@@ -152,14 +222,29 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
     });
   }
 
+  void _appendScalarDigit(String digit) {
+    if (_scalarBuffer.length >= 12) return;
+    if (_scalarBuffer.isEmpty) {
+      _scalarBuffer = digit == '0' ? '0' : digit;
+      return;
+    }
+    if (_scalarBuffer == '0') {
+      if (digit == '0') return;
+      _scalarBuffer = digit;
+      return;
+    }
+    _scalarBuffer += digit;
+  }
+
   void _appendDoubleZero() {
     _appendDigit('0');
     _appendDigit('0');
   }
 
   void _selectSegment(_TimeSegment segment) {
+    if (_isScalarEntry) return;
     setState(() {
-      if (_showResult) {
+      if (_error != null || _showResult) {
         _resetCalculation();
       }
       _active = segment;
@@ -167,10 +252,14 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
     });
   }
 
-  void _colonPressed() {
+  void _colonOrDotPressed() {
     setState(() {
-      if (_showResult) {
+      if (_error != null || _showResult) {
         _resetCalculation();
+      }
+      if (_isScalarEntry) {
+        _appendScalarDot();
+        return;
       }
       _active = switch (_active) {
         _TimeSegment.hours => _TimeSegment.minutes,
@@ -181,13 +270,25 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
     });
   }
 
-  void _operatorPressed(String operator) {
+  void _appendScalarDot() {
+    if (_scalarBuffer.contains('.') || _scalarBuffer.length >= 12) return;
+    if (_scalarBuffer.isEmpty) {
+      _scalarBuffer = '0.';
+    } else {
+      _scalarBuffer += '.';
+    }
+  }
+
+  void _operatorPressed(TimeOperator operator) {
     setState(() {
+      if (_error != null) {
+        _resetCalculation();
+      }
       if (_showResult) {
         final base = _result!;
-        _values
+        _operands
           ..clear()
-          ..add(base);
+          ..add(_ExprToken.duration(BigRational.fromInt(base)));
         _operators
           ..clear()
           ..add(operator);
@@ -197,38 +298,63 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
         return;
       }
       if (_operators.isNotEmpty &&
-          _values.length == _operators.length &&
-          _buffer.isEmpty) {
+          _operands.length == _operators.length &&
+          _isCurrentEntryEmpty) {
         _operators[_operators.length - 1] = operator;
+        _resetEntry();
         return;
       }
-      _values.add(_entrySeconds);
+      _appendCurrentOperand();
       _operators.add(operator);
       _resetEntry();
     });
   }
 
+  void _appendCurrentOperand() {
+    if (_isScalarEntry) {
+      final text = _scalarBuffer.isEmpty ? '0' : _scalarBuffer;
+      final value = BigRational.tryParse(text) ?? BigRational.zero;
+      _operands.add(_ExprToken.scalar(value, text));
+      return;
+    }
+    _operands.add(_ExprToken.duration(BigRational.fromInt(_entrySeconds)));
+  }
+
   void _equalsPressed() {
-    if (_showResult || _values.isEmpty || _operators.isEmpty) return;
+    if (_showResult ||
+        _error != null ||
+        _operands.isEmpty ||
+        _operators.isEmpty) {
+      return;
+    }
     setState(() {
-      if (_values.length == _operators.length) {
-        _values.add(_entrySeconds);
+      if (_operands.length == _operators.length) {
+        _appendCurrentOperand();
       }
-      var total = _values.first;
-      for (var index = 0; index < _operators.length; index++) {
-        total = _operators[index] == '+'
-            ? total + _values[index + 1]
-            : total - _values[index + 1];
+      try {
+        final seconds = evaluateTimeExpression(
+          operands: [for (final token in _operands) token.operand],
+          operators: List<TimeOperator>.of(_operators),
+        );
+        if (seconds.abs() > BigInt.from(1000000000000)) {
+          throw const TimeMathException('结果过大');
+        }
+        _result = seconds.toInt();
+        _showResult = true;
+        _error = null;
+      } on TimeMathException catch (exception) {
+        _result = null;
+        _showResult = false;
+        _error = exception.message;
       }
-      _result = total;
-      _showResult = true;
       _resetEntry();
     });
   }
 
   void _signPressed() {
+    if (_isScalarEntry) return;
     setState(() {
-      if (_showResult) {
+      if (_error != null || _showResult) {
         _resetCalculation();
       }
       _negative = !_negative;
@@ -237,8 +363,18 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
 
   void _backspacePressed() {
     setState(() {
+      if (_error != null) {
+        _resetCalculation();
+        return;
+      }
       if (_showResult) {
         _resetCalculation();
+        return;
+      }
+      if (_isScalarEntry) {
+        if (_scalarBuffer.isNotEmpty) {
+          _scalarBuffer = _scalarBuffer.substring(0, _scalarBuffer.length - 1);
+        }
         return;
       }
       if (_buffer.isEmpty) {
@@ -286,7 +422,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
           child: _displayCard(context),
         ),
         Expanded(child: _keypad(press)),
@@ -309,12 +445,14 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
           Row(
             children: [
               Text(
-                _showResult ? '结果' : '输入',
+                _error != null
+                    ? '错误'
+                    : (_showResult ? '结果' : (_isScalarEntry ? '倍数' : '输入')),
                 style: TextStyle(fontSize: 15, color: secondary),
               ),
               const Spacer(),
               Text(
-                '共 ${formatDurationAccumulated(_totalSeconds)}',
+                _totalText,
                 key: const Key('duration-calc-total-seconds'),
                 style: TextStyle(fontSize: 15, color: secondary),
               ),
@@ -329,34 +467,58 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
             textAlign: TextAlign.right,
             style: TextStyle(fontSize: 15, color: secondary),
           ),
-          const SizedBox(height: 2),
-          SizedBox(
-            width: double.infinity,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerRight,
-              child: Text(
-                _displayText,
-                key: const Key('duration-calc-display'),
-                style: TextStyle(
-                  fontSize: 44,
-                  fontWeight: FontWeight.w600,
-                  fontFeatures: CalcText.tabular,
-                  color: Theme.of(context).colorScheme.onSurface,
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              key: const Key('duration-calc-error'),
+              style: const TextStyle(fontSize: 15, color: CalcColors.error),
+            ),
+          ] else ...[
+            const SizedBox(height: 2),
+            SizedBox(
+              width: double.infinity,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  _displayText,
+                  key: const Key('duration-calc-display'),
+                  style: TextStyle(
+                    fontSize: 44,
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: CalcText.tabular,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              _segmentChip(_TimeSegment.hours, '时', _chipHours.toString()),
-              const SizedBox(width: 6),
-              _segmentChip(_TimeSegment.minutes, '分', twoDigits(_chipMinutes)),
-              const SizedBox(width: 6),
-              _segmentChip(_TimeSegment.seconds, '秒', twoDigits(_chipSeconds)),
-            ],
-          ),
+            const SizedBox(height: 6),
+            if (_isScalarEntry)
+              Text(
+                '乘除倍数：支持非负整数或小数',
+                key: const Key('duration-scalar-hint'),
+                style: TextStyle(fontSize: 13, color: secondary),
+              )
+            else
+              Row(
+                children: [
+                  _segmentChip(_TimeSegment.hours, '时', _chipHours.toString()),
+                  const SizedBox(width: 6),
+                  _segmentChip(
+                    _TimeSegment.minutes,
+                    '分',
+                    twoDigits(_chipMinutes),
+                  ),
+                  const SizedBox(width: 6),
+                  _segmentChip(
+                    _TimeSegment.seconds,
+                    '秒',
+                    twoDigits(_chipSeconds),
+                  ),
+                ],
+              ),
+          ],
         ],
       ),
     );
@@ -419,6 +581,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
       IconData? icon,
       bool operator = false,
       bool equals = false,
+      bool enabled = true,
       required VoidCallback onTap,
     }) {
       return CalcKey(
@@ -428,19 +591,20 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
         icon: icon,
         isOperator: operator,
         isEquals: equals,
+        enabled: enabled,
         onPressed: () => press(onTap),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
       child: LayoutBuilder(
         builder: (context, constraints) {
           const gap = CalcSpacing.keyGap;
           final diameter = math
               .min(
                 (constraints.maxWidth - gap * 3) / 4,
-                (constraints.maxHeight - gap * 4) / 5,
+                (constraints.maxHeight - gap * 5) / 6,
               )
               .clamp(32.0, 82.0);
 
@@ -449,13 +613,12 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
             required int col,
             required int row,
             int colSpan = 1,
-            int rowSpan = 1,
           }) {
             return Positioned(
               left: col * (diameter + gap),
               top: row * (diameter + gap),
               width: diameter * colSpan + gap * (colSpan - 1),
-              height: diameter * rowSpan + gap * (rowSpan - 1),
+              height: diameter,
               child: child,
             );
           }
@@ -463,7 +626,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
           return Center(
             child: SizedBox(
               width: diameter * 4 + gap * 3,
-              height: diameter * 5 + gap * 4,
+              height: diameter * 6 + gap * 5,
               child: Stack(
                 children: [
                   place(
@@ -495,6 +658,7 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                       label: '±',
                       semantic: '正负号',
                       operator: true,
+                      enabled: !_isScalarEntry,
                       onTap: _signPressed,
                     ),
                   ),
@@ -524,11 +688,11 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                     col: 3,
                     row: 1,
                     child: key(
-                      id: 'duration-key-add',
-                      label: '+',
-                      semantic: '加',
+                      id: 'duration-key-multiply',
+                      label: '×',
+                      semantic: '乘',
                       operator: true,
-                      onTap: () => _operatorPressed('+'),
+                      onTap: () => _operatorPressed(TimeOperator.multiply),
                     ),
                   ),
                   for (var index = 0; index < 3; index++)
@@ -546,11 +710,11 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                     col: 3,
                     row: 2,
                     child: key(
-                      id: 'duration-key-subtract',
-                      label: '−',
-                      semantic: '减',
+                      id: 'duration-key-divide',
+                      label: '÷',
+                      semantic: '除',
                       operator: true,
-                      onTap: () => _operatorPressed('−'),
+                      onTap: () => _operatorPressed(TimeOperator.divide),
                     ),
                   ),
                   for (var index = 0; index < 3; index++)
@@ -567,10 +731,12 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                   place(
                     col: 3,
                     row: 3,
-                    rowSpan: 2,
-                    child: _TallEqualsKey(
-                      diameter: diameter,
-                      onPressed: () => press(_equalsPressed),
+                    child: key(
+                      id: 'duration-key-add',
+                      label: '+',
+                      semantic: '加',
+                      operator: true,
+                      onTap: () => _operatorPressed(TimeOperator.add),
                     ),
                   ),
                   place(
@@ -587,10 +753,30 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                     row: 4,
                     child: key(
                       id: 'duration-key-colon',
-                      label: ':',
-                      semantic: '冒号',
+                      label: _isScalarEntry ? '.' : ':',
+                      semantic: _isScalarEntry ? '小数点' : '冒号',
                       operator: true,
-                      onTap: _colonPressed,
+                      onTap: _colonOrDotPressed,
+                    ),
+                  ),
+                  place(
+                    col: 3,
+                    row: 4,
+                    child: key(
+                      id: 'duration-key-subtract',
+                      label: '−',
+                      semantic: '减',
+                      operator: true,
+                      onTap: () => _operatorPressed(TimeOperator.subtract),
+                    ),
+                  ),
+                  place(
+                    col: 0,
+                    row: 5,
+                    colSpan: 4,
+                    child: _WideEqualsKey(
+                      diameter: diameter,
+                      onPressed: () => press(_equalsPressed),
                     ),
                   ),
                 ],
@@ -640,8 +826,8 @@ class _WideZeroKey extends StatelessWidget {
   }
 }
 
-class _TallEqualsKey extends StatelessWidget {
-  const _TallEqualsKey({required this.diameter, required this.onPressed});
+class _WideEqualsKey extends StatelessWidget {
+  const _WideEqualsKey({required this.diameter, required this.onPressed});
 
   final double diameter;
   final VoidCallback onPressed;

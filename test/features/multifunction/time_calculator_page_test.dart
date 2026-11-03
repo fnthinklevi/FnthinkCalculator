@@ -226,9 +226,201 @@ void main() {
     expect(zero.height, closeTo(seven.height, 0.6));
     expect(colon.width, closeTo(seven.width, 0.6));
     expect(colon.height, closeTo(seven.height, 0.6));
-    expect(equals.width, closeTo(seven.width, 0.6));
-    expect(equals.height, closeTo(seven.height * 2 + gap, 0.6));
+    expect(equals.width, closeTo(seven.width * 4 + gap * 3, 0.6));
+    expect(equals.height, closeTo(seven.height, 0.6));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('时间乘除小数标量', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-0');
+    expect(valueOf(tester, 'duration-calc-display'), '01:30:00');
+
+    await tapKey(tester, 'duration-key-multiply');
+    expect(find.byKey(const Key('duration-scalar-hint')), findsOneWidget);
+    expect(find.byKey(const Key('duration-segment-hours')), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('duration-key-colon')),
+        matching: find.text('.'),
+      ),
+      findsOneWidget,
+    );
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-5');
+    expect(valueOf(tester, 'duration-calc-display'), '1.5');
+    expect(valueOf(tester, 'duration-calc-expression'), '01:30:00 × 1.5');
+
+    await tapKey(tester, 'duration-key-equals');
+    expect(valueOf(tester, 'duration-calc-display'), '02:15:00');
+    expect(valueOf(tester, 'duration-calc-expression'), '01:30:00 × 1.5 =');
+
+    await tapKey(tester, 'duration-key-clear');
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-divide');
+    await tapKey(tester, 'duration-key-4');
+    await tapKey(tester, 'duration-key-equals');
+    expect(valueOf(tester, 'duration-calc-display'), '00:30:00');
+  });
+
+  testWidgets('乘除后接加减切回时间输入，结果可继续乘除', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-multiply');
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-5');
+    await tapKey(tester, 'duration-key-add');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-equals');
+
+    expect(valueOf(tester, 'duration-calc-display'), '02:00:00');
+    expect(find.byKey(const Key('duration-segment-hours')), findsOneWidget);
+
+    await tapKey(tester, 'duration-key-multiply');
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-equals');
+    expect(valueOf(tester, 'duration-calc-display'), '04:00:00');
+  });
+
+  testWidgets('乘除优先于加减', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-add');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-multiply');
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-equals');
+
+    expect(valueOf(tester, 'duration-calc-display'), '02:30:00');
+    expect(
+      valueOf(tester, 'duration-calc-expression'),
+      '01:30:00 + 00:30:00 × 2 =',
+    );
+  });
+
+  testWidgets('除以零显示错误并可恢复', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-divide');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-equals');
+
+    expect(find.byKey(const Key('duration-calc-error')), findsOneWidget);
+    expect(valueOf(tester, 'duration-calc-error'), '不能除以 0');
+
+    await tapKey(tester, 'duration-key-clear');
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-divide');
+    await tapKey(tester, 'duration-key-2');
+    await tapKey(tester, 'duration-key-equals');
+
+    expect(find.byKey(const Key('duration-calc-error')), findsNothing);
+    expect(valueOf(tester, 'duration-calc-display'), '00:30:00');
+  });
+
+  testWidgets('除不尽四舍五入，连续乘除保持精确', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-divide');
+    await tapKey(tester, 'duration-key-7');
+    await tapKey(tester, 'duration-key-equals');
+    expect(valueOf(tester, 'duration-calc-display'), '00:08:34');
+
+    await tapKey(tester, 'duration-key-clear');
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-divide');
+    await tapKey(tester, 'duration-key-7');
+    await tapKey(tester, 'duration-key-multiply');
+    await tapKey(tester, 'duration-key-7');
+    await tapKey(tester, 'duration-key-equals');
+    expect(valueOf(tester, 'duration-calc-display'), '01:00:00');
+  });
+
+  testWidgets('乘除后只能输入标量且退回逐字删除', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-multiply');
+
+    expect(find.byKey(const Key('duration-scalar-hint')), findsOneWidget);
+    expect(find.byKey(const Key('duration-segment-hours')), findsNothing);
+    expect(find.byKey(const Key('duration-key-divide')), findsOneWidget);
+    expect(find.byKey(const Key('duration-key-multiply')), findsOneWidget);
+
+    await tapKey(tester, 'duration-key-sign');
+    expect(valueOf(tester, 'duration-calc-display'), '0');
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-5');
+    expect(valueOf(tester, 'duration-calc-display'), '1.5');
+
+    await tapKey(tester, 'duration-key-backspace');
+    expect(valueOf(tester, 'duration-calc-display'), '1.');
+    await tapKey(tester, 'duration-key-backspace');
+    expect(valueOf(tester, 'duration-calc-display'), '1');
+    await tapKey(tester, 'duration-key-backspace');
+    expect(valueOf(tester, 'duration-calc-display'), '0');
+  });
+
+  testWidgets('时间乘零', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(const TimeCalculationPage()));
+
+    await tapKey(tester, 'duration-key-1');
+    await tapKey(tester, 'duration-key-colon');
+    await tapKey(tester, 'duration-key-3');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-multiply');
+    await tapKey(tester, 'duration-key-0');
+    await tapKey(tester, 'duration-key-equals');
+
+    expect(valueOf(tester, 'duration-calc-display'), '00:00:00');
   });
 
   testWidgets('输入态与结果态卡片高度和按键尺寸保持一致', (tester) async {
