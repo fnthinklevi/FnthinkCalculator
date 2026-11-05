@@ -6,6 +6,7 @@ import 'age_view.dart';
 import 'date_add_view.dart';
 import 'date_difference_view.dart';
 import 'duration_view.dart';
+import 'time_history.dart';
 
 class DateDifferencePage extends StatelessWidget {
   const DateDifferencePage({super.key});
@@ -34,14 +35,16 @@ class DateAddPage extends StatelessWidget {
 }
 
 class TimeCalculationPage extends StatelessWidget {
-  const TimeCalculationPage({super.key});
+  const TimeCalculationPage({super.key, this.historyStore});
+
+  final TimeHistoryStore? historyStore;
 
   @override
   Widget build(BuildContext context) {
     return _TimeToolPage(
       pageKey: const Key('time-calculation-page'),
       title: '时间计算',
-      child: const TimeCalculationView(),
+      child: TimeCalculationView(historyStore: historyStore),
     );
   }
 }

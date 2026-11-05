@@ -46,6 +46,10 @@ private val SCIENTIFIC_FUNCTION_PAGES = listOf(
         key("π", "π", true), key("e", "e", true),
         key("(", "(", true), key(")", ")", true),
     ),
+    listOf(
+        key("%", "%", true), key("1/x", "1÷(", true),
+        key("x!", "!", true), key("f", "PAGE", true),
+    ),
 )
 
 private fun scientificKeys(page: Int): List<WidgetKey> {
@@ -172,7 +176,7 @@ abstract class BaseCalculatorWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_page, "f${page + 1}")
                 views.setContentDescription(
                     R.id.widget_page,
-                    "函数页 ${page + 1}/3，点击切换",
+                    "函数页 ${page + 1}/4，点击切换",
                 )
                 views.setOnClickPendingIntent(
                     R.id.widget_page,

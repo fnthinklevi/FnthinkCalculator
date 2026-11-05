@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fnthink_calculator/features/converter/converter_home_page.dart';
@@ -133,6 +134,24 @@ void main() {
     expect(find.byType(TextField), findsNothing);
     expect(find.byKey(const Key('numeric-key-7')), findsOneWidget);
     expect(find.byKey(const Key('numeric-key-done')), findsNothing);
+  });
+
+  testWidgets('单位选择器完整显示长名称', (tester) async {
+    configureSurface(tester);
+    await tester.pumpWidget(harness(UnitData.area));
+    await tester.tap(find.byKey(const Key('unit-to-picker')));
+    await tester.pumpAndSettle();
+
+    final item = find.descendant(
+      of: find.byKey(const Key('unit-option-cm2')),
+      matching: find.text('平方厘米'),
+    );
+    final paragraph = tester.renderObject<RenderParagraph>(item);
+    expect(paragraph.didExceedMaxLines, isFalse);
+
+    final screenHeight =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(tester.getRect(item).bottom, lessThanOrEqualTo(screenHeight));
   });
 
   testWidgets('温度默认 C→F，支持负号', (tester) async {

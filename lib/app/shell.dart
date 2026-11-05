@@ -212,41 +212,57 @@ class _TabPill extends StatelessWidget {
         color: CalcColors.track(context),
         borderRadius: BorderRadius.circular(CalcRadius.pill),
       ),
-      child: Row(
-        children: [
-          for (var index = 0; index < tabs.length; index++)
-            Expanded(
-              child: GestureDetector(
-                key: keys[index],
-                behavior: HitTestBehavior.opaque,
-                onTap: () => onSelected(index),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final segmentWidth = constraints.maxWidth / tabs.length;
+          return Stack(
+            children: [
+              AnimatedPositioned(
+                key: const Key('tab-indicator'),
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOut,
+                left: selectedIndex * segmentWidth,
+                top: 0,
+                width: segmentWidth,
+                height: constraints.maxHeight,
+                child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: index == selectedIndex
-                        ? selectedColor
-                        : Colors.transparent,
+                    color: selectedColor,
                     borderRadius: BorderRadius.circular(CalcRadius.pill),
-                  ),
-                  alignment: Alignment.center,
-                  child: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 160),
-                    style: TextStyle(
-                      fontSize: 16,
-                      height: 1.1,
-                      fontWeight: index == selectedIndex
-                          ? FontWeight.w500
-                          : FontWeight.w400,
-                      color: index == selectedIndex
-                          ? Theme.of(context).colorScheme.onSurface
-                          : CalcColors.secondaryText(context),
-                    ),
-                    child: Text(tabs[index]),
                   ),
                 ),
               ),
-            ),
-        ],
+              Row(
+                children: [
+                  for (var index = 0; index < tabs.length; index++)
+                    Expanded(
+                      child: GestureDetector(
+                        key: keys[index],
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => onSelected(index),
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 160),
+                            style: TextStyle(
+                              fontSize: 16,
+                              height: 1.1,
+                              fontWeight: index == selectedIndex
+                                  ? FontWeight.w500
+                                  : FontWeight.w400,
+                              color: index == selectedIndex
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : CalcColors.secondaryText(context),
+                            ),
+                            child: Text(tabs[index]),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }

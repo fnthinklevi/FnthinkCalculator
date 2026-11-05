@@ -14,7 +14,7 @@
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
 [![Version](https://badgen.net/badge/Version/0.3.00%2B8/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/263%20passed/green)](#质量保障)
+[![Tests](https://badgen.net/badge/Tests/269%20passed/green)](#质量保障)
 [![CI](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
@@ -74,7 +74,7 @@
 
 - **日期差** —— 公历天数与工作日差；工作日口径只排除周六日，不含法定节假日
 - **日期推算** —— 按年 / 月 / 日前后推算；月末自动夹取到目标月份最后一天
-- **时间计算** —— 时长加减乘除；乘除只接受非负整数或小数，乘除优先，支持连续公式与进到日 / 累计小时口径
+- **时间计算** —— 时长加减乘除；乘除只接受非负整数或小数，乘除优先，支持连续公式、历史记录（连续公式一条记录）与进到日 / 累计小时口径
 - **时差计算** —— 两时刻差，按 24 小时制；结束早于开始时自动按次日计算
 - **年龄计算** —— 周岁 / 虚岁 / 天数，并给出下次生日倒计时
 - 时间乘除禁止“时间 × 时间 / 时间 ÷ 时间”；除不尽时结果四舍五入到秒，连续乘除内部按精确值计算
@@ -167,7 +167,7 @@ FnthinkCalculator/
 │   ├── update.md                     # 版本变更记录
 │   └── release.md                    # 标准发版流程
 ├── integration_test/                 # 设备级 integration smoke
-├── test/                             # 49 个测试文件
+├── test/                             # 50 个测试文件
 ├── tool/
 │   ├── release.sh                    # 发版闸门：格式/测试/构建/归档
 │   ├── smoke_emulator.sh             # 模拟器 integration 冒烟
@@ -262,12 +262,12 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 263 例全绿 |
-| 测试文件 | 49 个 |
+| `flutter test` | 269 例全绿 |
+| 测试文件 | 50 个 |
 | integration smoke | 1 条（模拟器） |
 | Android 单元测试 | 12 项（小组件引擎） |
-| Dart 源码 | 74 个文件 / 约 1.54 万行 |
-| 测试代码 | 约 5,586 行 |
+| Dart 源码 | 75 个文件 / 约 1.57 万行 |
+| 测试代码 | 约 5,779 行 |
 | `flutter analyze` | 无问题 |
 | release APK | 纯 arm64-v8a / 19.7MB / 非 debug 签名 |
 
@@ -293,7 +293,7 @@ bash tool/smoke_emulator.sh
 
 GitHub Actions：
 
-- `ci.yml`：push/PR 执行格式、analyze、263 项测试（2 项 golden 仅在本机 Windows 校验）
+- `ci.yml`：push/PR 执行格式、analyze、269 项测试（2 项 golden 仅在本机 Windows 校验）
 - `smoke.yml`：tag/manual/每周二执行模拟器 integration smoke
 - `release-check.yml`：tag 校验 `vX.Y.Z` 与 `pubspec` 版本、产物命名契约并跑完整测试
 - 签名 release APK 仍只在本地生成，CI 不接触 keystore、不上传 APK

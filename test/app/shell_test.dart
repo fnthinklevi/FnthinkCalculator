@@ -56,6 +56,25 @@ void main() {
     expect(tabColor('计算'), unselected);
   });
 
+  testWidgets('顶部标签始终只有一个选中指示块', (tester) async {
+    await tester.pumpWidget(
+      FnthinkCalculatorApp(settings: SettingsController()),
+    );
+    final indicator = find.byKey(const Key('tab-indicator'));
+    expect(indicator, findsOneWidget);
+    final before = tester.getRect(indicator);
+
+    await tester.tap(find.byKey(const Key('tab-converter')));
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(indicator, findsOneWidget);
+
+    await tester.pumpAndSettle();
+    expect(indicator, findsOneWidget);
+    final after = tester.getRect(indicator);
+    expect(after.left, greaterThan(before.left));
+    expect(after.width, closeTo(before.width, 0.5));
+  });
+
   testWidgets('菜单可以打开设置并切换深色模式', (tester) async {
     final settings = SettingsController();
     await tester.pumpWidget(FnthinkCalculatorApp(settings: settings));

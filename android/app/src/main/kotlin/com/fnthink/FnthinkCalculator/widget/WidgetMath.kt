@@ -121,6 +121,10 @@ object WidgetMath {
                         index++
                         value = value.multiply(value, MC)
                     }
+                    '!' -> {
+                        index++
+                        value = factorial(value)
+                    }
                     else -> return value
                 }
             }
@@ -205,6 +209,18 @@ object WidgetMath {
             return BigDecimal.valueOf(result).round(MathContext(12, RoundingMode.HALF_UP))
         }
 
+        private fun factorial(value: BigDecimal): BigDecimal {
+            val stripped = value.stripTrailingZeros()
+            if (stripped.scale() > 0 || stripped.signum() < 0) {
+                throw ArithmeticException("factorial")
+            }
+            val n = stripped.toInt()
+            if (n > 170) throw ArithmeticException("factorial")
+            var result = BigDecimal.ONE
+            for (i in 2..n) result = result.multiply(BigDecimal(i), MC)
+            return result
+        }
+
         private fun pow(base: BigDecimal, exponent: BigDecimal): BigDecimal {
             val stripped = exponent.stripTrailingZeros()
             if (stripped.scale() <= 0 && stripped.abs() <= BigDecimal(9999)) {
@@ -257,7 +273,7 @@ data class MathState(
     fun onKey(key: String, degrees: Boolean): MathState = when (key) {
         "C" -> MathState(page = page)
         "BS" -> if (evaluated) MathState(page = page) else copy(expression = expression.dropLast(1))
-        "PAGE" -> copy(page = (page + 1) % 3)
+        "PAGE" -> copy(page = (page + 1) % 4)
         "=" -> evaluate(degrees)
         else -> insert(key)
     }

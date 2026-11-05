@@ -24,7 +24,7 @@ Future<T?> showAnchoredPicker<T>({
   required List<AnchoredPickerItem<T>> items,
   required T? selected,
   required String keyPrefix,
-  double width = 176,
+  double width = 224,
   double maxHeight = 480,
 }) {
   final anchorContext = anchorKey.currentContext;
@@ -38,10 +38,16 @@ Future<T?> showAnchoredPicker<T>({
   final anchor = origin - overlayOrigin;
   final screen = overlayBox.size;
   final itemHeight = 48.0;
-  final height = math.min(items.length * itemHeight + 16, maxHeight);
+  final pickerWidth = math.min(width, screen.width - 16);
+  final contentHeight = items.length * itemHeight + 16;
+  final maxRows = math.max(
+    1,
+    ((math.min(contentHeight, maxHeight) - 16) / itemHeight).floor(),
+  );
+  final height = math.min(contentHeight, 16.0 + maxRows * itemHeight);
   var left = anchor.dx;
-  if (left + width > screen.width - 8) {
-    left = screen.width - width - 8;
+  if (left + pickerWidth > screen.width - 8) {
+    left = screen.width - pickerWidth - 8;
   }
   left = math.max(8.0, left);
   var top = anchor.dy + renderBox.size.height + 6;
@@ -74,7 +80,7 @@ Future<T?> showAnchoredPicker<T>({
             Positioned(
               left: left,
               top: top,
-              width: width,
+              width: pickerWidth,
               child: Container(
                 constraints: BoxConstraints(maxHeight: height),
                 decoration: BoxDecoration(
@@ -110,6 +116,7 @@ Future<T?> showAnchoredPicker<T>({
                                 textBaseline: TextBaseline.alphabetic,
                                 children: [
                                   Flexible(
+                                    flex: 3,
                                     child: Text(
                                       item.title,
                                       maxLines: 1,
@@ -127,6 +134,7 @@ Future<T?> showAnchoredPicker<T>({
                                   if (item.subtitle != null) ...[
                                     const SizedBox(width: 6),
                                     Flexible(
+                                      flex: 2,
                                       child: Text(
                                         item.subtitle!,
                                         maxLines: 1,

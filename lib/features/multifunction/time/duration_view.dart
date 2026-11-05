@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../../../core/utils/duration_calc.dart';
 import '../../../core/utils/time_math.dart';
 import '../../../theme/tokens.dart';
 import '../../../widgets/calc_key.dart';
+import 'time_history.dart';
 import 'time_widgets.dart';
 
 enum _TimeSegment { hours, minutes, seconds }
@@ -30,14 +32,19 @@ class _ExprToken {
 }
 
 class TimeCalculationView extends StatelessWidget {
-  const TimeCalculationView({super.key});
+  const TimeCalculationView({super.key, this.historyStore});
+
+  final TimeHistoryStore? historyStore;
 
   @override
-  Widget build(BuildContext context) => const _DurationArithmeticView();
+  Widget build(BuildContext context) =>
+      _DurationArithmeticView(historyStore: historyStore);
 }
 
 class _DurationArithmeticView extends StatefulWidget {
-  const _DurationArithmeticView();
+  const _DurationArithmeticView({this.historyStore});
+
+  final TimeHistoryStore? historyStore;
 
   @override
   State<_DurationArithmeticView> createState() =>
@@ -59,6 +66,34 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
   int _seconds = 0;
   String _scalarBuffer = '';
   String? _error;
+  TimeHistoryStore? _historyStore;
+  List<TimeHistoryEntry> _history = [];
+
+  @override
+  void initState() {
+    super.initState();
+    final provided = widget.historyStore;
+    if (provided != null) {
+      _historyStore = provided;
+      _history = provided.load();
+    } else {
+      unawaited(_loadHistoryStore());
+    }
+  }
+
+  Future<void> _loadHistoryStore() async {
+    final store = await defaultTimeHistoryStore();
+    if (!mounted) return;
+    final loaded = store.load();
+    setState(() {
+      _historyStore = store;
+      if (_history.isEmpty) {
+        _history = loaded;
+      } else {
+        unawaited(store.save(_history));
+      }
+    });
+  }
 
   bool get _isScalarEntry =>
       !_showResult &&
@@ -150,11 +185,6 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
   };
 
   String get _activeValueText => _activeValue.toString();
-
-  int get _chipHours => _showResult ? _result!.abs() ~/ 3600 : _hours;
-  int get _chipMinutes =>
-      _showResult ? (_result!.abs() % 3600) ~/ 60 : _minutes;
-  int get _chipSeconds => _showResult ? _result!.abs() % 60 : _seconds;
 
   void _setActiveValue(int value) {
     switch (_active) {
@@ -342,6 +372,10 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
         _result = seconds.toInt();
         _showResult = true;
         _error = null;
+        _recordHistory(
+          '${_expressionParts(includeCurrentEntry: false).join(' ')} =',
+          formatDurationAccumulated(_result!),
+        );
       } on TimeMathException catch (exception) {
         _result = null;
         _showResult = false;
@@ -400,6 +434,31 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
     setState(() => _carryToDays = value);
   }
 
+  void _recordHistory(String expression, String resultText) {
+    final entry = TimeHistoryEntry(
+      expression: expression,
+      resultText: resultText,
+      createdAt: DateTime.now(),
+    );
+    _history = [entry, ..._history].take(100).toList();
+    unawaited(_historyStore?.save(_history));
+  }
+
+  Future<void> _openHistory() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: CalcColors.keyBackground(context),
+      builder: (sheetContext) => _TimeHistorySheet(
+        entries: _history,
+        onClear: () {
+          setState(() => _history = []);
+          unawaited(_historyStore?.save(const <TimeHistoryEntry>[]));
+          Navigator.of(sheetContext).pop();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = AppScope.maybeOf(context);
@@ -448,13 +507,46 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
                 _error != null
                     ? '错误'
                     : (_showResult ? '结果' : (_isScalarEntry ? '倍数' : '输入')),
-                style: TextStyle(fontSize: 15, color: secondary),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: _error != null ? CalcColors.error : secondary,
+                ),
               ),
-              const Spacer(),
-              Text(
-                _totalText,
-                key: const Key('duration-calc-total-seconds'),
-                style: TextStyle(fontSize: 15, color: secondary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _error != null
+                      ? Text(
+                          _error!,
+                          key: const Key('duration-calc-error'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: CalcColors.error,
+                          ),
+                        )
+                      : Text(
+                          _totalText,
+                          key: const Key('duration-calc-total-seconds'),
+                          style: TextStyle(fontSize: 15, color: secondary),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Semantics(
+                button: true,
+                label: '时间计算历史',
+                child: InkWell(
+                  key: const Key('duration-history'),
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: _openHistory,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(Icons.history, size: 18, color: secondary),
+                  ),
+                ),
               ),
             ],
           ),
@@ -467,109 +559,70 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
             textAlign: TextAlign.right,
             style: TextStyle(fontSize: 15, color: secondary),
           ),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              key: const Key('duration-calc-error'),
-              style: const TextStyle(fontSize: 15, color: CalcColors.error),
+          const SizedBox(height: 2),
+          SizedBox(
+            height: 56,
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: _showResult || _isScalarEntry || _error != null
+                  ? Text(
+                      _displayText,
+                      key: const Key('duration-calc-display'),
+                      style: _displayStyle(context),
+                    )
+                  : _segmentDisplay(context),
             ),
-          ] else ...[
-            const SizedBox(height: 2),
-            SizedBox(
-              width: double.infinity,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Text(
-                  _displayText,
-                  key: const Key('duration-calc-display'),
-                  style: TextStyle(
-                    fontSize: 44,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: CalcText.tabular,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            if (_isScalarEntry)
-              Text(
-                '乘除倍数：支持非负整数或小数',
-                key: const Key('duration-scalar-hint'),
-                style: TextStyle(fontSize: 13, color: secondary),
-              )
-            else
-              Row(
-                children: [
-                  _segmentChip(_TimeSegment.hours, '时', _chipHours.toString()),
-                  const SizedBox(width: 6),
-                  _segmentChip(
-                    _TimeSegment.minutes,
-                    '分',
-                    twoDigits(_chipMinutes),
-                  ),
-                  const SizedBox(width: 6),
-                  _segmentChip(
-                    _TimeSegment.seconds,
-                    '秒',
-                    twoDigits(_chipSeconds),
-                  ),
-                ],
-              ),
-          ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _segmentChip(_TimeSegment segment, String label, String value) {
-    final active = !_showResult && _active == segment;
-    final secondary = CalcColors.secondaryText(context);
-    return Expanded(
-      child: Material(
-        color: active ? CalcColors.orange : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          key: Key('duration-segment-${segment.name}'),
-          borderRadius: BorderRadius.circular(10),
+  TextStyle _displayStyle(BuildContext context) {
+    return TextStyle(
+      fontSize: 44,
+      fontWeight: FontWeight.w600,
+      fontFeatures: CalcText.tabular,
+      color: Theme.of(context).colorScheme.onSurface,
+    );
+  }
+
+  Widget _segmentDisplay(BuildContext context) {
+    final baseColor = Theme.of(context).colorScheme.onSurface;
+    final activeColor = CalcColors.orange;
+    final baseStyle = _displayStyle(context);
+
+    Widget part(_TimeSegment segment, String text, String label) {
+      return Semantics(
+        button: true,
+        label: label,
+        child: GestureDetector(
+          key: Key('duration-display-${segment.name}'),
+          behavior: HitTestBehavior.opaque,
           onTap: () => _selectSegment(segment),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: active ? CalcColors.orange : CalcColors.divider(context),
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: active ? Colors.white70 : secondary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  key: Key('duration-segment-${segment.name}-value'),
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: CalcText.tabular,
-                    color: active
-                        ? Colors.white
-                        : Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ],
+          child: Text(
+            text,
+            style: baseStyle.copyWith(
+              color: _active == segment ? activeColor : baseColor,
             ),
           ),
         ),
-      ),
+      );
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (_negative)
+          Text('-', key: const Key('duration-display-sign'), style: baseStyle),
+        part(_TimeSegment.hours, _hours.toString().padLeft(2, '0'), '小时'),
+        Text(':', style: baseStyle),
+        part(_TimeSegment.minutes, twoDigits(_minutes), '分钟'),
+        Text(':', style: baseStyle),
+        part(_TimeSegment.seconds, twoDigits(_seconds), '秒'),
+      ],
     );
   }
 
@@ -857,6 +910,94 @@ class _WideEqualsKey extends StatelessWidget {
               fontFeatures: CalcText.tabular,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TimeHistorySheet extends StatelessWidget {
+  const _TimeHistorySheet({required this.entries, required this.onClear});
+
+  final List<TimeHistoryEntry> entries;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final secondary = CalcColors.secondaryText(context);
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Text(
+                  '时间计算历史',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: onSurface,
+                  ),
+                ),
+                const Spacer(),
+                TextButton(
+                  key: const Key('time-history-clear'),
+                  onPressed: entries.isEmpty ? null : onClear,
+                  child: const Text('清空'),
+                ),
+              ],
+            ),
+            if (entries.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Text(
+                  '暂无历史',
+                  key: const Key('time-history-empty'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: secondary),
+                ),
+              )
+            else
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 420),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: entries.length,
+                  separatorBuilder: (context, index) =>
+                      Divider(height: 1, color: CalcColors.divider(context)),
+                  itemBuilder: (context, index) {
+                    final entry = entries[index];
+                    return ListTile(
+                      key: Key('time-history-entry-$index'),
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        entry.expression,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFeatures: CalcText.tabular,
+                          color: secondary,
+                        ),
+                      ),
+                      subtitle: Text(
+                        entry.resultText,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          fontFeatures: CalcText.tabular,
+                          color: onSurface,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
         ),
       ),
     );

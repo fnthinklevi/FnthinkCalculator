@@ -33,6 +33,9 @@ class WidgetEngineTest {
         assertEquals("1", math(listOf("ln(", "e", ")", "=")).result)
         assertEquals("1", math(listOf("sin(", "π", "÷", "2", ")", "="), degrees = false).result)
         assertEquals("0.5", math(listOf("sin(", "3", "0", "=")).result)
+        assertEquals("0.5", math(listOf("5", "0", "%", "=")).result)
+        assertEquals("120", math(listOf("5", "!", "=")).result)
+        assertEquals("0.25", math(listOf("1", "÷", "(", "4", "=")).result)
     }
 
     @Test
@@ -51,7 +54,11 @@ class WidgetEngineTest {
         val paged = MathState().onKey("PAGE", true)
         assertEquals(1, paged.page)
         assertEquals(2, paged.onKey("PAGE", true).page)
-        assertEquals(0, paged.onKey("PAGE", true).onKey("PAGE", true).page)
+        assertEquals(3, paged.onKey("PAGE", true).onKey("PAGE", true).page)
+        assertEquals(
+            0,
+            paged.onKey("PAGE", true).onKey("PAGE", true).onKey("PAGE", true).page,
+        )
     }
 
     @Test
