@@ -17,6 +17,27 @@
 
 ---
 
+## 0.3.01+9（2026-11-05 发布，tag `v0.3.01`）
+
+当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator_0.3.01.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.9MB。
+- SHA-256：`d610aada80c3176e8b81ea1122d9af6c52fe8c8d444105957c60569759a0e5d2`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：269 项 Flutter 测试 + 12 项 Android 组件单元测试全绿；`tool/check_apk_purity.sh` 通过。
+
+### 2026-11-05 发布 0.3.01+9
+
+- 顶部标签改为单一滑动指示块，点击过程中也不再出现两个选中框。
+- 时间计算移除时/分/秒芯片，大显示区数字可直接点选；输入/倍数/结果共用固定高度卡片，键盘尺寸不跳动。
+- 时间计算新增历史记录：每次等号记录完整公式，连续公式只记一条，可查看与清空。
+- 单位等下拉完整显示长名称，可视高度按整行取整，不再截断或裁掉半行。
+- 科学小组件补齐 `%` / `1/x` / `x!`，新增组件与软件功能一致性守卫。
+- 闸门：格式检查、`flutter analyze`、269 项 Flutter 测试、12 项 Android 单元测试通过；签名纯 arm64 19.9MB；SHA-256 `d610aada80c3176e8b81ea1122d9af6c52fe8c8d444105957c60569759a0e5d2`；`PURITY CHECK PASSED`。
+- 模拟器：`ci_api34_pixel6`（API 34 / 1080×2400）integration smoke 通过；发行 APK 安装成功，`versionName=0.3.01`、`versionCode=9`；标签单指示块、时间历史、单位下拉走查通过；三类 widget provider 与三个快捷方式注册确认；模拟器已关闭，真机未安装。
+- GitHub Release：`v0.3.01` 发布并上传 `FnthinkCalculator_0.3.01.apk`。
+
 ## 0.3.00+8（2026-11-03 发布，tag `v0.3.00`）
 
 当前构建：
