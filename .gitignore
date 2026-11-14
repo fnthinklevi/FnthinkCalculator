@@ -55,3 +55,4 @@ android/key.properties
 *.jks
 *.keystore
 *.p12
+test/golden/
