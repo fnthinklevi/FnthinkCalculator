@@ -97,7 +97,6 @@ if ($tagExists) {
 }
 
 $testLog = [System.IO.Path]::GetTempFileName()
-$buildLog = [System.IO.Path]::GetTempFileName()
 
 try {
     Say "1/5 格式检查"
@@ -113,7 +112,15 @@ try {
     }
 
     Say "3/5 全量测试"
-    & flutter test 2>&1 | Tee-Object -FilePath $testLog
+    # PS 5.1: native stderr + 2>&1 becomes a terminating error under "Stop";
+    # relax it only while the test process runs.
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & flutter test 2>&1 | Tee-Object -FilePath $testLog
+    } finally {
+        $ErrorActionPreference = $previousPreference
+    }
     if ($LASTEXITCODE -ne 0) {
         Die "flutter test 未通过"
     }
@@ -124,15 +131,11 @@ try {
     $testCount = $countMatch.Groups[1].Value
 
     Say "4/5 签名纯 arm64 构建"
-    & "$PSScriptRoot/build_release_arm64.ps1" 2>&1 | Tee-Object -FilePath $buildLog
+    & "$PSScriptRoot/build_release_arm64.ps1"
     if ($LASTEXITCODE -ne 0) {
         Die "签名构建或 APK 纯净检查未通过"
     }
-    $shaMatch = [regex]::Match((Get-Content -Raw $buildLog), 'SHA-256:\s*([0-9A-Fa-f]{64})')
-    if (-not $shaMatch.Success) {
-        Die "无法从构建输出解析 SHA-256"
-    }
-    $sha = $shaMatch.Groups[1].Value.ToUpper()
+    $sha = (Get-FileHash "build/app/outputs/flutter-apk/app-release.apk" -Algorithm SHA256).Hash
 
     Say "5/5 归档产物"
     $artifactDir = "build/release"
@@ -148,7 +151,7 @@ try {
         "$sha  $(Split-Path $artifact -Leaf)`n"
     )
 } finally {
-    Remove-Item $testLog, $buildLog -ErrorAction SilentlyContinue
+    Remove-Item $testLog -ErrorAction SilentlyContinue
 }
 
 Write-Host "`n== 发版闸门通过 ==" -ForegroundColor Green
