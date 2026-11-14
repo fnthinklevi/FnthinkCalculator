@@ -251,8 +251,9 @@ class _TabPillState extends State<_TabPill> {
   @override
   Widget build(BuildContext context) {
     final selectedColor = CalcColors.trackSelected(context);
-    final page =
-        widget.controller.page ?? widget.controller.initialPage.toDouble();
+    final page = widget.controller.hasClients
+        ? widget.controller.page ?? widget.controller.initialPage.toDouble()
+        : widget.controller.initialPage.toDouble();
     return Container(
       height: 42,
       width: 158,
@@ -272,6 +273,7 @@ class _TabPillState extends State<_TabPill> {
                 width: segmentWidth,
                 height: constraints.maxHeight,
                 child: DecoratedBox(
+                  key: const Key('tab-indicator'),
                   decoration: BoxDecoration(
                     color: selectedColor,
                     borderRadius: BorderRadius.circular(CalcRadius.pill),

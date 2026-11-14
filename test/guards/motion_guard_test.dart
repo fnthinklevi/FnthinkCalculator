@@ -20,13 +20,6 @@ void configureSurface(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-double fadeValue(WidgetTester tester, Key key) {
-  final opacity = tester.widget<Opacity>(
-    find.descendant(of: find.byKey(key), matching: find.byType(Opacity)).first,
-  );
-  return opacity.opacity;
-}
-
 void main() {
   test('所有平台使用右滑入页面转场', () {
     final theme = buildAppTheme(Brightness.light);
@@ -39,19 +32,21 @@ void main() {
     }
   });
 
-  testWidgets('切换标签时新页面淡入', (tester) async {
+  testWidgets('左右滑动在计算与换算页之间切换', (tester) async {
     configureSurface(tester);
     await tester.pumpWidget(
       FnthinkCalculatorApp(settings: SettingsController()),
     );
     await tester.pumpAndSettle();
-    expect(fadeValue(tester, const Key('tab-content-fade')), 1);
+    expect(find.byKey(const Key('calculator-page')), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('tab-converter')));
-    await tester.pump();
-    expect(fadeValue(tester, const Key('tab-content-fade')), lessThan(1));
+    await tester.drag(find.byType(PageView), const Offset(-360, 0));
     await tester.pumpAndSettle();
-    expect(fadeValue(tester, const Key('tab-content-fade')), 1);
+    expect(find.byKey(const Key('converter-page')), findsOneWidget);
+
+    await tester.drag(find.byType(PageView), const Offset(360, 0));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('calculator-page')), findsOneWidget);
   });
 
   testWidgets('二级页从右侧滑入并落位', (tester) async {
