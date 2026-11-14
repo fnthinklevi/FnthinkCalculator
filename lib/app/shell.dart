@@ -8,7 +8,6 @@ import '../features/converter/converter_home_page.dart';
 import '../features/settings/settings_page.dart';
 import '../theme/motion.dart';
 import '../theme/tokens.dart';
-import '../widgets/motion.dart';
 import 'app_scope.dart';
 import 'app_shortcuts.dart';
 import 'settings_controller.dart';
@@ -27,6 +26,7 @@ class _AppShellState extends State<AppShell> {
   late final CalculatorController _controller;
   late final bool _ownsController;
   late final List<Widget> _pages;
+  late final PageController _pageController;
   SettingsController? _settings;
   AppShortcut? _pendingShortcut;
 
@@ -38,12 +38,23 @@ class _AppShellState extends State<AppShell> {
     super.initState();
     _controller = widget.calculatorController ?? CalculatorController();
     _ownsController = widget.calculatorController == null;
+    _pageController = PageController();
     _pages = [
       CalculatorPage(controller: _controller),
       const ConverterHomePage(),
     ];
+    _pageController.addListener(_onPageChanged);
     AppShortcuts.listen(_handleShortcut);
     WidgetsBinding.instance.addPostFrameCallback((_) => _readInitialShortcut());
+  }
+
+  void _onPageChanged() {
+    final page = _pageController.page;
+    if (page == null) return;
+    final rounded = page.round();
+    if (rounded != _index) {
+      setState(() => _index = rounded);
+    }
   }
 
   @override
@@ -59,6 +70,8 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    _pageController.removeListener(_onPageChanged);
+    _pageController.dispose();
     _settings?.removeListener(_onSettingsChanged);
     AppShortcuts.stopListening();
     if (_ownsController) {
@@ -96,7 +109,11 @@ class _AppShellState extends State<AppShell> {
     if (settings.haptics) {
       HapticFeedback.selectionClick();
     }
-    setState(() => _index = index);
+    _pageController.animateToPage(
+      index,
+      duration: CalcMotion.standard,
+      curve: Curves.easeOut,
+    );
   }
 
   void _handleMenu(String value) {
@@ -148,7 +165,7 @@ class _AppShellState extends State<AppShell> {
                     _TabPill(
                       tabs: _tabs,
                       keys: _tabKeys,
-                      selectedIndex: _index,
+                      controller: _pageController,
                       onSelected: _selectTab,
                     ),
                     Positioned(
@@ -180,11 +197,9 @@ class _AppShellState extends State<AppShell> {
                 ),
               ),
               Expanded(
-                child: FadeSlideIn(
-                  key: const Key('tab-content-fade'),
-                  trigger: _index,
-                  duration: CalcMotion.standard,
-                  child: IndexedStack(index: _index, children: _pages),
+                child: PageView(
+                  controller: _pageController,
+                  children: _pages,
                 ),
               ),
             ],
@@ -195,22 +210,51 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-class _TabPill extends StatelessWidget {
+class _TabPill extends StatefulWidget {
   const _TabPill({
     required this.tabs,
     required this.keys,
-    required this.selectedIndex,
+    required this.controller,
     required this.onSelected,
   });
 
   final List<String> tabs;
   final List<Key> keys;
-  final int selectedIndex;
+  final PageController controller;
   final ValueChanged<int> onSelected;
+
+  @override
+  State<_TabPill> createState() => _TabPillState();
+}
+
+class _TabPillState extends State<_TabPill> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_rebuild);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TabPill oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_rebuild);
+      widget.controller.addListener(_rebuild);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_rebuild);
+    super.dispose();
+  }
+
+  void _rebuild() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     final selectedColor = CalcColors.trackSelected(context);
+    final page = widget.controller.page ?? widget.controller.initialPage.toDouble();
     return Container(
       height: 42,
       width: 158,
@@ -221,14 +265,11 @@ class _TabPill extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final segmentWidth = constraints.maxWidth / tabs.length;
+          final segmentWidth = constraints.maxWidth / widget.tabs.length;
           return Stack(
             children: [
-              AnimatedPositioned(
-                key: const Key('tab-indicator'),
-                duration: const Duration(milliseconds: 160),
-                curve: Curves.easeOut,
-                left: selectedIndex * segmentWidth,
+              Positioned(
+                left: page * segmentWidth,
                 top: 0,
                 width: segmentWidth,
                 height: constraints.maxHeight,
@@ -241,26 +282,26 @@ class _TabPill extends StatelessWidget {
               ),
               Row(
                 children: [
-                  for (var index = 0; index < tabs.length; index++)
+                  for (var index = 0; index < widget.tabs.length; index++)
                     Expanded(
                       child: GestureDetector(
-                        key: keys[index],
+                        key: widget.keys[index],
                         behavior: HitTestBehavior.opaque,
-                        onTap: () => onSelected(index),
+                        onTap: () => widget.onSelected(index),
                         child: Center(
                           child: AnimatedDefaultTextStyle(
                             duration: const Duration(milliseconds: 160),
                             style: TextStyle(
                               fontSize: 16,
                               height: 1.1,
-                              fontWeight: index == selectedIndex
+                              fontWeight: (page - index).abs() < 0.5
                                   ? FontWeight.w500
                                   : FontWeight.w400,
-                              color: index == selectedIndex
+                              color: (page - index).abs() < 0.5
                                   ? Theme.of(context).colorScheme.onSurface
                                   : CalcColors.secondaryText(context),
                             ),
-                            child: Text(tabs[index]),
+                            child: Text(widget.tabs[index]),
                           ),
                         ),
                       ),
