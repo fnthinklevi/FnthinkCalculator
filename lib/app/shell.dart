@@ -197,10 +197,7 @@ class _AppShellState extends State<AppShell> {
                 ),
               ),
               Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  children: _pages,
-                ),
+                child: PageView(controller: _pageController, children: _pages),
               ),
             ],
           ),
@@ -254,7 +251,8 @@ class _TabPillState extends State<_TabPill> {
   @override
   Widget build(BuildContext context) {
     final selectedColor = CalcColors.trackSelected(context);
-    final page = widget.controller.page ?? widget.controller.initialPage.toDouble();
+    final page =
+        widget.controller.page ?? widget.controller.initialPage.toDouble();
     return Container(
       height: 42,
       width: 158,
