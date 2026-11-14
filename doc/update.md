@@ -17,6 +17,24 @@
 
 ---
 
+## 0.3.02+10（2026-11-14 发布，tag `v0.3.02`）
+
+当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator_0.3.02.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.9MB。
+- SHA-256：`2d66e73b78a0f3abfbd3dcea65f36ff03d95b147ad2d08eb3c0856b012403e45`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：279 项 Flutter 测试 + 12 项 Android 组件单元测试全绿；`build_release_arm64.ps1` 纯净检查通过。
+
+### 2026-11-14 发布 0.3.02+10
+
+- 计算与换算两页支持左右滑动切换：拖动时顶部指示块实时跟随手指，松手按半页阈值吸附；点击标签与滑动共用同一页面容器，选中态与页面内容始终一致。
+- 修复页面容器首帧读取滚动位置导致的启动断言崩溃，标签指示块与页面切换保持同步。
+- 维护：新增 Windows PowerShell 版发版脚本 `tool/release.ps1` 与 `tool/build_release_arm64.ps1`，检查项与 bash 版一致；README 补充 Windows 构建说明。
+- 闸门：格式检查、`flutter analyze`、279 项 Flutter 测试、12 项 Android 单元测试通过；签名纯 arm64 19.9MB；SHA-256 `2d66e73b78a0f3abfbd3dcea65f36ff03d95b147ad2d08eb3c0856b012403e45`；`PURITY CHECK PASSED`。
+- 模拟器：`ci_api34_pixel6`（API 34 / 1080×2400）integration smoke 通过；发行 APK 安装成功，`versionName=0.3.02`、`versionCode=10`；亮色下 `1+2=3`、左右滑动双向切换、深色模式换算页走查通过；模拟器已关闭，真机未安装。
+
 ## 0.3.01+9（2026-11-05 发布，tag `v0.3.01`）
 
 当前构建：
