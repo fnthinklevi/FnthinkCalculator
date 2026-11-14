@@ -6,6 +6,7 @@ import 'package:fnthink_calculator/app/app_scope.dart';
 import 'package:fnthink_calculator/app/settings_controller.dart';
 import 'package:fnthink_calculator/features/calculator/calculator_controller.dart';
 import 'package:fnthink_calculator/features/calculator/calculator_page.dart';
+import 'package:fnthink_calculator/features/calculator/history_entry.dart';
 import 'package:fnthink_calculator/theme/app_theme.dart';
 
 Widget harness(CalculatorController controller) {
@@ -226,5 +227,42 @@ void main() {
       tester.widget<Text>(find.byKey(const Key('calc-uppercase-text'))).data,
       '伍佰柒拾玖圆整',
     );
+  });
+
+  testWidgets('历史带按时间正序，最新一条在最底部', (tester) async {
+    configureSurface(tester);
+    final controller = CalculatorController(
+      initialHistory: [
+        HistoryEntry(
+          expression: '3+3',
+          resultText: '6',
+          rawResult: '6',
+          approximate: false,
+          createdAt: DateTime(2026, 11, 14, 10, 2),
+        ),
+        HistoryEntry(
+          expression: '2+2',
+          resultText: '4',
+          rawResult: '4',
+          approximate: false,
+          createdAt: DateTime(2026, 11, 14, 10, 1),
+        ),
+        HistoryEntry(
+          expression: '1+1',
+          resultText: '2',
+          rawResult: '2',
+          approximate: false,
+          createdAt: DateTime(2026, 11, 14, 10, 0),
+        ),
+      ],
+    );
+    await tester.pumpWidget(harness(controller));
+    await tester.pumpAndSettle();
+
+    final newest = tester.getTopLeft(find.text('3+3 = 6'));
+    final middle = tester.getTopLeft(find.text('2+2 = 4'));
+    final oldest = tester.getTopLeft(find.text('1+1 = 2'));
+    expect(newest.dy, greaterThan(middle.dy));
+    expect(middle.dy, greaterThan(oldest.dy));
   });
 }

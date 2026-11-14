@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fnthink_calculator/core/math/angle_unit.dart';
 import 'package:fnthink_calculator/features/calculator/calculator_controller.dart';
+import 'package:fnthink_calculator/features/calculator/history_entry.dart';
 
 void main() {
   test('1+2= 产生结果与历史', () {
@@ -229,6 +230,39 @@ void main() {
     controller.evaluate();
     expect(controller.recentHistory, hasLength(1));
     expect(controller.recentHistory.first.expression, '1');
+  });
+
+  test('最近历史按时间正序返回，最新在最后', () {
+    final controller = CalculatorController(
+      initialHistory: [
+        HistoryEntry(
+          expression: '3+3',
+          resultText: '6',
+          rawResult: '6',
+          approximate: false,
+          createdAt: DateTime(2026, 11, 14, 10, 2),
+        ),
+        HistoryEntry(
+          expression: '2+2',
+          resultText: '4',
+          rawResult: '4',
+          approximate: false,
+          createdAt: DateTime(2026, 11, 14, 10, 1),
+        ),
+        HistoryEntry(
+          expression: '1+1',
+          resultText: '2',
+          rawResult: '2',
+          approximate: false,
+          createdAt: DateTime(2026, 11, 14, 10, 0),
+        ),
+      ],
+    );
+    expect(controller.recentHistory.map((entry) => entry.expression), [
+      '1+1',
+      '2+2',
+      '3+3',
+    ]);
   });
 
   test('角度单位切换影响预览', () {

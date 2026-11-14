@@ -14,7 +14,7 @@
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
 [![Version](https://badgen.net/badge/Version/0.3.01%2B9/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/275%20passed/green)](#质量保障)
+[![Tests](https://badgen.net/badge/Tests/278%20passed/green)](#质量保障)
 [![CI](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
@@ -58,7 +58,7 @@
 - **科学函数** —— 三角函数与反三角函数、`ln` / `lg`、`10ˣ` / `eˣ`、平方根 / 平方、乘方、阶乘、倒数、`π` / `e`；第二功能键切换反函数与逆运算，支持角度 / 弧度
 - **精确运算核心** —— 有理数与表达式解析/求值/格式化分层，整数与常见小数尽量保持精确；无法整除时按显示规则取近似值
 - **完整显示区** —— 最近一条历史、当前表达式、实时预览、主结果与大写行；长按结果可复制或转换为大写数字
-- **历史记录** —— 本地持久化，全页列表，多选复制/删除，一键清空
+- **历史记录** —— 本地持久化，全页列表按时间正序（最新在底部），多选复制/删除，一键清空
 - **百分数两种口径** —— 设置页可选「按数值计算」与「按比例计算」，后者用于折扣等场景
 - **按键与结果语音** —— 默认关闭，开关持久化；48 个离线 MP3（合计 157.5 KiB），逐键顺序播放，不依赖系统 TTS、不联网
 - **使用偏好** —— 按键震动、浅色/深色/跟随系统主题
@@ -263,7 +263,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 275 例全绿 |
+| `flutter test` | 278 例全绿 |
 | 测试文件 | 51 个 |
 | integration smoke | 1 条（模拟器） |
 | Android 单元测试 | 12 项（小组件引擎） |
@@ -275,7 +275,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 测试覆盖：
 
 - **数学核心** —— 有理数、词法、解析、求值、格式化、引擎边界
-- **计算器** —— 控制器、科学函数、历史持久化、页面交互、无障碍、golden、一万条随机按键 fuzz
+- **计算器** —— 控制器、科学函数、历史持久化与顺序、页面交互、无障碍、golden、一万条随机按键 fuzz
 - **换算** —— 单位数据规模、页面联动、汇率缓存/降级、进制转换
 - **工具** —— 时间五个工具、个税、房贷控制器、BMI、称呼、比例、大写
 - **语音** —— 片段映射、资源数量与大小（<1MB）
@@ -295,7 +295,7 @@ bash tool/smoke_emulator.sh
 
 GitHub Actions：
 
-- `ci.yml`：push/PR 执行格式、analyze、275 项测试（2 项 golden 仅在本机 Windows 校验）
+- `ci.yml`：push/PR 执行格式、analyze、278 项测试（2 项 golden 仅在本机 Windows 校验）
 - `smoke.yml`：tag/manual/每周二执行模拟器 integration smoke
 - `release-check.yml`：tag 校验 `vX.Y.Z` 与 `pubspec` 版本、产物命名契约并跑完整测试
 - 签名 release APK 仍只在本地生成，CI 不接触 keystore、不上传 APK

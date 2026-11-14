@@ -104,4 +104,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(controller.history, isEmpty);
   });
+
+  testWidgets('历史按时间正序排列，最新在最底部', (tester) async {
+    configureSurface(tester);
+    final controller = controllerWithHistory();
+    await tester.pumpWidget(harness(controller));
+    await tester.pumpAndSettle();
+
+    final newest = tester.getTopLeft(find.byKey(const Key('history-entry-0')));
+    final middle = tester.getTopLeft(find.byKey(const Key('history-entry-1')));
+    final oldest = tester.getTopLeft(find.byKey(const Key('history-entry-2')));
+    expect(newest.dy, greaterThan(middle.dy));
+    expect(middle.dy, greaterThan(oldest.dy));
+    expect(
+      tester.getTopLeft(find.text('2026.10.28')).dy,
+      lessThan(tester.getTopLeft(find.text('2026.10.29')).dy),
+    );
+  });
 }

@@ -139,13 +139,15 @@ class CalculatorController extends ChangeNotifier {
   List<HistoryEntry> get history => List.unmodifiable(_history);
 
   List<HistoryEntry> get recentHistory {
-    Iterable<HistoryEntry> entries = _history;
+    var start = 0;
     if (_expression.isNotEmpty &&
-        entries.isNotEmpty &&
-        entries.first.expression == _expression) {
-      entries = entries.skip(1);
+        _history.isNotEmpty &&
+        _history.first.expression == _expression) {
+      start = 1;
     }
-    return entries.take(3).toList(growable: false);
+    final end = start + 3 < _history.length ? start + 3 : _history.length;
+    if (start >= end) return const [];
+    return _history.sublist(start, end).reversed.toList(growable: false);
   }
 
   void showUppercase() {

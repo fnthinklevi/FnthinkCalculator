@@ -18,8 +18,31 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   final Set<HistoryEntry> _selected = {};
+  final ScrollController _scrollController = ScrollController();
+  bool _didScrollToLatest = false;
 
   bool get _selectionMode => _selected.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToLatest());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToLatest() {
+    if (_didScrollToLatest || !mounted || !_scrollController.hasClients) return;
+    _didScrollToLatest = true;
+    final position = _scrollController.position;
+    if (position.maxScrollExtent > 0) {
+      _scrollController.jumpTo(position.maxScrollExtent);
+    }
+  }
 
   void _toggle(HistoryEntry entry) {
     setState(() {
@@ -139,6 +162,7 @@ class _HistoryPageState extends State<HistoryPage> {
                           ),
                         )
                       : ListView(
+                          controller: _scrollController,
                           padding: const EdgeInsets.only(bottom: 96),
                           children: _buildGroups(context, entries),
                         ),
@@ -170,7 +194,7 @@ class _HistoryPageState extends State<HistoryPage> {
   List<Widget> _buildGroups(BuildContext context, List<HistoryEntry> entries) {
     final children = <Widget>[];
     String? currentDate;
-    for (var index = 0; index < entries.length; index++) {
+    for (var index = entries.length - 1; index >= 0; index--) {
       final entry = entries[index];
       final date = _dateLabel(entry.createdAt);
       if (date != currentDate) {
