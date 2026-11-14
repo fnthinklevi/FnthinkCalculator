@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -124,5 +126,11 @@ void main() {
     expect(CalcMotion.fast, const Duration(milliseconds: 120));
     expect(CalcMotion.standard, const Duration(milliseconds: 180));
     expect(CalcMotion.slow, const Duration(milliseconds: 260));
+  });
+
+  test('关闭系统预见式返回，避免与自定义转场叠加', () {
+    final manifest = File('android/app/src/main/AndroidManifest.xml')
+        .readAsStringSync();
+    expect(manifest, contains('android:enableOnBackInvokedCallback="false"'));
   });
 }

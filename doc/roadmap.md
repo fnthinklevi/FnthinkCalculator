@@ -91,7 +91,8 @@ adb -s emulator-5554 emu kill
 | T18 | 启动图标深色模式 | 已完成 | 日间白底 / 夜间深灰底两套图标；`values-night` 背景色、`mipmap-night-*` 前景与旧版图标、夜间自适应配置；系统夜间模式自动切换 | 3 项图标守卫；release 构建；模拟器 App info 日夜切换走查 | `48cbe2e` |
 | T19 | 时间计算乘除 | 已完成 | 时间 ×/÷ 非负整数或小数；乘除模式自动切换、禁止时间乘除时间；乘除优先、BigRational 精确计算、结果四舍五入到秒；4×6 键盘 | 263 项测试（类型矩阵/优先级/除零/舍入/模式切换）；release 走查 `1:30×1.5` 与除零 | `ed27bc7` |
 | T20 | 全应用动效 | 已完成 | 统一 `CalcMotion` 令牌与 `FadeSlideIn`；页面右滑入、标签/键盘/显示变化淡入、锚定选择器缩放、历史多选/设置勾选、BMI/房贷/个税结果进场；尊重系统减弱动画 | 275 项测试（含 6 项动效守卫）全绿；format/analyze 通过 | `5aa38b8` |
-| T21 | 历史顺序修复 | 已完成 | 历史带与历史页改为按时间正序、最新在最底部；历史页打开停在最新；存储仍最新在前以兼容 `history.v1` | 3 项顺序测试；278 项测试全绿；format/analyze 通过 | 本次提交 |
+| T21 | 历史顺序修复 | 已完成 | 历史带与历史页改为按时间正序、最新在最底部；历史页打开停在最新；存储仍最新在前以兼容 `history.v1` | 3 项顺序测试；278 项测试全绿；format/analyze 通过 | `77526ff` |
+| T22 | 关闭预见式返回 | 已完成 | AndroidManifest 关闭 `enableOnBackInvokedCallback`，避免系统返回预览与自定义右滑转场叠加 | 新增 1 项守卫；279 项测试全绿；format/analyze 通过 | 本次提交 |
 | R1 | 视觉底座与计算器复刻 | 已完成 | 两标签胶囊、圆键键盘、显示区层级、长按菜单、历史页、设置页、百分数双口径 | 198 项测试含 history/settings/守卫；模拟器亮暗走查 | `4e8ca3a` |
 | R2 | 换算与汇率复刻 | 已完成 | 换算首页 15 入口；单位多行联动 + 锚定选择器；温度专用键盘；汇率三行 + 109 币种 + 来源行 | 单位/汇率/守卫测试；模拟器走查 | `4e8ca3a` |
 | R3 | 新工具（进制/BMI/称呼/个税） | 已完成 | 进制键禁用与 2/8/10/16；BMI 表单/刻度结果；称呼互查；个税月薪/年终奖 | 各工具单元 + widget 测试；模拟器走查 | `4e8ca3a` |
@@ -475,6 +476,16 @@ adb -s emulator-5554 emu kill
   - `flutter analyze`：No issues found。
   - `flutter test`：278/278 通过；新增控制器、历史页、计算器历史带 3 项顺序测试。
 - 备注：历史页长列表首次打开自动滚到最底部；条目 key 仍按存储下标命名，`history-entry-0` 始终是最新一条。
+
+### T22 关闭预见式返回
+
+- 日期：2026-11-14
+- 范围：`android/app/src/main/AndroidManifest.xml` 的 `<application>` 增加 `android:enableOnBackInvokedCallback="false"`；保留自定义右滑转场与系统返回键行为。
+- 闸门结果：
+  - `dart format`：0 changed。
+  - `flutter analyze`：No issues found。
+  - `flutter test`：279/279 通过；动效守卫新增 1 项清单断言。
+- 备注：该开关只关闭 Android 系统的返回预览动画，不改变返回导航本身；后续若改用 `PredictiveBackPageTransitionsBuilder`，需同时移除本守卫。
 
 ## 5. 当前风险与注意事项
 

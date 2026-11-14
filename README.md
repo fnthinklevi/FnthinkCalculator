@@ -14,7 +14,7 @@
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
 [![Version](https://badgen.net/badge/Version/0.3.01%2B9/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/278%20passed/green)](#质量保障)
+[![Tests](https://badgen.net/badge/Tests/279%20passed/green)](#质量保障)
 [![CI](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
@@ -263,7 +263,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 278 例全绿 |
+| `flutter test` | 279 例全绿 |
 | 测试文件 | 51 个 |
 | integration smoke | 1 条（模拟器） |
 | Android 单元测试 | 12 项（小组件引擎） |
@@ -280,7 +280,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - **工具** —— 时间五个工具、个税、房贷控制器、BMI、称呼、比例、大写
 - **语音** —— 片段映射、资源数量与大小（<1MB）
 - **UI 标准守卫** —— 两标签、20 入口固定顺序、104 个单位/109 币种规模、系统输入框白名单、深色纯黑、不冒充数据来源、内置键盘圆径一致性、大屏/折叠屏断点与无溢出
-- **动效守卫** —— 二级页右滑入、标签淡入、键盘切换无重复按键、系统减弱动画直接落位
+- **动效守卫** —— 二级页右滑入、标签淡入、键盘切换无重复按键、系统减弱动画直接落位、预见式返回关闭
 - **计算链闸门** —— 计算器/换算/汇率/时长的连续公式、重复等号、结果后续算与中间态
 - **模拟器冒烟** —— `integration_test/app_smoke_test.dart`：冷启动、计算、换算页联动
 
@@ -295,7 +295,7 @@ bash tool/smoke_emulator.sh
 
 GitHub Actions：
 
-- `ci.yml`：push/PR 执行格式、analyze、278 项测试（2 项 golden 仅在本机 Windows 校验）
+- `ci.yml`：push/PR 执行格式、analyze、279 项测试（2 项 golden 仅在本机 Windows 校验）
 - `smoke.yml`：tag/manual/每周二执行模拟器 integration smoke
 - `release-check.yml`：tag 校验 `vX.Y.Z` 与 `pubspec` 版本、产物命名契约并跑完整测试
 - 签名 release APK 仍只在本地生成，CI 不接触 keystore、不上传 APK
