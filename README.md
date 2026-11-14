@@ -170,10 +170,12 @@ FnthinkCalculator/
 ├── integration_test/                 # 设备级 integration smoke
 ├── test/                             # 51 个测试文件
 ├── tool/
-│   ├── release.sh                    # 发版闸门：格式/测试/构建/归档
+│   ├── release.sh                    # 发版闸门（bash）：格式/测试/构建/归档
+│   ├── release.ps1                   # 发版闸门（Windows PowerShell），等价 release.sh
 │   ├── smoke_emulator.sh             # 模拟器 integration 冒烟
-│   ├── build_release_arm64.sh        # 签名 release 打包 + 纯净检查
-│   ├── check_apk_purity.sh           # ABI/密钥/模型/测试资源检查
+│   ├── build_release_arm64.sh        # 签名 release 打包 + 纯净检查（bash）
+│   ├── build_release_arm64.ps1       # 签名 release 打包 + 纯净检查（Windows PowerShell）
+│   ├── check_apk_purity.sh           # ABI/密钥/模型/测试资源检查（bash 版）
 │   ├── generate_voice_clips.py       # 构建期生成离线语音
 │   └── make_icons.py                 # 生成启动图标与自适应图标
 ├── .github/workflows/                # CI / Emulator Smoke / Release Check
@@ -245,12 +247,29 @@ bash tool/build_release_arm64.sh
 bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 ```
 
+### Windows（PowerShell）
+
+Windows 无 bash 时使用等价的 PowerShell 脚本，闸门顺序、检查项与退出码与 bash 版一致：
+
+```powershell
+# 只做前置检查（版本、签名配置、工作区、tag）
+powershell -NoProfile -ExecutionPolicy Bypass -File tool\release.ps1 -Preflight
+
+# 完整发版闸门：格式 -> analyze -> 全量测试 -> 签名纯 arm64 构建 -> 归档
+powershell -NoProfile -ExecutionPolicy Bypass -File tool\release.ps1
+
+# 只做签名纯 arm64 构建 + 纯净检查
+powershell -NoProfile -ExecutionPolicy Bypass -File tool\build_release_arm64.ps1
+```
+
+Windows 版纯净检查内置于 `build_release_arm64.ps1`（不再单独调用 bash 脚本），覆盖：仅 arm64-v8a 原生库、无 keystore/key.properties、无 ONNX/TFLite/WAV 模型与音频、无 `diag_main`、无 test/integration_test 资源，并用 `apksigner` 拦截 debug 证书；任一项失败即退出非零并打印 `PURITY CHECK FAILED`。
+
 签名约定：
 
 - Gradle 从 `android/key.properties` 读取签名配置，`storeFile` 指向仓库外的 keystore
 - `android/key.properties`、`*.jks`、`*.keystore` 已加入 `.gitignore`，**禁止提交或上传**
 - 缺少 `key.properties` 时回退 debug 签名，仅用于本机开发；发布包必须通过纯净检查
-- `tool/build_release_arm64.sh` 通过 `--android-project-arg arm64Only=true` 启用 arm64-only；debug/integration 不启用，保留 x86_64 供模拟器冒烟
+- `tool/build_release_arm64.sh` / `tool/build_release_arm64.ps1` 通过 `--android-project-arg arm64Only=true` 启用 arm64-only；debug/integration 不启用，保留 x86_64 供模拟器冒烟
 - 当前构建：`0.3.01+9`，纯 arm64-v8a，约 19.9MB；每次构建的大小与 SHA-256 见 [doc/update.md](doc/update.md)
 
 纯净检查通过时输出 `PURITY CHECK PASSED`，并打印 APK 大小与 SHA-256。
