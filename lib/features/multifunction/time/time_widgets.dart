@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/date_calc.dart';
+import '../../../theme/motion.dart';
 import '../../../theme/tokens.dart';
 
 String formatDate(DateTime value) {
@@ -99,13 +100,15 @@ class SegmentedTabs extends StatelessWidget {
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(CalcRadius.pill),
                   ),
-                  child: Text(
-                    labels[tabIndex],
+                  child: AnimatedDefaultTextStyle(
+                    duration: CalcMotion.resolve(context, CalcMotion.standard),
+                    curve: CalcMotion.enter,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: active ? FontWeight.w500 : FontWeight.w400,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
+                    child: Text(labels[tabIndex]),
                   ),
                 ),
               ),

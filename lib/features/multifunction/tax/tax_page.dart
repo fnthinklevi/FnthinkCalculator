@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../core/utils/mortgage_calc.dart' show formatMoneyCents;
 import '../../../core/utils/social_insurance.dart';
 import '../../../core/utils/tax_calc.dart';
+import '../../../theme/motion.dart';
 import '../../../theme/tokens.dart';
 import '../../../widgets/anchored_picker.dart';
+import '../../../widgets/motion.dart';
 import '../../../widgets/number_form_field.dart';
 import '../../../widgets/page_header.dart';
 import '../time/time_widgets.dart' show SegmentedTabs;
@@ -247,20 +249,24 @@ class _TaxPageState extends State<TaxPage> {
                     keyPrefix: 'tax-tab',
                   ),
                   const SizedBox(height: 18),
-                  if (_monthly)
-                    NumberFormField(
-                      key: const Key('tax-income'),
-                      label: '税前收入（元）',
-                      controller: _income,
-                      placeholder: '请输入您的税前收入',
-                    )
-                  else
-                    NumberFormField(
-                      key: const Key('tax-bonus'),
-                      label: '税前年终奖（元）',
-                      controller: _bonus,
-                      placeholder: '请输入您的年终奖',
-                    ),
+                  FadeSlideIn(
+                    trigger: _monthly,
+                    duration: CalcMotion.standard,
+                    offset: const Offset(0, 0.02),
+                    child: _monthly
+                        ? NumberFormField(
+                            key: const Key('tax-income'),
+                            label: '税前收入（元）',
+                            controller: _income,
+                            placeholder: '请输入您的税前收入',
+                          )
+                        : NumberFormField(
+                            key: const Key('tax-bonus'),
+                            label: '税前年终奖（元）',
+                            controller: _bonus,
+                            placeholder: '请输入您的年终奖',
+                          ),
+                  ),
                   if (_monthly) ...[
                     _SettingRow(
                       key: const Key('tax-installments'),
@@ -430,46 +436,51 @@ class _TaxResultPage extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: isDark
-                            ? const [Color(0xFF2A1A10), Color(0xFF1C1C1C)]
-                            : const [Color(0xFFFFF1E5), Color(0xFFFFE1C7)],
+                  FadeSlideIn(
+                    duration: CalcMotion.slow,
+                    offset: const Offset(0, 0.04),
+                    scale: 0.99,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isDark
+                              ? const [Color(0xFF2A1A10), Color(0xFF1C1C1C)]
+                              : const [Color(0xFFFFF1E5), Color(0xFFFFE1C7)],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '应纳税额',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: CalcColors.secondaryText(context),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '应纳税额',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: CalcColors.secondaryText(context),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${formatMoneyCents(result.taxCents)} 元',
-                          key: const Key('tax-result-tax'),
-                          style: const TextStyle(
-                            fontSize: 40,
-                            color: CalcColors.orange,
-                            fontFeatures: CalcText.tabular,
+                          const SizedBox(height: 4),
+                          Text(
+                            '${formatMoneyCents(result.taxCents)} 元',
+                            key: const Key('tax-result-tax'),
+                            style: const TextStyle(
+                              fontSize: 40,
+                              color: CalcColors.orange,
+                              fontFeatures: CalcText.tabular,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '税后收入 ${formatMoneyCents(result.afterTaxCents)} 元',
-                          key: const Key('tax-result-after'),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontFeatures: CalcText.tabular,
+                          const SizedBox(height: 10),
+                          Text(
+                            '税后收入 ${formatMoneyCents(result.afterTaxCents)} 元',
+                            key: const Key('tax-result-after'),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontFeatures: CalcText.tabular,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),

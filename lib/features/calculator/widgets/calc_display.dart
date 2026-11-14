@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/motion.dart';
 import '../../../theme/tokens.dart';
+import '../../../widgets/motion.dart';
 import '../calculator_controller.dart';
 import '../history_entry.dart';
 
@@ -29,38 +31,61 @@ class CalcDisplay extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             for (final entry in controller.recentHistory)
-              _HistoryLine(entry: entry),
-            _buildMainLine(context),
+              FadeSlideIn(
+                key: ValueKey(entry.createdAt),
+                duration: CalcMotion.standard,
+                offset: const Offset(0, 0.4),
+                child: _HistoryLine(entry: entry),
+              ),
+            FadeSlideIn(
+              key: const ValueKey('display-main'),
+              trigger: controller.mode,
+              duration: CalcMotion.standard,
+              offset: const Offset(0, 0.06),
+              scale: 0.98,
+              child: _buildMainLine(context),
+            ),
             if (controller.showPreview)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text(
-                  '${controller.previewApproximate ? '≈' : '='} ${controller.previewText}',
-                  key: const Key('calc-preview-text'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontSize: CalcText.preview,
-                    color: secondary,
-                    fontFeatures: CalcText.tabular,
+              FadeSlideIn(
+                key: const ValueKey('display-preview'),
+                duration: CalcMotion.standard,
+                offset: const Offset(0, 0.25),
+                scale: 0.98,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    '${controller.previewApproximate ? '≈' : '='} ${controller.previewText}',
+                    key: const Key('calc-preview-text'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: CalcText.preview,
+                      color: secondary,
+                      fontFeatures: CalcText.tabular,
+                    ),
                   ),
                 ),
               ),
             if (controller.uppercaseVisible &&
                 controller.uppercaseText.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  controller.uppercaseText,
-                  key: const Key('calc-uppercase-text'),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontSize: CalcText.resultSecondary,
-                    height: 1.25,
-                    color: Theme.of(context).colorScheme.onSurface,
+              FadeSlideIn(
+                key: const ValueKey('display-uppercase'),
+                duration: CalcMotion.slow,
+                offset: const Offset(0, 0.2),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    controller.uppercaseText,
+                    key: const Key('calc-uppercase-text'),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: CalcText.resultSecondary,
+                      height: 1.25,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ),

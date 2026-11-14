@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 
 import '../../../app/app_scope.dart';
 import '../../../core/math/angle_unit.dart';
+import '../../../theme/motion.dart';
 import '../../../theme/tokens.dart';
 import '../../../widgets/calc_key.dart';
+import '../../../widgets/motion.dart';
 import '../calculator_controller.dart';
 
 class CalcKeypad extends StatelessWidget {
@@ -25,19 +27,25 @@ class CalcKeypad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return controller.scientificVisible
-        ? _ScientificKeypad(
-            controller: controller,
-            clearLabel: clearLabel,
-            onClearLongPress: onClearLongPress,
-            onAnnounce: onAnnounce,
-          )
-        : _StandardKeypad(
-            controller: controller,
-            clearLabel: clearLabel,
-            onClearLongPress: onClearLongPress,
-            onAnnounce: onAnnounce,
-          );
+    return FadeSlideIn(
+      key: const Key('keypad-mode-fade'),
+      trigger: controller.scientificVisible,
+      duration: CalcMotion.standard,
+      scale: 0.985,
+      child: controller.scientificVisible
+          ? _ScientificKeypad(
+              controller: controller,
+              clearLabel: clearLabel,
+              onClearLongPress: onClearLongPress,
+              onAnnounce: onAnnounce,
+            )
+          : _StandardKeypad(
+              controller: controller,
+              clearLabel: clearLabel,
+              onClearLongPress: onClearLongPress,
+              onAnnounce: onAnnounce,
+            ),
+    );
   }
 }
 

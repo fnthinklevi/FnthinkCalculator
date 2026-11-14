@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../theme/motion.dart';
 import '../theme/tokens.dart';
 
 class AnchoredPickerItem<T> {
@@ -67,6 +68,10 @@ Future<T?> showAnchoredPicker<T>({
     barrierColor: Colors.transparent,
     useSafeArea: false,
     builder: (dialogContext) {
+      final routeAnimation = MediaQuery.disableAnimationsOf(dialogContext)
+          ? kAlwaysCompleteAnimation
+          : (ModalRoute.of(dialogContext)?.animation ??
+                kAlwaysCompleteAnimation);
       return Material(
         type: MaterialType.transparency,
         child: Stack(
@@ -81,88 +86,99 @@ Future<T?> showAnchoredPicker<T>({
               left: left,
               top: top,
               width: pickerWidth,
-              child: Container(
-                constraints: BoxConstraints(maxHeight: height),
-                decoration: BoxDecoration(
-                  color: CalcColors.keyBackground(dialogContext),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x1F000000),
-                      blurRadius: 24,
-                      offset: Offset(0, 8),
+              child: FadeTransition(
+                opacity: routeAnimation,
+                child: ScaleTransition(
+                  alignment: Alignment.topLeft,
+                  scale: routeAnimation
+                      .drive(CurveTween(curve: CalcMotion.enter))
+                      .drive(Tween<double>(begin: 0.92, end: 1)),
+                  child: Container(
+                    constraints: BoxConstraints(maxHeight: height),
+                    decoration: BoxDecoration(
+                      color: CalcColors.keyBackground(dialogContext),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x1F000000),
+                          blurRadius: 24,
+                          offset: Offset(0, 8),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: ListView.builder(
-                  controller: controller,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  shrinkWrap: true,
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    final isSelected = item.value == selected;
-                    return InkWell(
-                      key: Key('$keyPrefix-${item.id}'),
-                      onTap: () => Navigator.of(dialogContext).pop(item.value),
-                      child: SizedBox(
-                        height: itemHeight,
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 18),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: [
-                                  Flexible(
-                                    flex: 3,
-                                    child: Text(
-                                      item.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 19,
-                                        color: isSelected
-                                            ? CalcColors.orange
-                                            : Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface,
-                                      ),
-                                    ),
-                                  ),
-                                  if (item.subtitle != null) ...[
-                                    const SizedBox(width: 6),
-                                    Flexible(
-                                      flex: 2,
-                                      child: Text(
-                                        item.subtitle!,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: CalcColors.secondaryText(
-                                            context,
+                    child: ListView.builder(
+                      controller: controller,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      shrinkWrap: true,
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        final isSelected = item.value == selected;
+                        return InkWell(
+                          key: Key('$keyPrefix-${item.id}'),
+                          onTap: () =>
+                              Navigator.of(dialogContext).pop(item.value),
+                          child: SizedBox(
+                            height: itemHeight,
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 18),
+                                Expanded(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.baseline,
+                                    textBaseline: TextBaseline.alphabetic,
+                                    children: [
+                                      Flexible(
+                                        flex: 3,
+                                        child: Text(
+                                          item.title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 19,
+                                            color: isSelected
+                                                ? CalcColors.orange
+                                                : Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface,
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ],
-                              ),
+                                      if (item.subtitle != null) ...[
+                                        const SizedBox(width: 6),
+                                        Flexible(
+                                          flex: 2,
+                                          child: Text(
+                                            item.subtitle!,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              color: CalcColors.secondaryText(
+                                                context,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected)
+                                  const Icon(
+                                    Icons.check,
+                                    size: 20,
+                                    color: CalcColors.orange,
+                                  ),
+                                const SizedBox(width: 16),
+                              ],
                             ),
-                            if (isSelected)
-                              const Icon(
-                                Icons.check,
-                                size: 20,
-                                color: CalcColors.orange,
-                              ),
-                            const SizedBox(width: 16),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),

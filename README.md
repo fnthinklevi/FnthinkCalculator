@@ -14,7 +14,7 @@
 [![Gradle](https://badgen.net/badge/Gradle/9.8.2/02303A?icon=gradle)](https://gradle.org/)
 [![Platform](https://badgen.net/badge/Platform/Android%208.0%2B/3DDC84?icon=android)](#技术栈)
 [![Version](https://badgen.net/badge/Version/0.3.01%2B9/007AFF?icon=android)](#版本与变更)
-[![Tests](https://badgen.net/badge/Tests/269%20passed/green)](#质量保障)
+[![Tests](https://badgen.net/badge/Tests/275%20passed/green)](#质量保障)
 [![CI](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fnthinklevi/FnthinkCalculator/actions/workflows/ci.yml)
 [![ABI](https://badgen.net/badge/ABI/arm64-v8a/3DDC84?icon=android)](#构建与签名)
 
@@ -96,6 +96,7 @@
 - 大屏与折叠屏：900dp 内容上限；内屏展开全宽重排，展开/折叠保留输入状态；计算器竖屏 600dp、横屏左右分栏
 - 小米口径配色：`#FF6900` 强调色、浅色 `#F3F3F3` 背景、深色模式纯黑
 - 长按显示区弹出复制 / 大写菜单；长按历史条目进入多选
+- 全局动效：二级页右滑入、标签淡入、科学/标准键盘切换淡入、显示区状态变化与历史带进场、锚定选择器缩放；尊重系统「移除动画」设置
 - 计算器/换算内置键盘与表单系统键盘的边界由 UI 标准守卫锁定
 - 首次启动显示不可跳过的隐私弹窗；同意状态持久化，设置页底部可随时查看完整《隐私政策》
 - 桌面快捷方式：长按应用图标可直达「时间计算 / 日期计算 / 汇率换算」；快捷方式图标提供深色模式变体，随系统主题自动切换
@@ -142,7 +143,7 @@
 
 ```text
 FnthinkCalculator/
-├── lib/                              # Flutter 源码（69 个 Dart 文件）
+├── lib/                              # Flutter 源码（77 个 Dart 文件）
 │   ├── main.dart                     # 加载 prefs，创建应用级控制器
 │   ├── app/                          # AppScope、SettingsController、两标签壳
 │   ├── theme/                        # 颜色 token 与 Material 3 主题
@@ -167,7 +168,7 @@ FnthinkCalculator/
 │   ├── update.md                     # 版本变更记录
 │   └── release.md                    # 标准发版流程
 ├── integration_test/                 # 设备级 integration smoke
-├── test/                             # 50 个测试文件
+├── test/                             # 51 个测试文件
 ├── tool/
 │   ├── release.sh                    # 发版闸门：格式/测试/构建/归档
 │   ├── smoke_emulator.sh             # 模拟器 integration 冒烟
@@ -258,16 +259,16 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 
 ## 质量保障
 
-当前读数（2026-10-31）：
+当前读数（2026-11-14）：
 
 | 读数 | 值 |
 |------|----|
-| `flutter test` | 269 例全绿 |
-| 测试文件 | 50 个 |
+| `flutter test` | 275 例全绿 |
+| 测试文件 | 51 个 |
 | integration smoke | 1 条（模拟器） |
 | Android 单元测试 | 12 项（小组件引擎） |
-| Dart 源码 | 75 个文件 / 约 1.57 万行 |
-| 测试代码 | 约 5,779 行 |
+| Dart 源码 | 77 个文件 / 约 1.61 万行 |
+| 测试代码 | 约 5,907 行 |
 | `flutter analyze` | 无问题 |
 | release APK | 纯 arm64-v8a / 19.7MB / 非 debug 签名 |
 
@@ -279,6 +280,7 @@ bash tool/check_apk_purity.sh build/app/outputs/flutter-apk/app-release.apk
 - **工具** —— 时间五个工具、个税、房贷控制器、BMI、称呼、比例、大写
 - **语音** —— 片段映射、资源数量与大小（<1MB）
 - **UI 标准守卫** —— 两标签、20 入口固定顺序、104 个单位/109 币种规模、系统输入框白名单、深色纯黑、不冒充数据来源、内置键盘圆径一致性、大屏/折叠屏断点与无溢出
+- **动效守卫** —— 二级页右滑入、标签淡入、键盘切换无重复按键、系统减弱动画直接落位
 - **计算链闸门** —— 计算器/换算/汇率/时长的连续公式、重复等号、结果后续算与中间态
 - **模拟器冒烟** —— `integration_test/app_smoke_test.dart`：冷启动、计算、换算页联动
 
@@ -293,7 +295,7 @@ bash tool/smoke_emulator.sh
 
 GitHub Actions：
 
-- `ci.yml`：push/PR 执行格式、analyze、269 项测试（2 项 golden 仅在本机 Windows 校验）
+- `ci.yml`：push/PR 执行格式、analyze、275 项测试（2 项 golden 仅在本机 Windows 校验）
 - `smoke.yml`：tag/manual/每周二执行模拟器 integration smoke
 - `release-check.yml`：tag 校验 `vX.Y.Z` 与 `pubspec` 版本、产物命名契约并跑完整测试
 - 签名 release APK 仍只在本地生成，CI 不接触 keystore、不上传 APK

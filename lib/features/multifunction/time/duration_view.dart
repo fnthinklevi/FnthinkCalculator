@@ -8,8 +8,10 @@ import '../../../app/app_scope.dart';
 import '../../../core/math/rational.dart';
 import '../../../core/utils/duration_calc.dart';
 import '../../../core/utils/time_math.dart';
+import '../../../theme/motion.dart';
 import '../../../theme/tokens.dart';
 import '../../../widgets/calc_key.dart';
+import '../../../widgets/motion.dart';
 import 'time_history.dart';
 import 'time_widgets.dart';
 
@@ -176,6 +178,13 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
     }
     if (_isScalarEntry) return '倍数';
     return '共 ${formatDurationAccumulated(_entrySeconds)}';
+  }
+
+  String get _displayMode {
+    if (_error != null) return 'error';
+    if (_showResult) return 'result';
+    if (_isScalarEntry) return 'scalar';
+    return 'input';
   }
 
   int get _activeValue => switch (_active) {
@@ -566,13 +575,19 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerRight,
-              child: _showResult || _isScalarEntry || _error != null
-                  ? Text(
-                      _displayText,
-                      key: const Key('duration-calc-display'),
-                      style: _displayStyle(context),
-                    )
-                  : _segmentDisplay(context),
+              child: FadeSlideIn(
+                key: const ValueKey('duration-display-switch'),
+                trigger: _displayMode,
+                duration: CalcMotion.standard,
+                scale: 0.98,
+                child: _showResult || _isScalarEntry || _error != null
+                    ? Text(
+                        _displayText,
+                        key: const Key('duration-calc-display'),
+                        style: _displayStyle(context),
+                      )
+                    : _segmentDisplay(context),
+              ),
             ),
           ),
         ],
@@ -602,11 +617,13 @@ class _DurationArithmeticViewState extends State<_DurationArithmeticView> {
           key: Key('duration-display-${segment.name}'),
           behavior: HitTestBehavior.opaque,
           onTap: () => _selectSegment(segment),
-          child: Text(
-            text,
+          child: AnimatedDefaultTextStyle(
+            duration: CalcMotion.resolve(context, CalcMotion.fast),
+            curve: CalcMotion.enter,
             style: baseStyle.copyWith(
               color: _active == segment ? activeColor : baseColor,
             ),
+            child: Text(text),
           ),
         ),
       );

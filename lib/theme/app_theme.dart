@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'motion.dart';
 import 'tokens.dart';
 
 ThemeData buildAppTheme(Brightness brightness) {
@@ -21,6 +22,16 @@ ThemeData buildAppTheme(Brightness brightness) {
     colorScheme: colorScheme,
     scaffoldBackgroundColor: isDark ? CalcColors.darkBg : CalcColors.lightBg,
     canvasColor: isDark ? CalcColors.darkBg : CalcColors.lightBg,
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: CalcPageTransitionsBuilder(),
+        TargetPlatform.fuchsia: CalcPageTransitionsBuilder(),
+        TargetPlatform.linux: CalcPageTransitionsBuilder(),
+        TargetPlatform.windows: CalcPageTransitionsBuilder(),
+        TargetPlatform.macOS: CalcPageTransitionsBuilder(),
+        TargetPlatform.iOS: CalcPageTransitionsBuilder(),
+      },
+    ),
     dividerColor: isDark ? CalcColors.darkDivider : CalcColors.lightDivider,
     splashFactory: NoSplash.splashFactory,
     highlightColor: Colors.transparent,

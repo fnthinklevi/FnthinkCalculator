@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../multifunction/mortgage/mortgage_page.dart';
 import '../multifunction/time/time_tool_pages.dart';
@@ -169,7 +170,7 @@ class ConverterHomePage extends StatelessWidget {
   }
 }
 
-class _GridEntry extends StatelessWidget {
+class _GridEntry extends StatefulWidget {
   const _GridEntry({
     required this.keyId,
     required this.icon,
@@ -183,24 +184,40 @@ class _GridEntry extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_GridEntry> createState() => _GridEntryState();
+}
+
+class _GridEntryState extends State<_GridEntry> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.onSurface;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        key: Key(keyId),
+        key: Key(widget.keyId),
         borderRadius: BorderRadius.circular(CalcRadius.card),
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 34, color: color),
-            const SizedBox(height: 16),
-            Text(
-              label,
-              style: TextStyle(fontSize: 15, height: 1.1, color: color),
-            ),
-          ],
+        onTap: widget.onTap,
+        onHighlightChanged: (value) {
+          if (_pressed == value) return;
+          setState(() => _pressed = value);
+        },
+        child: AnimatedScale(
+          scale: _pressed ? 0.94 : 1,
+          duration: CalcMotion.resolve(context, CalcMotion.fast),
+          curve: CalcMotion.enter,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon, size: 34, color: color),
+              const SizedBox(height: 16),
+              Text(
+                widget.label,
+                style: TextStyle(fontSize: 15, height: 1.1, color: color),
+              ),
+            ],
+          ),
         ),
       ),
     );

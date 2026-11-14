@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_scope.dart';
+import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/anchored_picker.dart';
 import '../../widgets/calc_key.dart';
@@ -269,10 +270,9 @@ class _RadixRow extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerRight,
-                child: Text(
-                  value,
-                  key: valueKey,
-                  maxLines: 1,
+                child: AnimatedDefaultTextStyle(
+                  duration: CalcMotion.resolve(context, CalcMotion.fast),
+                  curve: CalcMotion.enter,
                   style: TextStyle(
                     fontSize: 28,
                     color: active
@@ -280,6 +280,7 @@ class _RadixRow extends StatelessWidget {
                         : Theme.of(context).colorScheme.onSurface,
                     fontFeatures: CalcText.tabular,
                   ),
+                  child: Text(value, key: valueKey, maxLines: 1),
                 ),
               ),
             ),

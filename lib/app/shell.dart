@@ -6,7 +6,9 @@ import '../features/calculator/calculator_page.dart';
 import '../features/calculator/history_page.dart';
 import '../features/converter/converter_home_page.dart';
 import '../features/settings/settings_page.dart';
+import '../theme/motion.dart';
 import '../theme/tokens.dart';
+import '../widgets/motion.dart';
 import 'app_scope.dart';
 import 'app_shortcuts.dart';
 import 'settings_controller.dart';
@@ -178,7 +180,12 @@ class _AppShellState extends State<AppShell> {
                 ),
               ),
               Expanded(
-                child: IndexedStack(index: _index, children: _pages),
+                child: FadeSlideIn(
+                  key: const Key('tab-content-fade'),
+                  trigger: _index,
+                  duration: CalcMotion.standard,
+                  child: IndexedStack(index: _index, children: _pages),
+                ),
               ),
             ],
           ),

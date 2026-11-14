@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/motion.dart';
 import '../../../theme/tokens.dart';
+import '../../../widgets/motion.dart';
 import '../../../widgets/page_header.dart';
 
 class BmiResultPage extends StatelessWidget {
@@ -30,13 +32,19 @@ class BmiResultPage extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                 children: [
-                  Text(
-                    bmi.toStringAsFixed(1),
-                    key: const Key('bmi-result-value'),
-                    style: TextStyle(
-                      fontSize: 56,
-                      height: 1,
-                      color: Theme.of(context).colorScheme.onSurface,
+                  FadeSlideIn(
+                    duration: CalcMotion.slow,
+                    offset: const Offset(0, 0.15),
+                    scale: 0.96,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      bmi.toStringAsFixed(1),
+                      key: const Key('bmi-result-value'),
+                      style: TextStyle(
+                        fontSize: 56,
+                        height: 1,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -109,72 +117,82 @@ class _BmiGauge extends StatelessWidget {
   Widget build(BuildContext context) {
     const min = 16.0;
     const max = 32.0;
-    final fraction = ((bmi - min) / (max - min)).clamp(0.0, 1.0);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final badgeLeft = (fraction * width - 28).clamp(0.0, width - 56);
-        double marker(double value) =>
-            ((value - min) / (max - min)).clamp(0.0, 1.0) * width;
-        return SizedBox(
-          height: 76,
-          child: Stack(
-            children: [
-              Positioned(
-                left: badgeLeft,
-                top: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: category.color,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    category.badge,
-                    key: const Key('bmi-result-badge'),
-                    style: const TextStyle(fontSize: 14, color: Colors.white),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 34,
-                child: Container(
-                  height: 8,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF4A9EFF),
-                        Color(0xFF22C55E),
-                        Color(0xFFFFD54F),
-                        Color(0xFFFFA000),
-                        Color(0xFFFF6B4A),
-                      ],
+    final target = ((bmi - min) / (max - min)).clamp(0.0, 1.0);
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: target),
+      duration: CalcMotion.resolve(context, CalcMotion.slow * 2),
+      curve: CalcMotion.enter,
+      builder: (context, fraction, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final badgeLeft = (fraction * width - 28).clamp(0.0, width - 56);
+            double marker(double value) =>
+                ((value - min) / (max - min)).clamp(0.0, 1.0) * width;
+            return SizedBox(
+              height: 76,
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: badgeLeft,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: category.color,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        category.badge,
+                        key: const Key('bmi-result-badge'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              for (final value in const [18.5, 24.0, 28.0])
-                Positioned(
-                  left: marker(value) - 20,
-                  top: 50,
-                  width: 40,
-                  child: Text(
-                    value.toStringAsFixed(1),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: CalcColors.secondaryText(context),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 34,
+                    child: Container(
+                      height: 8,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF4A9EFF),
+                            Color(0xFF22C55E),
+                            Color(0xFFFFD54F),
+                            Color(0xFFFFA000),
+                            Color(0xFFFF6B4A),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
+                  for (final value in const [18.5, 24.0, 28.0])
+                    Positioned(
+                      left: marker(value) - 20,
+                      top: 50,
+                      width: 40,
+                      child: Text(
+                        value.toStringAsFixed(1),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: CalcColors.secondaryText(context),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
         );
       },
     );

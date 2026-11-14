@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
+import '../../widgets/motion.dart';
 import 'calculator_controller.dart';
 import 'history_entry.dart';
 
@@ -148,10 +150,14 @@ class _HistoryPageState extends State<HistoryPage> {
               ? SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(40, 8, 40, 16),
-                    child: _ActionBar(
-                      onRecalculate: _recalculate,
-                      onCopy: _copy,
-                      onDelete: _deleteSelected,
+                    child: FadeSlideIn(
+                      duration: CalcMotion.standard,
+                      offset: const Offset(0, 0.25),
+                      child: _ActionBar(
+                        onRecalculate: _recalculate,
+                        onCopy: _copy,
+                        onDelete: _deleteSelected,
+                      ),
                     ),
                   ),
                 )
@@ -296,57 +302,77 @@ class _HistoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final secondary = CalcColors.secondaryText(context);
-    return Material(
+    return AnimatedContainer(
+      duration: CalcMotion.resolve(context, CalcMotion.fast),
+      curve: CalcMotion.enter,
       color: selected ? CalcColors.keyPressed(context) : Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 14, 24, 14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text:
-                            '${entry.expression} ${entry.approximate ? '≈' : '='} ',
-                        style: TextStyle(fontSize: 19, color: secondary),
-                      ),
-                      TextSpan(
-                        text: entry.resultText,
-                        style: TextStyle(
-                          fontSize: 21,
-                          color: Theme.of(context).colorScheme.onSurface,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 14, 24, 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text:
+                              '${entry.expression} ${entry.approximate ? '≈' : '='} ',
+                          style: TextStyle(fontSize: 19, color: secondary),
+                        ),
+                        TextSpan(
+                          text: entry.resultText,
+                          style: TextStyle(
+                            fontSize: 21,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                if (selectionMode) ...[
+                  const SizedBox(width: 12),
+                  AnimatedContainer(
+                    key: Key('history-checkbox-$index'),
+                    duration: CalcMotion.resolve(context, CalcMotion.fast),
+                    curve: CalcMotion.enter,
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: selected ? CalcColors.orange : Colors.transparent,
+                      border: selected
+                          ? null
+                          : Border.all(
+                              color: CalcColors.secondaryText(context),
+                            ),
+                    ),
+                    child: AnimatedScale(
+                      duration: CalcMotion.resolve(context, CalcMotion.fast),
+                      curve: CalcMotion.enter,
+                      scale: selected ? 1 : 0.6,
+                      child: AnimatedOpacity(
+                        duration: CalcMotion.resolve(context, CalcMotion.fast),
+                        opacity: selected ? 1 : 0,
+                        child: const Icon(
+                          Icons.check,
+                          size: 16,
+                          color: Colors.white,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                ),
-              ),
-              if (selectionMode) ...[
-                const SizedBox(width: 12),
-                Container(
-                  key: Key('history-checkbox-$index'),
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: selected ? CalcColors.orange : Colors.transparent,
-                    border: selected
-                        ? null
-                        : Border.all(color: CalcColors.secondaryText(context)),
-                  ),
-                  child: selected
-                      ? const Icon(Icons.check, size: 16, color: Colors.white)
-                      : null,
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

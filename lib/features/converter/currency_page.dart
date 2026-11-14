@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/anchored_picker.dart';
 import '../../widgets/numeric_keypad.dart';
@@ -230,14 +231,18 @@ class _CurrencyRow extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerRight,
-                child: Text(
-                  value.isEmpty ? '0' : value,
-                  key: valueKey,
-                  maxLines: 1,
+                child: AnimatedDefaultTextStyle(
+                  duration: CalcMotion.resolve(context, CalcMotion.fast),
+                  curve: CalcMotion.enter,
                   style: TextStyle(
                     fontSize: 28,
                     color: valueColor,
                     fontFeatures: CalcText.tabular,
+                  ),
+                  child: Text(
+                    value.isEmpty ? '0' : value,
+                    key: valueKey,
+                    maxLines: 1,
                   ),
                 ),
               ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/mortgage_calc.dart';
+import '../../../theme/motion.dart';
 import '../../../theme/tokens.dart';
+import '../../../widgets/motion.dart';
 import '../../../widgets/page_header.dart';
 
 class MortgageResultPage extends StatelessWidget {
@@ -35,10 +37,15 @@ class MortgageResultPage extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                 children: [
-                  _HeroCard(
-                    result: result,
-                    paymentLabel: paymentLabel,
-                    isDark: isDark,
+                  FadeSlideIn(
+                    duration: CalcMotion.slow,
+                    offset: const Offset(0, 0.04),
+                    scale: 0.99,
+                    child: _HeroCard(
+                      result: result,
+                      paymentLabel: paymentLabel,
+                      isDark: isDark,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -293,46 +300,60 @@ class _YearGroupState extends State<_YearGroup> {
             ),
           ),
         ),
-        if (_expanded)
-          for (final period in widget.periods)
-            Padding(
-              key: Key('mortgage-month-row-${period.period}'),
-              padding: const EdgeInsets.only(left: 18, right: 30, bottom: 8),
-              child: Row(
-                children: [
-                  Text(
-                    '${period.period}期',
-                    style: TextStyle(fontSize: 13, color: secondary),
-                  ),
-                  const Spacer(),
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        '还款 ${formatMoneyCents(period.paymentCents)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontFeatures: CalcText.tabular,
+        AnimatedSize(
+          duration: CalcMotion.resolve(context, CalcMotion.standard),
+          curve: CalcMotion.move,
+          alignment: Alignment.topCenter,
+          child: _expanded
+              ? Column(
+                  children: [
+                    for (final period in widget.periods)
+                      Padding(
+                        key: Key('mortgage-month-row-${period.period}'),
+                        padding: const EdgeInsets.only(
+                          left: 18,
+                          right: 30,
+                          bottom: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${period.period}期',
+                              style: TextStyle(fontSize: 13, color: secondary),
+                            ),
+                            const Spacer(),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '还款 ${formatMoneyCents(period.paymentCents)}',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontFeatures: CalcText.tabular,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '利息 ${formatMoneyCents(period.interestCents)}',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontFeatures: CalcText.tabular,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        '利息 ${formatMoneyCents(period.interestCents)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontFeatures: CalcText.tabular,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                  ],
+                )
+              : const SizedBox(width: double.infinity),
+        ),
         Divider(height: 1, color: CalcColors.divider(context)),
       ],
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/motion.dart';
 import '../theme/tokens.dart';
 
 class CalcKey extends StatefulWidget {
@@ -102,22 +103,36 @@ class _CalcKeyState extends State<CalcKey> {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: widget.icon != null
-                ? Icon(
-                    widget.icon,
-                    size: widget.fontSize + 2,
-                    color: foreground,
-                  )
-                : Text(
-                    widget.label ?? '',
-                    style: TextStyle(
-                      fontSize: widget.fontSize,
-                      height: 1,
+            child: AnimatedSwitcher(
+              duration: CalcMotion.resolve(context, CalcMotion.fast),
+              switchInCurve: CalcMotion.enter,
+              switchOutCurve: CalcMotion.exit,
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: ScaleTransition(
+                  scale: animation.drive(Tween<double>(begin: 0.9, end: 1)),
+                  child: child,
+                ),
+              ),
+              child: widget.icon != null
+                  ? Icon(
+                      widget.icon,
+                      key: ValueKey(widget.icon),
+                      size: widget.fontSize + 2,
                       color: foreground,
-                      fontWeight: FontWeight.w400,
-                      fontFeatures: CalcText.tabular,
+                    )
+                  : Text(
+                      widget.label ?? '',
+                      key: ValueKey(widget.label),
+                      style: TextStyle(
+                        fontSize: widget.fontSize,
+                        height: 1,
+                        color: foreground,
+                        fontWeight: FontWeight.w400,
+                        fontFeatures: CalcText.tabular,
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
       ),

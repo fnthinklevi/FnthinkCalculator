@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/motion.dart';
 import '../../../theme/tokens.dart';
+import '../../../widgets/motion.dart';
 import '../../../widgets/number_form_field.dart';
 import '../../../widgets/page_header.dart';
 import '../time/time_widgets.dart' show SegmentedTabs;
@@ -185,47 +187,52 @@ class _RatioPageState extends State<RatioPage> {
                   ),
                   if (hasResult) ...[
                     const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: CalcColors.keyBackground(context),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            _tab == 0 ? '分配结果' : '求解结果',
-                            style: TextStyle(fontSize: 15, color: secondary),
-                          ),
-                          const SizedBox(height: 8),
-                          if (_equation != null)
+                    FadeSlideIn(
+                      duration: CalcMotion.standard,
+                      offset: const Offset(0, 0.03),
+                      scale: 0.99,
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: CalcColors.keyBackground(context),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                             Text(
-                              _equation!,
-                              key: const Key('ratio-equation'),
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontFeatures: CalcText.tabular,
+                              _tab == 0 ? '分配结果' : '求解结果',
+                              style: TextStyle(fontSize: 15, color: secondary),
+                            ),
+                            const SizedBox(height: 8),
+                            if (_equation != null)
+                              Text(
+                                _equation!,
+                                key: const Key('ratio-equation'),
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontFeatures: CalcText.tabular,
+                                ),
                               ),
-                            ),
-                          if (_tab == 0) ...[
-                            _ResultRow(
-                              label: 'A 份额',
-                              value: _resultA!,
-                              valueKey: const Key('ratio-result-0'),
-                            ),
-                            _ResultRow(
-                              label: 'B 份额',
-                              value: _resultB!,
-                              valueKey: const Key('ratio-result-1'),
-                            ),
-                          ] else
-                            _ResultRow(
-                              label: 'x',
-                              value: _resultA!,
-                              valueKey: const Key('ratio-result-0'),
-                            ),
-                        ],
+                            if (_tab == 0) ...[
+                              _ResultRow(
+                                label: 'A 份额',
+                                value: _resultA!,
+                                valueKey: const Key('ratio-result-0'),
+                              ),
+                              _ResultRow(
+                                label: 'B 份额',
+                                value: _resultB!,
+                                valueKey: const Key('ratio-result-1'),
+                              ),
+                            ] else
+                              _ResultRow(
+                                label: 'x',
+                                value: _resultA!,
+                                valueKey: const Key('ratio-result-0'),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

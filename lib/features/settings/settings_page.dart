@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/settings_controller.dart';
+import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import 'privacy_policy_page.dart';
 
@@ -287,7 +288,23 @@ class _ChoiceCard extends StatelessWidget {
                 ),
               ),
               if (selected)
-                const Icon(Icons.check, size: 22, color: CalcColors.blue),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: CalcMotion.resolve(context, CalcMotion.standard),
+                  curve: CalcMotion.enter,
+                  builder: (context, value, child) => Opacity(
+                    opacity: value,
+                    child: Transform.scale(
+                      scale: 0.6 + 0.4 * value,
+                      child: child,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.check,
+                    size: 22,
+                    color: CalcColors.blue,
+                  ),
+                ),
             ],
           ),
         ),
@@ -318,7 +335,23 @@ class _ChoiceRow extends StatelessWidget {
           children: [
             Expanded(child: Text(title, style: const TextStyle(fontSize: 17))),
             if (selected)
-              const Icon(Icons.check, size: 20, color: CalcColors.blue),
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0, end: 1),
+                duration: CalcMotion.resolve(context, CalcMotion.standard),
+                curve: CalcMotion.enter,
+                builder: (context, value, child) => Opacity(
+                  opacity: value,
+                  child: Transform.scale(
+                    scale: 0.6 + 0.4 * value,
+                    child: child,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.check,
+                  size: 20,
+                  color: CalcColors.blue,
+                ),
+              ),
           ],
         ),
       ),
