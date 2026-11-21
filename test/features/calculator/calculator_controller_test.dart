@@ -229,6 +229,169 @@ void main() {
     expect(controller.expression, '0');
   });
 
+  test('平方根与立方根以数学符号写入并可整体删除', () {
+    final controller = CalculatorController();
+    controller.inputFunction('sqrt');
+    expect(controller.expression, '√(');
+    controller.inputDigit('9');
+    controller.inputRightParen();
+    expect(controller.expression, '√(9)');
+    expect(controller.previewText, '3');
+    controller.evaluate();
+    expect(controller.mainText, '3');
+
+    controller.clear();
+    controller.inputDigit('2');
+    controller.inputFunction('cbrt');
+    expect(controller.expression, '2×∛(');
+    controller.inputDigit('8');
+    controller.inputRightParen();
+    expect(controller.expression, '2×∛(8)');
+    expect(controller.previewText, '4');
+
+    controller.backspace();
+    expect(controller.expression, '2×∛(8');
+    controller.backspace();
+    expect(controller.expression, '2×∛(');
+    controller.backspace();
+    expect(controller.expression, '2');
+  });
+
+  test('单键组合片段内部不允许落光标', () {
+    final cases =
+        <({String snippet, void Function(CalculatorController) insert})>[
+          (
+            snippet: 'sin(',
+            insert: (controller) => controller.inputFunction('sin'),
+          ),
+          (
+            snippet: '√(',
+            insert: (controller) => controller.inputFunction('sqrt'),
+          ),
+          (
+            snippet: '∛(',
+            insert: (controller) => controller.inputFunction('cbrt'),
+          ),
+          (
+            snippet: '×cos(',
+            insert: (controller) {
+              controller.inputDigit('2');
+              controller.inputFunction('cos');
+            },
+          ),
+          (
+            snippet: '^2',
+            insert: (controller) {
+              controller.inputDigit('2');
+              controller.inputPower(2);
+            },
+          ),
+          (
+            snippet: '×10^',
+            insert: (controller) {
+              controller.inputDigit('2');
+              controller.inputTenPower();
+            },
+          ),
+          (
+            snippet: '×e^',
+            insert: (controller) {
+              controller.inputDigit('2');
+              controller.inputExpPower();
+            },
+          ),
+          (
+            snippet: '×(',
+            insert: (controller) {
+              controller.inputDigit('2');
+              controller.inputLeftParen();
+            },
+          ),
+          (snippet: '0.', insert: (controller) => controller.inputDecimal()),
+          (
+            snippet: '^(-1)',
+            insert: (controller) {
+              controller.inputDigit('2');
+              controller.inputReciprocal();
+            },
+          ),
+          (
+            snippet: '×5',
+            insert: (controller) {
+              controller.inputConstant('pi');
+              controller.inputDigit('5');
+            },
+          ),
+        ];
+
+    for (final entry in cases) {
+      final controller = CalculatorController();
+      entry.insert(controller);
+      final expression = controller.expression;
+      final end = expression.length;
+      final start = end - entry.snippet.length;
+      expect(expression.substring(start), entry.snippet);
+      for (var position = start + 1; position < end; position++) {
+        controller.setCaret(position);
+        expect(
+          controller.caret,
+          end,
+          reason: '${entry.snippet} 的位置 $position 应吸附到片段末端',
+        );
+      }
+      controller.setCaret(start);
+      expect(controller.caret, start);
+      controller.setCaret(end);
+      expect(controller.caret, end);
+    }
+  });
+
+  test('吸附到片段末端后输入与退格保持片段完整', () {
+    final controller = CalculatorController();
+    controller.inputFunction('sqrt');
+    controller.setCaret(1);
+    expect(controller.caret, 2);
+    controller.inputDigit('9');
+    expect(controller.expression, '√(9');
+
+    controller.setCaret(1);
+    expect(controller.caret, 2);
+    controller.backspace();
+    expect(controller.expression, '9');
+  });
+
+  test('结果算式点击片段内部也会吸附到片段末端', () {
+    final controller = CalculatorController();
+    controller.inputFunction('sqrt');
+    controller.inputDigit('9');
+    controller.evaluate();
+    expect(controller.expression, '√(9)');
+
+    controller.editCommittedExpression(caret: 1);
+    expect(controller.isInputMode, isTrue);
+    expect(controller.caret, 2);
+    controller.inputDigit('4');
+    expect(controller.expression, '√(49)');
+    expect(controller.previewText, '7');
+  });
+
+  test('前方文本变化后片段位置同步平移', () {
+    final controller = CalculatorController();
+    controller.inputFunction('sqrt');
+    controller.inputDigit('9');
+    controller.inputFunction('sin');
+    expect(controller.expression, '√(9×sin(');
+
+    controller.setCaret(0);
+    controller.inputDigit('2');
+    expect(controller.expression, '2√(9×sin(');
+
+    controller.setCaret(6);
+    expect(controller.caret, 9);
+    controller.backspace();
+    expect(controller.expression, '2√(9');
+  });
+
   test('结果后退格回到可编辑表达式', () {
     final controller = CalculatorController();
     controller.inputDigit('1');

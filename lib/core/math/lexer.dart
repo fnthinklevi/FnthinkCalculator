@@ -25,6 +25,19 @@ class Lexer {
         tokens.add(Token(TokenType.identifier, 'pi', start, _index));
         continue;
       }
+      if (char == '√' || char == '∛') {
+        final start = _index;
+        _index++;
+        tokens.add(
+          Token(
+            TokenType.identifier,
+            char == '√' ? 'sqrt' : 'cbrt',
+            start,
+            _index,
+          ),
+        );
+        continue;
+      }
       if (_isLetter(char)) {
         tokens.add(_readIdentifier());
         continue;

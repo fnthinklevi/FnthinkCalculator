@@ -80,6 +80,9 @@ class CalculatorController extends ChangeNotifier {
     'reciprocal',
   };
 
+  // 算式里用数学符号代替函数名，插入后作为一个整体片段处理。
+  static const _functionSymbols = {'sqrt': '√', 'cbrt': '∛'};
+
   String get expression => _expression;
   int get caret => _caret;
   CalculatorMode get mode => _mode;
@@ -193,7 +196,7 @@ class CalculatorController extends ChangeNotifier {
   }
 
   void setCaret(int position) {
-    final clamped = position.clamp(0, _expression.length);
+    final clamped = _snapCaret(position);
     if (clamped == _caret) return;
     _caret = clamped;
     notifyListeners();
@@ -204,6 +207,7 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.input) {
       _startFreshInput();
     }
+    _normalizeCaret();
     if (_caret > 0 && _isOperandEndNonDigit(_expression[_caret - 1])) {
       _insertAtCaret('×$digit');
       return;
@@ -224,6 +228,7 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.input) {
       _startFreshInput();
     }
+    _normalizeCaret();
     if (_caret > 0 && _isOperandEndNonDigit(_expression[_caret - 1])) {
       _insertAtCaret('×0.');
       return;
@@ -269,6 +274,7 @@ class CalculatorController extends ChangeNotifier {
       }
       return;
     }
+    _normalizeCaret();
     final index = _caret.clamp(0, _expression.length);
     if (index == 0) {
       if (operator == '−') {
@@ -302,6 +308,7 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.input) {
       _startFreshInput();
     }
+    _normalizeCaret();
     if (_caret > 0 && _isOperandEnd(_expression[_caret - 1])) {
       _insertAtCaret('×(');
     } else {
@@ -313,6 +320,7 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.input || _caret == 0) {
       return;
     }
+    _normalizeCaret();
     var balance = 0;
     for (var index = 0; index < _caret; index++) {
       if (_expression[index] == '(') {
@@ -336,10 +344,12 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.input) {
       _startFreshInput();
     }
+    _normalizeCaret();
+    final label = _functionSymbols[name] ?? name;
     if (_caret > 0 && _isOperandEnd(_expression[_caret - 1])) {
-      _insertAtCaret('×$name(');
+      _insertAtCaret('×$label(');
     } else {
-      _insertAtCaret('$name(');
+      _insertAtCaret('$label(');
     }
   }
 
@@ -353,6 +363,7 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.input) {
       _startFreshInput();
     }
+    _normalizeCaret();
     if (_caret > 0 && _isOperandEnd(_expression[_caret - 1])) {
       _insertAtCaret('×$symbol');
     } else {
@@ -363,6 +374,7 @@ class CalculatorController extends ChangeNotifier {
   void inputPostfix(String postfix) {
     if (postfix != '%' && postfix != '!') return;
     if (_mode != CalculatorMode.input || _caret == 0) return;
+    _normalizeCaret();
     if (!_isOperandEnd(_expression[_caret - 1])) return;
     _insertAtCaret(postfix);
   }
@@ -385,6 +397,7 @@ class CalculatorController extends ChangeNotifier {
       return;
     }
     if (_mode != CalculatorMode.input || _caret == 0) return;
+    _normalizeCaret();
     if (!_isOperandEnd(_expression[_caret - 1])) return;
     _insertAtCaret('^(-1)');
   }
@@ -394,6 +407,7 @@ class CalculatorController extends ChangeNotifier {
       inputOperator('^');
       return;
     }
+    _normalizeCaret();
     if (_caret == 0 || !_isOperandEnd(_expression[_caret - 1])) return;
     _insertAtCaret('^$exponent');
   }
@@ -402,6 +416,7 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.input) {
       _startFreshInput();
     }
+    _normalizeCaret();
     if (_caret > 0 && _isOperandEnd(_expression[_caret - 1])) {
       _insertAtCaret('×10^');
     } else {
@@ -413,6 +428,7 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.input) {
       _startFreshInput();
     }
+    _normalizeCaret();
     if (_caret > 0 && _isOperandEnd(_expression[_caret - 1])) {
       _insertAtCaret('×e^');
     } else {
@@ -425,7 +441,7 @@ class CalculatorController extends ChangeNotifier {
     if (_mode != CalculatorMode.result) return;
     _mode = CalculatorMode.input;
     _expression = _committedExpression;
-    _caret = (caret ?? _expression.length).clamp(0, _expression.length);
+    _caret = _snapCaret(caret ?? _expression.length);
     _result = null;
     _error = null;
     _uppercaseVisible = false;
@@ -443,6 +459,7 @@ class CalculatorController extends ChangeNotifier {
       _mode = CalculatorMode.input;
       _error = null;
     }
+    _normalizeCaret();
     if (_expression.isEmpty) return;
     final index = _caret.clamp(0, _expression.length);
     if (index == 0) return;
@@ -566,6 +583,7 @@ class CalculatorController extends ChangeNotifier {
 
   void _insertAtCaret(String text) {
     final index = _caret.clamp(0, _expression.length);
+    assert(_snapCaret(index) == index, '插入位置不能落在组合片段内部');
     _replaceExpressionRange(index, index, text);
     _caret = index + text.length;
     if (text.length > 1) {
@@ -600,6 +618,22 @@ class CalculatorController extends ChangeNotifier {
       if (token.end == index) return token;
     }
     return null;
+  }
+
+  // 组合片段是原子单位：光标落入片段内部时贴到片段右端，
+  // 避免函数名被拆开、或被退格只删掉一个字母。
+  int _snapCaret(int position) {
+    final clamped = position.clamp(0, _expression.length);
+    for (final token in _tokens) {
+      if (clamped > token.start && clamped < token.end) {
+        return token.end;
+      }
+    }
+    return clamped;
+  }
+
+  void _normalizeCaret() {
+    _caret = _snapCaret(_caret);
   }
 
   void _afterEdit() {

@@ -122,6 +122,9 @@ void main() {
       expectText('ln(2)', '0.69314718056', approximate: true);
       expectText('log(100)', '2');
       expectText('sqrt(9)', '3', approximate: false);
+      expectText('√(9)', '3', approximate: false);
+      expectText('∛(27)', '3', approximate: false);
+      expectText('2×√(9)', '6', approximate: false);
       expectText('cbrt(-27)', '-3');
       expectText('exp(0)', '1', approximate: false);
       expectText('abs(-3)', '3', approximate: false);

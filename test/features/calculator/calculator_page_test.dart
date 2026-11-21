@@ -149,6 +149,27 @@ void main() {
     );
   });
 
+  testWidgets('平方根键写入根号符号并求值', (tester) async {
+    configureSurface(tester);
+    final controller = CalculatorController();
+    await tester.pumpWidget(harness(controller));
+
+    await tapKey(tester, 'key-scientific');
+    await tapKey(tester, 'sci-sqrt');
+    expect(controller.expression, '√(');
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-input-text'))).data,
+      '√(',
+    );
+
+    await tapKey(tester, 'key-9');
+    await tapKey(tester, 'key-equals');
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-result-text'))).data,
+      '3',
+    );
+  });
+
   testWidgets('历史记录页可打开并复用', (tester) async {
     configureSurface(tester);
     final controller = CalculatorController();
