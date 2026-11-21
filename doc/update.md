@@ -17,6 +17,25 @@
 
 ---
 
+## 0.3.03+11（2026-11-21 发布，tag `v0.3.03`）
+
+当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator_0.3.03.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.9MB。
+- SHA-256：`04c39d1480b63a3767e47eecf1ae98d780c3687b5437fbc3ae7245e12dea17d4`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：285 项 Flutter 测试 + 12 项 Android 组件单元测试全绿；`tool/check_apk_purity.sh` 通过。
+
+### 2026-11-21 发布 0.3.03+11
+
+- 结果态点击上方小字算式可继续编辑：算式放大为主输入字号，光标落在点击位置并闪烁，原结果降为下方预览行，改完可直接重新计算；结果态按退格也复用同一入口。
+- 修复 `1/x` 倒数键提示「未知函数」：解析器函数白名单补齐 `reciprocal`，倒数可正常预览与求值（0 的倒数仍提示不能除以0）。
+- 退格整体删除单键写入的组合片段：函数名连同左括号（如 `cos(`、`2×cos(`）、`x²`/`x³`、`10ˣ`、`eˣ`、`×(`、`0.` 等一次删除；手动逐字输入的相同文本仍逐字符删除。
+- 维护：`base.md` 与 `xiaomi-reference.md` 同步上述交互说明。
+- 闸门：格式检查、`flutter analyze`、285 项 Flutter 测试、12 项 Android 单元测试通过；签名纯 arm64 19.9MB；SHA-256 `04c39d1480b63a3767e47eecf1ae98d780c3687b5437fbc3ae7245e12dea17d4`；`PURITY CHECK PASSED`。
+- 模拟器：`ci_api34_pixel6`（API 34 / 1080×2400）integration smoke 通过；发行 APK 安装成功，`versionName=0.3.03`、`versionCode=11`；亮色验证 `1+2=3`、点击结果算式放大编辑并显示预览、`1/x` 倒数求值、退格整删 `reciprocal(` 片段；深色模式走查无溢出；模拟器已关闭，真机未安装。
+
 ## 0.3.02+10（2026-11-14 发布，tag `v0.3.02`）
 
 当前构建：
