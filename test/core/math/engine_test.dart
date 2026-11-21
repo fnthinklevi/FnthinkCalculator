@@ -53,6 +53,7 @@ void main() {
       expectText('0^0', '1');
       expectText('2^3!', '64');
       expectText('3!^2', '36');
+      expectText('4^(-1)', '0.25', approximate: false);
     });
 
     test('factorial', () {

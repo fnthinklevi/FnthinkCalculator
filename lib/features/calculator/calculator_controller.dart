@@ -367,6 +367,28 @@ class CalculatorController extends ChangeNotifier {
     _insertAtCaret(postfix);
   }
 
+  // 1/x 以 ^(-1) 后缀写入当前操作数，与小米计算器保持一致。
+  void inputReciprocal() {
+    if (_mode == CalculatorMode.result) {
+      _expression = '${_result!.rawText}^(-1)';
+      _caret = _expression.length;
+      _mode = CalculatorMode.input;
+      _committedExpression = '';
+      _preview = null;
+      _error = null;
+      _result = null;
+      _uppercaseVisible = false;
+      _caretBlinking = false;
+      _tokens.clear();
+      _refreshPreview();
+      notifyListeners();
+      return;
+    }
+    if (_mode != CalculatorMode.input || _caret == 0) return;
+    if (!_isOperandEnd(_expression[_caret - 1])) return;
+    _insertAtCaret('^(-1)');
+  }
+
   void inputPower(int exponent) {
     if (exponent != 2 && exponent != 3) {
       inputOperator('^');

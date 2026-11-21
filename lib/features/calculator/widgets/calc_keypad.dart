@@ -552,9 +552,7 @@ class _ScientificKeypad extends StatelessWidget {
               id: 'sci-reciprocal',
               semantic: '倒数',
               label: '1/x',
-              onPressed: () {
-                controller.inputFunction('reciprocal');
-              },
+              onPressed: controller.inputReciprocal,
             ),
             key(
               id: 'key-4',

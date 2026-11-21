@@ -127,6 +127,28 @@ void main() {
     expect(result.data, contains('0.5'));
   });
 
+  testWidgets('1/x 键以 ^(-1) 显示并求值', (tester) async {
+    configureSurface(tester);
+    final controller = CalculatorController();
+    await tester.pumpWidget(harness(controller));
+
+    await tapKey(tester, 'key-scientific');
+    await tapKey(tester, 'key-4');
+    await tapKey(tester, 'sci-reciprocal');
+
+    expect(controller.expression, '4^(-1)');
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-preview-text'))).data,
+      '= 0.25',
+    );
+
+    await tapKey(tester, 'key-equals');
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-result-text'))).data,
+      '0.25',
+    );
+  });
+
   testWidgets('历史记录页可打开并复用', (tester) async {
     configureSurface(tester);
     final controller = CalculatorController();

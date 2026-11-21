@@ -288,15 +288,29 @@ void main() {
     expect(controller.mainApproximate, isTrue);
   });
 
-  test('1/x 倒数键可正常求值', () {
+  test('1/x 倒数键以 ^(-1) 后缀显示', () {
     final controller = CalculatorController();
     controller.inputDigit('4');
-    controller.inputFunction('reciprocal');
-    controller.inputDigit('4');
+    controller.inputReciprocal();
+    expect(controller.expression, '4^(-1)');
+    expect(controller.previewText, '0.25');
+
+    controller.backspace();
+    expect(controller.expression, '4');
+
+    controller.inputReciprocal();
     controller.evaluate();
     expect(controller.isResultMode, isTrue);
-    expect(controller.expression, '4×reciprocal(4)');
-    expect(controller.mainText, '1');
+    expect(controller.mainText, '0.25');
+
+    controller.inputReciprocal();
+    expect(controller.isInputMode, isTrue);
+    expect(controller.expression, '0.25^(-1)');
+    expect(controller.previewText, '4');
+
+    controller.clear();
+    controller.inputReciprocal();
+    expect(controller.expression, '');
   });
 
   test('历史复用', () {
