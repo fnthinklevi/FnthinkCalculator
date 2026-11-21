@@ -17,6 +17,24 @@
 
 ---
 
+## 0.3.05+13（2026-11-21 发布，tag `v0.3.05`）
+
+当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator_0.3.05.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.9MB。
+- SHA-256：`2f7d501f47a98cdaab8c380f51bc95303cee9b2f78e0fe4594d221b097361232`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：292 项 Flutter 测试 + 12 项 Android 组件单元测试全绿；`tool/check_apk_purity.sh` 通过。
+
+### 2026-11-21 发布 0.3.05+13
+
+- 修复点击算式中的函数片段（`sin(`、`√(`、`^(-1)`、`×10^` 等）内部可落光标、退格只删一个字母的问题：片段改为原子单位，点击片段内部光标吸附到片段右端，所有输入入口统一归一光标，退格整体删除片段。
+- 平方根/立方根键改为以 `√(`、`∛(` 数学符号写入算式，解析器同时兼容 `√(9)` 与 `sqrt(9)`。
+- 维护：`base.md` 与 `xiaomi-reference.md` 同步片段原子性与根号显示规则。
+- 闸门：格式检查、`flutter analyze`、292 项 Flutter 测试、12 项 Android 单元测试通过；签名纯 arm64 19.9MB；SHA-256 `2f7d501f47a98cdaab8c380f51bc95303cee9b2f78e0fe4594d221b097361232`；`PURITY CHECK PASSED`。
+- 模拟器：`ci_api34_pixel6`（API 34 / 1080×2400）integration smoke 通过；发行 APK 安装成功，`versionName=0.3.05`、`versionCode=13`；亮色验证 `4` + `√x` + `9` 显示 `4×√(9` 且预览 `= 12`，点击根号内部光标吸附到 `√(` 右侧，退格一次整体删除片段得到 `49`；深色模式走查无溢出；模拟器已关闭，真机未安装。
+
 ## 0.3.04+12（2026-11-21 发布，tag `v0.3.04`）
 
 当前构建：
