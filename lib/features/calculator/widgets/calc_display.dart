@@ -106,6 +106,7 @@ class CalcDisplay extends StatelessWidget {
         child: CaretText(
           text: controller.expression,
           caret: controller.caret,
+          blink: controller.caretBlinking,
           color: color,
           textKey: const Key('calc-input-text'),
           onCaretChanged: controller.setCaret,
@@ -135,17 +136,18 @@ class CalcDisplay extends StatelessWidget {
           if (expression.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 2),
-              child: Text(
-                expression,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.right,
+              child: _CommittedExpressionLine(
+                expression: expression,
                 style: TextStyle(
                   fontSize: 24,
                   height: 1.2,
                   color: secondary,
                   fontFeatures: CalcText.tabular,
                 ),
+                onTapIndex: isError
+                    ? null
+                    : (index) =>
+                          controller.editCommittedExpression(caret: index),
               ),
             ),
           SizedBox(
@@ -205,7 +207,71 @@ class _HistoryLine extends StatelessWidget {
   }
 }
 
-class CaretText extends StatelessWidget {
+class _CommittedExpressionLine extends StatelessWidget {
+  const _CommittedExpressionLine({
+    required this.expression,
+    required this.style,
+    required this.onTapIndex,
+  });
+
+  final String expression;
+  final TextStyle style;
+  final ValueChanged<int>? onTapIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    final textScaler = MediaQuery.textScalerOf(context);
+    final callback = onTapIndex;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final painter = TextPainter(
+          text: TextSpan(text: expression, style: style),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+          ellipsis: '…',
+          textScaler: textScaler,
+        )..layout(maxWidth: constraints.maxWidth);
+        final left = constraints.maxWidth - painter.width;
+        final text = SizedBox(
+          width: constraints.maxWidth,
+          height: painter.height,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              expression,
+              key: const Key('calc-committed-expression'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: style,
+            ),
+          ),
+        );
+        if (callback == null) return text;
+        return Semantics(
+          button: true,
+          label: '编辑算式 $expression',
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (details) {
+              final dx = (details.localPosition.dx - left).clamp(
+                0.0,
+                painter.width,
+              );
+              final position = painter.getPositionForOffset(
+                Offset(dx, details.localPosition.dy),
+              );
+              callback(position.offset.clamp(0, expression.length));
+            },
+            child: text,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class CaretText extends StatefulWidget {
   const CaretText({
     super.key,
     required this.text,
@@ -213,6 +279,7 @@ class CaretText extends StatelessWidget {
     required this.onCaretChanged,
     required this.color,
     this.textKey,
+    this.blink = false,
   });
 
   final String text;
@@ -220,15 +287,53 @@ class CaretText extends StatelessWidget {
   final ValueChanged<int> onCaretChanged;
   final Color color;
   final Key? textKey;
+  final bool blink;
+
+  @override
+  State<CaretText> createState() => _CaretTextState();
+}
+
+class _CaretTextState extends State<CaretText>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _blinkController;
+
+  @override
+  void initState() {
+    super.initState();
+    _blinkController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    if (widget.blink) {
+      _blinkController.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(CaretText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.blink == oldWidget.blink) return;
+    if (widget.blink) {
+      _blinkController.repeat();
+    } else {
+      _blinkController.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _blinkController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final display = text.isEmpty ? '0' : text;
+    final display = widget.text.isEmpty ? '0' : widget.text;
     final baseStyle = TextStyle(
       fontSize: CalcText.expression,
       height: 1.08,
       fontWeight: FontWeight.w400,
-      color: color,
+      color: widget.color,
       fontFeatures: CalcText.tabular,
     );
 
@@ -261,13 +366,29 @@ class CaretText extends StatelessWidget {
         final style = baseStyle.copyWith(fontSize: fontSize);
         final textWidth = painter.width;
         final left = constraints.maxWidth - textWidth;
-        final caretIndex = text.isEmpty
+        final caretIndex = widget.text.isEmpty
             ? display.length
-            : caret.clamp(0, display.length);
+            : widget.caret.clamp(0, display.length);
         final caretOffset = painter.getOffsetForCaret(
           TextPosition(offset: caretIndex),
           Rect.zero,
         );
+
+        Widget caret = Container(
+          width: 4,
+          height: fontSize * 0.94,
+          color: CalcColors.orange,
+        );
+        if (widget.blink) {
+          caret = AnimatedBuilder(
+            animation: _blinkController,
+            builder: (context, child) => Opacity(
+              opacity: _blinkController.value < 0.5 ? 1 : 0,
+              child: child,
+            ),
+            child: caret,
+          );
+        }
 
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -276,7 +397,7 @@ class CaretText extends StatelessWidget {
             final position = painter.getPositionForOffset(
               Offset(dx, details.localPosition.dy),
             );
-            onCaretChanged(position.offset.clamp(0, text.length));
+            widget.onCaretChanged(position.offset.clamp(0, widget.text.length));
           },
           child: SizedBox(
             width: constraints.maxWidth,
@@ -289,7 +410,7 @@ class CaretText extends StatelessWidget {
                   top: 0,
                   child: Text(
                     display,
-                    key: textKey,
+                    key: widget.textKey,
                     maxLines: 1,
                     softWrap: false,
                     style: style,
@@ -301,11 +422,7 @@ class CaretText extends StatelessWidget {
                     constraints.maxWidth - 4,
                   ),
                   top: caretOffset.dy + fontSize * 0.06,
-                  child: Container(
-                    width: 4,
-                    height: fontSize * 0.94,
-                    color: CalcColors.orange,
-                  ),
+                  child: caret,
                 ),
               ],
             ),

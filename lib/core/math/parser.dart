@@ -22,6 +22,7 @@ class Parser {
     'cbrt',
     'abs',
     'exp',
+    'reciprocal',
   };
 
   Expr parse() {

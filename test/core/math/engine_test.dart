@@ -124,6 +124,8 @@ void main() {
       expectText('cbrt(-27)', '-3');
       expectText('exp(0)', '1', approximate: false);
       expectText('abs(-3)', '3', approximate: false);
+      expectText('reciprocal(4)', '0.25', approximate: true);
+      expectText('4×reciprocal(4)', '1', approximate: false);
       expectText('sqrt(2)^2', '2', approximate: true);
     });
 

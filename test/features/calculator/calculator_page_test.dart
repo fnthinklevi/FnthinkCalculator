@@ -200,6 +200,38 @@ void main() {
     );
   });
 
+  testWidgets('点击结果算式可放大编辑并闪烁光标', (tester) async {
+    configureSurface(tester);
+    final controller = CalculatorController();
+    await tester.pumpWidget(harness(controller));
+
+    await tapKey(tester, 'key-9');
+    await tapKey(tester, 'key-multiply');
+    await tapKey(tester, 'key-9');
+    await tapKey(tester, 'key-equals');
+
+    final expressionFinder = find.byKey(
+      const Key('calc-committed-expression'),
+    );
+    expect(expressionFinder, findsOneWidget);
+    expect(tester.widget<Text>(expressionFinder).data, '9×9');
+
+    await tester.tap(expressionFinder);
+    await tester.pump();
+
+    expect(controller.isInputMode, isTrue);
+    expect(controller.caretBlinking, isTrue);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-input-text'))).data,
+      '9×9',
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const Key('calc-preview-text'))).data,
+      '= 81',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('长按显示区可转换为大写金额', (tester) async {
     configureSurface(tester);
     final controller = CalculatorController();

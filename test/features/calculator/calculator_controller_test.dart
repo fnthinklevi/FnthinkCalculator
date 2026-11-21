@@ -149,6 +149,86 @@ void main() {
     expect(controller.clearLabel, 'AC');
   });
 
+  test('退格整体删除函数名与左括号', () {
+    final controller = CalculatorController();
+    controller.inputFunction('cos');
+    expect(controller.expression, 'cos(');
+    controller.backspace();
+    expect(controller.expression, '');
+
+    controller.inputDigit('2');
+    controller.inputFunction('asin');
+    expect(controller.expression, '2×asin(');
+    controller.inputDigit('1');
+    controller.backspace();
+    expect(controller.expression, '2×asin(');
+    controller.backspace();
+    expect(controller.expression, '2');
+  });
+
+  test('退格整体删除其他单键输入的组合片段', () {
+    final controller = CalculatorController();
+    controller.inputDigit('5');
+    controller.inputPower(2);
+    expect(controller.expression, '5^2');
+    controller.backspace();
+    expect(controller.expression, '5');
+
+    controller.inputOperator('^');
+    controller.inputDigit('2');
+    expect(controller.expression, '5^2');
+    controller.backspace();
+    expect(controller.expression, '5^');
+
+    controller.clear();
+    controller.inputDigit('2');
+    controller.inputTenPower();
+    expect(controller.expression, '2×10^');
+    controller.backspace();
+    expect(controller.expression, '2');
+
+    controller.inputExpPower();
+    expect(controller.expression, '2×e^');
+    controller.backspace();
+    expect(controller.expression, '2');
+
+    controller.inputLeftParen();
+    expect(controller.expression, '2×(');
+    controller.backspace();
+    expect(controller.expression, '2');
+
+    controller.clear();
+    controller.inputConstant('pi');
+    controller.inputDecimal();
+    expect(controller.expression, 'π×0.');
+    controller.backspace();
+    expect(controller.expression, 'π');
+
+    controller.clear();
+    controller.inputDecimal();
+    expect(controller.expression, '0.');
+    controller.backspace();
+    expect(controller.expression, '');
+  });
+
+  test('手动输入的幂与小数仍逐字符删除', () {
+    final controller = CalculatorController();
+    controller.inputDigit('2');
+    controller.inputOperator('^');
+    controller.inputDigit('2');
+    controller.backspace();
+    expect(controller.expression, '2^');
+    controller.backspace();
+    expect(controller.expression, '2');
+
+    controller.clear();
+    controller.inputDigit('0');
+    controller.inputDecimal();
+    expect(controller.expression, '0.');
+    controller.backspace();
+    expect(controller.expression, '0');
+  });
+
   test('结果后退格回到可编辑表达式', () {
     final controller = CalculatorController();
     controller.inputDigit('1');
@@ -159,6 +239,28 @@ void main() {
     expect(controller.isInputMode, isTrue);
     expect(controller.expression, '1+2');
     expect(controller.previewText, '3');
+  });
+
+  test('结果算式可按点击位置继续编辑', () {
+    final controller = CalculatorController();
+    controller.inputDigit('1');
+    controller.inputOperator('+');
+    controller.inputDigit('2');
+    controller.evaluate();
+    expect(controller.caretBlinking, isFalse);
+
+    controller.editCommittedExpression(caret: 1);
+    expect(controller.isInputMode, isTrue);
+    expect(controller.expression, '1+2');
+    expect(controller.caret, 1);
+    expect(controller.previewText, '3');
+    expect(controller.caretBlinking, isTrue);
+
+    controller.inputDigit('9');
+    expect(controller.expression, '19+2');
+
+    controller.evaluate();
+    expect(controller.caretBlinking, isFalse);
   });
 
   test('错误态可恢复', () {
@@ -184,6 +286,17 @@ void main() {
     expect(controller.expression, 'sin(30)');
     expect(controller.mainText, '0.5');
     expect(controller.mainApproximate, isTrue);
+  });
+
+  test('1/x 倒数键可正常求值', () {
+    final controller = CalculatorController();
+    controller.inputDigit('4');
+    controller.inputFunction('reciprocal');
+    controller.inputDigit('4');
+    controller.evaluate();
+    expect(controller.isResultMode, isTrue);
+    expect(controller.expression, '4×reciprocal(4)');
+    expect(controller.mainText, '1');
   });
 
   test('历史复用', () {

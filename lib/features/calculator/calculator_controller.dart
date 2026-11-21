@@ -60,6 +60,9 @@ class CalculatorController extends ChangeNotifier {
   bool _scientificVisible = false;
   bool _second = false;
   bool _uppercaseVisible = false;
+  bool _caretBlinking = false;
+  // 由单个按键一次写入的组合片段（如 cos(、×10^、^2、0.），退格时整体删除。
+  final List<_AtomicToken> _tokens = [];
 
   static const _functions = {
     'sin',
@@ -124,6 +127,9 @@ class CalculatorController extends ChangeNotifier {
   bool get canConvertToUppercase => activeFormatted != null;
 
   bool get uppercaseVisible => _uppercaseVisible;
+
+  // 仅“点击结果算式继续编辑”这类会话使用闪烁光标，普通输入保持常亮。
+  bool get caretBlinking => _caretBlinking;
 
   String get uppercaseText {
     if (!_uppercaseVisible) return '';
@@ -206,7 +212,7 @@ class CalculatorController extends ChangeNotifier {
     final currentNumber = _expression.substring(numberStart, _caret);
     if (currentNumber == '0') {
       if (digit == '0') return;
-      _expression = _expression.replaceRange(numberStart, _caret, digit);
+      _replaceExpressionRange(numberStart, _caret, digit);
       _caret = numberStart + digit.length;
       _afterEdit();
       return;
@@ -252,6 +258,8 @@ class CalculatorController extends ChangeNotifier {
       final base = _result!.rawText;
       _expression = '$base$operator';
       _caret = _expression.length;
+      _caretBlinking = false;
+      _tokens.clear();
       _afterEdit();
       return;
     }
@@ -390,16 +398,23 @@ class CalculatorController extends ChangeNotifier {
     }
   }
 
+  // 结果态点击算式（或按退格）回到输入态，放大算式并显示预览结果。
+  void editCommittedExpression({int? caret}) {
+    if (_mode != CalculatorMode.result) return;
+    _mode = CalculatorMode.input;
+    _expression = _committedExpression;
+    _caret = (caret ?? _expression.length).clamp(0, _expression.length);
+    _result = null;
+    _error = null;
+    _uppercaseVisible = false;
+    _caretBlinking = true;
+    _refreshPreview();
+    notifyListeners();
+  }
+
   void backspace() {
     if (_mode == CalculatorMode.result) {
-      _mode = CalculatorMode.input;
-      _expression = _committedExpression;
-      _caret = _expression.length;
-      _result = null;
-      _error = null;
-      _uppercaseVisible = false;
-      _refreshPreview();
-      notifyListeners();
+      editCommittedExpression();
       return;
     }
     if (_mode == CalculatorMode.error) {
@@ -409,8 +424,10 @@ class CalculatorController extends ChangeNotifier {
     if (_expression.isEmpty) return;
     final index = _caret.clamp(0, _expression.length);
     if (index == 0) return;
-    _expression = _expression.replaceRange(index - 1, index, '');
-    _caret = index - 1;
+    final token = _tokenEndingAt(index);
+    final start = token?.start ?? index - 1;
+    _replaceExpressionRange(start, index, '');
+    _caret = start;
     _result = null;
     _committedExpression = '';
     _uppercaseVisible = false;
@@ -427,6 +444,8 @@ class CalculatorController extends ChangeNotifier {
     _error = null;
     _result = null;
     _uppercaseVisible = false;
+    _caretBlinking = false;
+    _tokens.clear();
     notifyListeners();
   }
 
@@ -447,6 +466,7 @@ class CalculatorController extends ChangeNotifier {
       _preview = null;
       _result = null;
       _error = error;
+      _caretBlinking = false;
       notifyListeners();
       return;
     }
@@ -458,6 +478,7 @@ class CalculatorController extends ChangeNotifier {
     _preview = null;
     _error = null;
     _result = formatted;
+    _caretBlinking = false;
     _history.insert(
       0,
       HistoryEntry(
@@ -482,6 +503,8 @@ class CalculatorController extends ChangeNotifier {
     _committedExpression = '';
     _result = null;
     _error = null;
+    _caretBlinking = false;
+    _tokens.clear();
     _refreshPreview();
     notifyListeners();
   }
@@ -515,21 +538,46 @@ class CalculatorController extends ChangeNotifier {
     _error = null;
     _result = null;
     _uppercaseVisible = false;
+    _caretBlinking = false;
+    _tokens.clear();
   }
 
   void _insertAtCaret(String text) {
     final index = _caret.clamp(0, _expression.length);
-    _expression = _expression.replaceRange(index, index, text);
+    _replaceExpressionRange(index, index, text);
     _caret = index + text.length;
+    if (text.length > 1) {
+      _tokens.add(_AtomicToken(index, index + text.length));
+    }
     _afterEdit();
   }
 
   void _replaceBeforeCaret(String text) {
     final index = _caret.clamp(0, _expression.length);
     if (index == 0) return;
-    _expression = _expression.replaceRange(index - 1, index, text);
+    _replaceExpressionRange(index - 1, index, text);
     _caret = index - 1 + text.length;
     _afterEdit();
+  }
+
+  // 统一文本替换入口：同步维护已插入片段的位置，被编辑覆盖的片段失去整体删除语义。
+  void _replaceExpressionRange(int start, int end, String replacement) {
+    final delta = replacement.length - (end - start);
+    _tokens.removeWhere((token) => start < token.end && end > token.start);
+    for (final token in _tokens) {
+      if (token.start >= end) {
+        token.start += delta;
+        token.end += delta;
+      }
+    }
+    _expression = _expression.replaceRange(start, end, replacement);
+  }
+
+  _AtomicToken? _tokenEndingAt(int index) {
+    for (final token in _tokens) {
+      if (token.end == index) return token;
+    }
+    return null;
   }
 
   void _afterEdit() {
@@ -593,4 +641,11 @@ class CalculatorController extends ChangeNotifier {
         char == 'π' ||
         char == 'e';
   }
+}
+
+class _AtomicToken {
+  _AtomicToken(this.start, this.end);
+
+  int start;
+  int end;
 }
