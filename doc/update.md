@@ -17,6 +17,24 @@
 
 ---
 
+## 0.3.04+12（2026-11-21 发布，tag `v0.3.04`）
+
+当前构建：
+
+- 平台：Android，纯 arm64-v8a。
+- APK：`build/release/FnthinkCalculator_0.3.04.apk`（构建输出：`build/app/outputs/flutter-apk/app-release.apk`），19.9MB。
+- SHA-256：`3e44797f1aac1259a30562df97c2ae7a6cc1cad320f89709836dcb6d9dd2e194`
+- 签名：真实 keystore（`CN=fnthinklevi`），非 debug。
+- 测试：286 项 Flutter 测试 + 12 项 Android 组件单元测试全绿；`tool/check_apk_purity.sh` 通过。
+
+### 2026-11-21 发布 0.3.04+12
+
+- `1/x` 倒数键改为 `^(-1)` 后缀写法：输入 `4` 后按 `1/x` 显示 `4^(-1)`，预览 `= 0.25`；结果态按 `1/x` 对结果继续求倒数（如 `0.25` → `0.25^(-1)` → `4`）。
+- `^(-1)` 作为整体片段，退格一次删除；无操作数（空表达式或以运算符结尾）时不写入。
+- 维护：`base.md` 与 `xiaomi-reference.md` 同步 1/x 显示规则。
+- 闸门：格式检查、`flutter analyze`、286 项 Flutter 测试、12 项 Android 单元测试通过；签名纯 arm64 19.9MB；SHA-256 `3e44797f1aac1259a30562df97c2ae7a6cc1cad320f89709836dcb6d9dd2e194`；`PURITY CHECK PASSED`。
+- 模拟器：`ci_api34_pixel6`（API 34 / 1080×2400）integration smoke 通过；发行 APK 安装成功，`versionName=0.3.04`、`versionCode=12`；亮色验证 `4` + `1/x` 显示 `4^(-1)` 且预览 `= 0.25`、按等号得到 `0.25`；深色模式走查无溢出；模拟器已关闭，真机未安装。
+
 ## 0.3.03+11（2026-11-21 发布，tag `v0.3.03`）
 
 当前构建：
