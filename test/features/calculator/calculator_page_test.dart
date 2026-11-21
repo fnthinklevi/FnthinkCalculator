@@ -210,9 +210,7 @@ void main() {
     await tapKey(tester, 'key-9');
     await tapKey(tester, 'key-equals');
 
-    final expressionFinder = find.byKey(
-      const Key('calc-committed-expression'),
-    );
+    final expressionFinder = find.byKey(const Key('calc-committed-expression'));
     expect(expressionFinder, findsOneWidget);
     expect(tester.widget<Text>(expressionFinder).data, '9×9');
 
